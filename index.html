@@ -785,10 +785,15 @@
                 </div>
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 4px;">
                   <button type="submit" class="btn btn-primary" style="padding: 8px 18px; font-size: 0.85rem;">Save Cloud Connection</button>
+                  <button type="button" id="admin-test-db-btn" class="btn btn-secondary" style="padding: 8px 14px; font-size: 0.85rem;">Test Connection & Tables 🩺</button>
                   <button type="button" id="admin-supabase-disconnect-btn" class="action-btn delete" style="padding: 8px 14px; font-size: 0.85rem;">Disconnect Cloud</button>
                   <span id="supabase-save-status" style="font-size: 0.8rem; color: var(--accent-cyan); display: none;">✓ Connected & Saved!</span>
                 </div>
               </form>
+
+              <!-- Diagnostic Health Report Container -->
+              <div id="admin-db-health-box" style="display: none; margin-top: 16px; padding: 14px; background: rgba(0,0,0,0.35); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); font-size: 0.83rem;">
+              </div>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">

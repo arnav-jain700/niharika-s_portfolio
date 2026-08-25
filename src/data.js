@@ -256,6 +256,91 @@ function saveToStorage() {
   }
 }
 
+// --- Data Normalization Helpers (Fix PostgreSQL lowercase key compatibility) ---
+function normalizeSettings(s) {
+  if (!s) return DEFAULT_DATA.settings;
+  return {
+    id: 'main_settings',
+    ownerName: s.ownerName ?? s.ownername ?? DEFAULT_DATA.settings.ownerName,
+    ownerBio: s.ownerBio ?? s.ownerbio ?? DEFAULT_DATA.settings.ownerBio,
+    email: s.email ?? DEFAULT_DATA.settings.email,
+    location: s.location ?? DEFAULT_DATA.settings.location,
+    linkedin: s.linkedin ?? DEFAULT_DATA.settings.linkedin,
+    github: s.github ?? DEFAULT_DATA.settings.github,
+    codolio: s.codolio ?? DEFAULT_DATA.settings.codolio,
+    medium: s.medium ?? DEFAULT_DATA.settings.medium,
+    groqKey: s.groqKey ?? s.groqkey ?? '',
+    geminiKey: s.geminiKey ?? s.geminikey ?? '',
+    categories: Array.isArray(s.categories) ? s.categories : (typeof s.categories === 'string' ? JSON.parse(s.categories || '[]') : DEFAULT_DATA.settings.categories)
+  };
+}
+
+function normalizeProject(p) {
+  if (!p) return null;
+  return {
+    id: p.id,
+    title: p.title || '',
+    category: p.category || 'General',
+    description: p.description || '',
+    tags: Array.isArray(p.tags) ? p.tags : (typeof p.tags === 'string' ? JSON.parse(p.tags || '[]') : []),
+    githubUrl: p.githubUrl ?? p.githuburl ?? '',
+    liveUrl: p.liveUrl ?? p.liveurl ?? '',
+    image: p.image || ''
+  };
+}
+
+function normalizeTimeline(t) {
+  if (!t) return null;
+  return {
+    id: t.id,
+    title: t.title || '',
+    company: t.company || '',
+    role: t.role || '',
+    dateRange: t.dateRange ?? t.daterange ?? '',
+    type: t.type || 'experience',
+    description: t.description || ''
+  };
+}
+
+function normalizeCertificate(c) {
+  if (!c) return null;
+  return {
+    id: c.id,
+    title: c.title || '',
+    issuer: c.issuer || '',
+    date: c.date || '',
+    credentialUrl: c.credentialUrl ?? c.credentialurl ?? '',
+    skills: c.skills || '',
+    image: c.image || ''
+  };
+}
+
+function normalizeAchievement(a) {
+  if (!a) return null;
+  return {
+    id: a.id,
+    title: a.title || '',
+    category: a.category || 'General',
+    highlight: a.highlight || '',
+    organization: a.organization || '',
+    date: a.date || '',
+    link: a.link || '',
+    image: a.image || '',
+    description: a.description || ''
+  };
+}
+
+function normalizeTechStack(s) {
+  if (!s) return null;
+  return {
+    id: s.id,
+    name: s.name || '',
+    category: s.category || 'General',
+    level: typeof s.level === 'number' ? s.level : parseInt(s.level || 80),
+    icon: s.icon || 'icon-code'
+  };
+}
+
 // Background Cloud Sync
 export async function syncWithCloud() {
   const supabase = getSupabase();
@@ -271,28 +356,34 @@ export async function syncWithCloud() {
       .single();
 
     if (!setErr && cloudSettings) {
-      local.settings = { ...local.settings, ...cloudSettings };
+      local.settings = normalizeSettings(cloudSettings);
     } else if (setErr && setErr.code === 'PGRST116') {
       // Table is empty, upload initial local settings
       await supabase.from('portfolio_settings').upsert([local.settings]);
+    } else if (setErr) {
+      console.warn('Supabase fetch error for portfolio_settings:', setErr);
     }
 
     // 2. Sync Collections
     const collections = [
-      { table: 'portfolio_tech_stacks', key: 'tech_stacks' },
-      { table: 'portfolio_projects', key: 'projects' },
-      { table: 'portfolio_timeline', key: 'timeline' },
-      { table: 'portfolio_certificates', key: 'certificates' },
-      { table: 'portfolio_achievements', key: 'achievements' },
-      { table: 'portfolio_blog', key: 'blog' },
-      { table: 'portfolio_messages', key: 'messages' }
+      { table: 'portfolio_tech_stacks', key: 'tech_stacks', normalizer: normalizeTechStack },
+      { table: 'portfolio_projects', key: 'projects', normalizer: normalizeProject },
+      { table: 'portfolio_timeline', key: 'timeline', normalizer: normalizeTimeline },
+      { table: 'portfolio_certificates', key: 'certificates', normalizer: normalizeCertificate },
+      { table: 'portfolio_achievements', key: 'achievements', normalizer: normalizeAchievement },
+      { table: 'portfolio_blog', key: 'blog', normalizer: (b) => b },
+      { table: 'portfolio_messages', key: 'messages', normalizer: (m) => m }
     ];
 
-    for (const { table, key } of collections) {
+    for (const { table, key, normalizer } of collections) {
       const { data, error } = await supabase.from(table).select('*');
-      if (!error && Array.isArray(data)) {
+      if (error) {
+        console.warn(`Supabase fetch error for ${table}:`, error);
+        continue;
+      }
+      if (Array.isArray(data)) {
         if (data.length > 0) {
-          local[key] = data;
+          local[key] = data.map(normalizer).filter(Boolean);
         } else if (local[key] && local[key].length > 0) {
           // Cloud table is empty but local has seed data - auto upload
           try {
@@ -310,6 +401,52 @@ export async function syncWithCloud() {
     console.warn('Cloud sync encountered non-critical error, continuing offline:', err);
     return local;
   }
+}
+
+// Diagnostic Health Checker for Supabase Connection & Tables
+export async function testSupabaseHealth() {
+  const supabase = getSupabase();
+  if (!supabase) {
+    return {
+      connected: false,
+      message: 'Supabase client is not connected. Please check your Supabase Project URL and Anon Key.',
+      tables: []
+    };
+  }
+
+  const collections = [
+    { table: 'portfolio_settings', name: 'Profile Settings' },
+    { table: 'portfolio_tech_stacks', name: 'Technical Skills' },
+    { table: 'portfolio_projects', name: 'Featured Projects' },
+    { table: 'portfolio_timeline', name: 'Timeline Journey' },
+    { table: 'portfolio_certificates', name: 'Certificates' },
+    { table: 'portfolio_achievements', name: 'Key Achievements' },
+    { table: 'portfolio_messages', name: 'Inquiry Messages' }
+  ];
+
+  const report = [];
+  let allOk = true;
+
+  for (const { table, name } of collections) {
+    try {
+      const { data, error } = await supabase.from(table).select('*');
+      if (error) {
+        allOk = false;
+        report.push({ table, name, ok: false, count: 0, error: `${error.code || 'ERR'}: ${error.message}` });
+      } else {
+        report.push({ table, name, ok: true, count: data ? data.length : 0, error: null });
+      }
+    } catch (e) {
+      allOk = false;
+      report.push({ table, name, ok: false, count: 0, error: e.message });
+    }
+  }
+
+  return {
+    connected: true,
+    allOk,
+    tables: report
+  };
 }
 
 // Push all local data items to Cloud Supabase

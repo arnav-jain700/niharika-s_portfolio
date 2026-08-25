@@ -2,6 +2,7 @@ import {
   getLocalData,
   syncWithCloud,
   pushLocalDataToCloud,
+  testSupabaseHealth,
   saveSettings,
   saveTechStack,
   deleteTechStack,
@@ -1562,6 +1563,44 @@ function initAdminPaneHandlers() {
     await syncWithCloud();
     populateAdminPanes();
     renderAllUI();
+  });
+
+  // Test Supabase Connection & Health Check
+  document.getElementById('admin-test-db-btn')?.addEventListener('click', async () => {
+    const box = document.getElementById('admin-db-health-box');
+    if (!box) return;
+    box.style.display = 'block';
+    box.innerHTML = '<p style="color: var(--accent-cyan); margin: 0;">Checking Supabase database connection and validating all 7 tables...</p>';
+
+    const report = await testSupabaseHealth();
+    if (!report.connected) {
+      box.innerHTML = `
+        <div style="color: #f87171; font-weight: 700; margin-bottom: 6px;">❌ Supabase Connection Failed</div>
+        <p style="margin: 0; color: var(--text-muted);">${report.message}</p>
+      `;
+      return;
+    }
+
+    const tableRows = report.tables.map(t => `
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.06);">
+        <span><strong>${t.name}</strong> (<code style="color: var(--accent-cyan); font-size: 0.75rem;">${t.table}</code>)</span>
+        <span>
+          ${t.ok 
+            ? `<span style="color: #22c55e; font-weight: 600;">✅ OK (${t.count} items)</span>` 
+            : `<span style="color: #f87171; font-weight: 600;" title="${t.error}">❌ Failed: ${t.error}</span>`}
+        </span>
+      </div>
+    `).join('');
+
+    const allOkNotice = report.allOk
+      ? `<div style="margin-top: 10px; color: #22c55e; font-weight: 600;">✨ All 7 tables verified and cloud database is ready for all devices!</div>`
+      : `<div style="margin-top: 10px; color: #f87171; font-weight: 600;">⚠️ One or more tables failed. Please ensure you ran the complete SQL Schema script in Supabase SQL Editor.</div>`;
+
+    box.innerHTML = `
+      <div style="font-weight: 700; color: var(--accent-cyan); margin-bottom: 10px;">Supabase Database Diagnostics:</div>
+      ${tableRows}
+      ${allOkNotice}
+    `;
   });
 
   // Disconnect Supabase
