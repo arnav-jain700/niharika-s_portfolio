@@ -166,33 +166,90 @@ function updateThemeIcon(theme) {
   }
 }
 
-// ==========================================================================
-// 3. Print Router (?print=resume, ?print=cv)
-// ==========================================================================
-function checkPrintRoute() {
-  const params = new URLSearchParams(window.location.search);
-  const printType = params.get('print');
+// ==========================================================================// Utility: Smart Formatter for Markdown Bullet Points, Lists & Paragraphs
+function formatDescription(text, isCompact = false) {
+  if (!text) return '';
 
-  if (printType === 'resume' || printType === 'cv') {
-    document.body.classList.add('print-mode');
-    renderATSResume(printType);
+  const cleanText = text.trim();
+  const lines = cleanText.split(/\r?\n/);
+
+  let html = '';
+  let inList = false;
+  let listType = 'ul';
+
+  for (let i = 0; i < lines.length; i++) {
+    const rawLine = lines[i].trim();
+    if (!rawLine) {
+      if (inList) {
+        html += `</${listType}>`;
+        inList = false;
+      }
+      continue;
+    }
+
+    // Check for bullet patterns: •, ⁃, ◦, ▪, ▫, -, *, +, or &bull;
+    const bulletMatch = /^([•⁃◦▪▫\-\*\+]|\&bull;)\s+(.*)$/i.exec(rawLine);
+    const numMatch = /^(\d+)[\.\)]\s+(.*)$/i.exec(rawLine);
+
+    if (bulletMatch) {
+      if (!inList || listType !== 'ul') {
+        if (inList) html += `</${listType}>`;
+        html += '<ul class="formatted-bullet-list">';
+        inList = true;
+        listType = 'ul';
+      }
+      html += `<li>${bulletMatch[2]}</li>`;
+    } else if (numMatch) {
+      if (!inList || listType !== 'ol') {
+        if (inList) html += `</${listType}>`;
+        html += '<ol class="formatted-bullet-list">';
+        inList = true;
+        listType = 'ol';
+      }
+      html += `<li>${numMatch[2]}</li>`;
+    } else {
+      if (inList) {
+        html += `</${listType}>`;
+        inList = false;
+      }
+      html += `<p style="margin-bottom: ${isCompact ? '4px' : '8px'};">${rawLine}</p>`;
+    }
+  }
+
+  if (inList) {
+    html += `</${listType}>`;
+  }
+
+  return html;
+}
+
+// --------------------------------------------------------------------------
+// 3. ATS-Friendly Printable Engine (?print=resume / ?print=cv)
+// --------------------------------------------------------------------------
+function checkPrintRoute() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const printMode = urlParams.get('print');
+  if (printMode === 'resume' || printMode === 'cv') {
+    document.body.classList.add('printing-ats');
+    renderATSResume();
     setTimeout(() => {
       window.print();
-    }, 600);
+    }, 500);
   }
 }
 
-function renderATSResume(type) {
+function renderATSResume() {
   const data = getLocalData();
-  const { ownerName, ownerBio, email, location, linkedin, github } = data.settings;
+  const set = data.settings;
 
-  document.getElementById('ats-name').textContent = ownerName;
+  document.getElementById('ats-name').textContent = set.ownerName.toUpperCase();
   document.getElementById('ats-contacts').innerHTML = `
-    ${location} &bull; ${email} &bull; 
-    <a href="${linkedin}">LinkedIn</a> &bull; 
-    <a href="${github}">GitHub</a>
+    ${set.location || 'India'} &bull; 
+    <a href="mailto:${set.email}">${set.email}</a> &bull; 
+    <a href="${set.linkedin}" target="_blank">LinkedIn</a> &bull; 
+    <a href="${set.github}" target="_blank">GitHub</a>
   `;
-  document.getElementById('ats-summary').textContent = ownerBio;
+  document.getElementById('ats-summary').textContent = set.ownerBio;
 
   // Skills
   const skillsByCategory = {};
@@ -212,7 +269,7 @@ function renderATSResume(type) {
         <span>${p.title}</span>
         <span style="font-size: 9pt; font-weight: normal; color: #4b5563;">${p.tags?.join(' | ')}</span>
       </div>
-      <p style="font-size: 10pt; margin-top: 2px;">${p.description}</p>
+      <div style="font-size: 10pt; margin-top: 2px;">${formatDescription(p.description, true)}</div>
     </div>
   `).join('');
   document.getElementById('ats-projects-content').innerHTML = projectsHTML;
@@ -227,7 +284,7 @@ function renderATSResume(type) {
       <div class="ats-item-sub">
         <span>${t.company} (${t.type})</span>
       </div>
-      <p style="font-size: 10pt;">${t.description}</p>
+      <div style="font-size: 10pt;">${formatDescription(t.description, true)}</div>
     </div>
   `).join('');
   document.getElementById('ats-journey-content').innerHTML = journeyHTML;
@@ -372,7 +429,9 @@ function renderTimeline(timeline) {
             </div>
           </div>
         </div>
-        <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 8px; line-height: 1.6;">${item.description}</p>
+        <div class="formatted-desc" style="font-size: 0.95rem; margin-top: 8px;">
+          ${formatDescription(item.description)}
+        </div>
       </div>
     </div>
   `).join('');
@@ -441,7 +500,9 @@ function renderProjects(projects) {
       <div class="project-body">
         <span class="gradient-badge" style="width: fit-content; font-size: 0.75rem; margin-bottom: 8px;">${p.category}</span>
         <h3 style="font-size: 1.25rem; margin-bottom: 8px;">${p.title}</h3>
-        <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; flex: 1;">${p.description}</p>
+        <div class="formatted-desc" style="font-size: 0.9rem; flex: 1; margin-bottom: 12px;">
+          ${formatDescription(p.description)}
+        </div>
         <div class="project-tags">
           ${(p.tags || []).map(t => `<span class="tag-badge">${t}</span>`).join('')}
         </div>
@@ -508,9 +569,9 @@ function renderAchievements(achievements) {
       <div style="font-size: 0.85rem; color: var(--accent-cyan); font-weight: 600; margin-bottom: 8px;">
         ${a.organization} &bull; <span style="color: var(--text-dim);">${a.date}</span>
       </div>
-      <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 14px; flex: 1;">
-        ${a.description}
-      </p>
+      <div class="formatted-desc" style="font-size: 0.85rem; margin-bottom: 14px; flex: 1;">
+        ${formatDescription(a.description)}
+      </div>
       ${a.link ? `<a href="${a.link}" target="_blank" class="btn btn-secondary" style="padding: 8px 12px; font-size: 0.85rem; text-align: center;">View Proof / Publication &rarr;</a>` : ''}
     </div>
   `).join('');
@@ -530,7 +591,9 @@ function openProjectModal(id) {
     <img src="${project.image || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80'}" alt="${project.title}" style="width: 100%; max-height: 320px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 20px;">
     
     <h4 style="color: var(--accent-cyan); margin-bottom: 6px;">Architectural Overview</h4>
-    <p style="color: var(--text-muted); font-size: 1rem; line-height: 1.7; margin-bottom: 20px;">${project.description}</p>
+    <div class="formatted-desc" style="font-size: 1rem; line-height: 1.7; margin-bottom: 24px;">
+      ${formatDescription(project.description)}
+    </div>
 
     <h4 style="color: var(--accent-cyan); margin-bottom: 8px;">Technologies & Frameworks</h4>
     <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;">

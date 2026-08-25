@@ -644,6 +644,33 @@ h1, h2, h3, h4, h5, h6 {
   border-top: 1px solid var(--glass-border);
 }
 
+/* Formatted Description & Bullet Lists */
+.formatted-desc {
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+.formatted-desc p {
+  margin: 0 0 8px 0;
+}
+.formatted-desc p:last-child {
+  margin-bottom: 0;
+}
+.formatted-bullet-list {
+  margin: 6px 0 10px 0;
+  padding-left: 20px;
+}
+.formatted-bullet-list li {
+  margin-bottom: 5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+.formatted-bullet-list li::marker {
+  color: var(--accent-cyan);
+}
+.formatted-bullet-list li:last-child {
+  margin-bottom: 0;
+}
+
 /* ==========================================================================
    Certificates & Achievements
    ========================================================================== */
