@@ -1,0 +1,19 @@
+# Developer Portfolio & AI Representative Profile
+> Title: Niharika - Full-Stack Developer & AI Systems Engineer
+> Location: Ludhiana, Punjab, India
+> Specializations: React, Node.js, Python, Supabase, Groq Llama 3.3, Cloud Architecture, Edge AI
+
+## Summary
+Experienced software engineer specializing in building high-performance web applications, resilient backend architectures, and intelligent LLM-powered tools. Proven track record in open-source development, competitive hackathons, and enterprise web solutions.
+
+## Core Competencies
+- Frontend: JavaScript (ES6+), React, Next.js, HTML5/CSS3, Tailwind CSS, WebGL
+- Backend: Node.js, Express, Python, FastAPI, RESTful APIs, GraphQL
+- Databases: PostgreSQL, Supabase, Redis, MongoDB
+- DevOps & Cloud: Vercel, Docker, Git, CI/CD, Linux, Cloudflare
+- AI & ML: Groq Llama 3.3 70B, OpenAI API, LangChain, RAG Systems, Prompt Engineering
+
+## Contact & Profiles
+- Email: niharika@example.com
+- LinkedIn: https://www.linkedin.com/
+- GitHub: https://github.com/

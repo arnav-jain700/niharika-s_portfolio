@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Niharika | Full-Stack Developer & AI Systems Engineer</title>
+  <meta name="description" content="Portfolio of Niharika - Full-Stack Developer & AI Systems Engineer specializing in scalable web applications, agentic AI workflows, and distributed architectures.">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+
+  <!-- 3D Particle Canvas Background -->
+  <canvas id="bg-canvas"></canvas>
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <div class="app-container">
+
+    <!-- Navigation Bar -->
+    <header class="navbar">
+      <div class="nav-container">
+        <a href="#home" class="brand-logo">
+          <svg><use href="/icons.svg#icon-terminal"></use></svg>
+          <span class="gradient-text" id="nav-brand-name">NIHARIKA</span>
+        </a>
+
+        <nav>
+          <ul class="nav-links" id="nav-links-list">
+            <li><a href="#home" class="nav-link active">Home</a></li>
+            <li><a href="#journey" class="nav-link">Journey</a></li>
+            <li><a href="#skills" class="nav-link">Skills</a></li>
+            <li><a href="#projects" class="nav-link">Projects</a></li>
+            <li><a href="#certificates" class="nav-link">Certificates</a></li>
+            <li><a href="#achievements" class="nav-link">Achievements</a></li>
+            <li><a href="#contact" class="nav-link">Contact</a></li>
+          </ul>
+        </nav>
+
+        <div class="nav-actions">
+          <button id="theme-toggle-btn" class="btn-icon" title="Toggle Theme" aria-label="Toggle Theme">
+            <svg class="icon"><use href="/icons.svg#icon-moon"></use></svg>
+          </button>
+          <button id="mobile-menu-btn" class="btn-icon mobile-menu-btn" title="Menu" aria-label="Menu">
+            <svg class="icon"><use href="/icons.svg#icon-terminal"></use></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Views Container -->
+    <main id="main-content">
+
+      <!-- ================= HERO / HOME VIEW ================= -->
+      <section id="home" class="hero-section">
+        <div class="hero-grid">
+          <div class="hero-content">
+            <div class="hero-badge-row">
+              <span class="gradient-badge">
+                <svg class="icon" style="width: 14px; height: 14px;"><use href="/icons.svg#icon-sparkles"></use></svg>
+                Open to Opportunities
+              </span>
+            </div>
+
+            <h1>Hi, I'm <span class="gradient-text" id="hero-owner-name">Niharika</span>.<br>Building Resilient Software & AI Agents.</h1>
+            <p class="hero-bio" id="hero-owner-bio">
+              Full-Stack Developer & AI Systems Engineer crafting resilient web applications, distributed edge systems, and intelligent agentic workflows.
+            </p>
+
+            <div class="hero-cta-group">
+              <a href="#projects" class="btn btn-primary">
+                <svg class="icon"><use href="/icons.svg#icon-code"></use></svg>
+                Explore Projects
+              </a>
+              <a href="?print=resume" target="_blank" class="btn btn-secondary">
+                <svg class="icon"><use href="/icons.svg#icon-download"></use></svg>
+                Resume (PDF)
+              </a>
+              <a href="?print=cv" target="_blank" class="btn btn-secondary">
+                <svg class="icon"><use href="/icons.svg#icon-download"></use></svg>
+                CV (PDF)
+              </a>
+            </div>
+
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-number" id="stat-projects-count">5+</div>
+                <div class="stat-label">Projects Built</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-number" id="stat-skills-count">12+</div>
+                <div class="stat-label">Core Technologies</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-number" id="stat-awards-count">4+</div>
+                <div class="stat-label">Key Achievements</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hero 3D Featured Showcase Carousel -->
+          <div class="hero-showcase">
+            <div class="carousel-wrapper glass-card">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <span class="gradient-badge">Featured Showcase</span>
+                <span id="carousel-counter" style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">1 / 5</span>
+              </div>
+              <div class="carousel-track" id="hero-carousel-track">
+                <!-- Injected via main.js -->
+              </div>
+              <div class="carousel-controls">
+                <button id="carousel-prev" class="btn-icon" aria-label="Previous Project">&larr;</button>
+                <div class="carousel-dots" id="carousel-dots"></div>
+                <button id="carousel-next" class="btn-icon" aria-label="Next Project">&rarr;</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= JOURNEY / TIMELINE VIEW ================= -->
+      <section id="journey" class="section-wrapper">
+        <div class="section-header">
+          <span class="section-tag">Career & Education</span>
+          <h2>Professional Journey</h2>
+          <p>A chronological record of academic milestones, engineering roles, and open-source leadership.</p>
+        </div>
+        <div class="timeline-tree" id="timeline-container">
+          <!-- Injected via main.js -->
+        </div>
+      </section>
+
+      <!-- ================= SKILLS VIEW ================= -->
+      <section id="skills" class="section-wrapper">
+        <div class="section-header">
+          <span class="section-tag">Toolkit & Architecture</span>
+          <h2>Technical Expertise</h2>
+          <p>Languages, frameworks, databases, and AI tooling with verified proficiencies.</p>
+        </div>
+
+        <div class="skills-filter-bar" id="skills-filter-bar">
+          <button class="filter-btn active" data-category="ALL">All Skills</button>
+        </div>
+
+        <div class="skills-grid" id="skills-grid-container">
+          <!-- Injected via main.js -->
+        </div>
+      </section>
+
+      <!-- ================= PROJECTS VIEW ================= -->
+      <section id="projects" class="section-wrapper">
+        <div class="section-header">
+          <span class="section-tag">Engineered Solutions</span>
+          <h2>Featured Projects</h2>
+          <p>Production systems, open-source architectures, and interactive AI applications.</p>
+        </div>
+
+        <div style="display: flex; gap: 16px; margin-bottom: 32px; flex-wrap: wrap; justify-content: center;">
+          <div style="position: relative; max-width: 400px; width: 100%;">
+            <input type="text" id="project-search-input" class="form-input" style="width: 100%; padding-left: 40px;" placeholder="Search projects by name, tag, or tech...">
+            <svg class="icon" style="position: absolute; left: 12px; top: 12px; color: var(--text-dim);"><use href="/icons.svg#icon-search"></use></svg>
+          </div>
+        </div>
+
+        <div class="projects-grid" id="projects-grid-container">
+          <!-- Injected via main.js -->
+        </div>
+      </section>
+
+      <!-- ================= CERTIFICATES VIEW ================= -->
+      <section id="certificates" class="section-wrapper">
+        <div class="section-header">
+          <span class="section-tag">Verified Credentials</span>
+          <h2>Certifications</h2>
+          <p>Industry-standard certifications validating cloud, AI, and software engineering competencies.</p>
+        </div>
+        <div class="certs-grid" id="certs-grid-container">
+          <!-- Injected via main.js -->
+        </div>
+      </section>
+
+      <!-- ================= ACHIEVEMENTS VIEW ================= -->
+      <section id="achievements" class="section-wrapper">
+        <div class="section-header">
+          <span class="section-tag">Honors & Milestones</span>
+          <h2>Key Achievements</h2>
+          <p>National hackathon victories, peer-reviewed research publications, and academic honors.</p>
+        </div>
+        <div class="achievements-grid" id="achievements-grid-container">
+          <!-- Injected via main.js -->
+        </div>
+      </section>
+
+      <!-- ================= CONTACT VIEW ================= -->
+      <section id="contact" class="section-wrapper">
+        <div class="section-header">
+          <span class="section-tag">Get in Touch</span>
+          <h2>Direct Inquiries</h2>
+          <p>Have a project in mind, an engineering role, or a technical inquiry? Send a direct message.</p>
+        </div>
+
+        <div class="contact-grid">
+          <div class="glass-card" style="padding: 32px;">
+            <h3 style="margin-bottom: 16px;">Connect Directly</h3>
+            <p style="color: var(--text-muted); margin-bottom: 24px;">I'm always open to discussing new opportunities, open-source projects, or architectural challenges.</p>
+
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+              <a href="#" id="contact-link-email" class="btn btn-secondary" style="justify-content: flex-start;">
+                <svg class="icon"><use href="/icons.svg#icon-send"></use></svg>
+                <span id="contact-display-email">niharika@example.com</span>
+              </a>
+              <a href="#" id="contact-link-linkedin" target="_blank" class="btn btn-secondary" style="justify-content: flex-start;">
+                <svg class="icon"><use href="/icons.svg#icon-linkedin"></use></svg>
+                LinkedIn Profile
+              </a>
+              <a href="#" id="contact-link-github" target="_blank" class="btn btn-secondary" style="justify-content: flex-start;">
+                <svg class="icon"><use href="/icons.svg#icon-github"></use></svg>
+                GitHub Repositories
+              </a>
+            </div>
+          </div>
+
+          <div class="glass-card" style="padding: 32px;">
+            <form id="contact-form" class="contact-form">
+              <div class="form-group">
+                <label for="msg-name">Your Name</label>
+                <input type="text" id="msg-name" class="form-input" placeholder="Alex Morgan" required>
+              </div>
+              <div class="form-group">
+                <label for="msg-email">Your Email</label>
+                <input type="email" id="msg-email" class="form-input" placeholder="alex@company.com" required>
+              </div>
+              <div class="form-group">
+                <label for="msg-subject">Subject</label>
+                <input type="text" id="msg-subject" class="form-input" placeholder="Engineering Role / Project Collaboration" required>
+              </div>
+              <div class="form-group">
+                <label for="msg-text">Message</label>
+                <textarea id="msg-text" class="form-textarea" rows="4" placeholder="Hi Niharika, I came across your portfolio..." required></textarea>
+              </div>
+              <button type="submit" id="send-msg-btn" class="btn btn-primary">
+                <svg class="icon"><use href="/icons.svg#icon-send"></use></svg>
+                Send Message
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer" style="border-top: 1px solid var(--glass-border); padding: 32px 24px; text-align: center; color: var(--text-dim); font-size: 0.85rem;">
+      <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div>&copy; <span id="footer-year">2026</span> <span id="footer-owner-name">Niharika</span>. Powered by Vite + Groq Llama 3.3 + Supabase.</div>
+        <div style="display: flex; gap: 16px;">
+          <a href="#home" style="color: var(--text-muted); text-decoration: none;">Top &uarr;</a>
+          <a href="?print=resume" target="_blank" style="color: var(--text-muted); text-decoration: none;">ATS Resume</a>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- ================= VIRTUAL AI REPRESENTATIVE FLOATING BUTTON & DRAWER ================= -->
+  <button id="ai-fab-btn" class="ai-fab-btn" title="Open AI Representative Chat" aria-label="Open AI Representative Chat">
+    <svg class="icon"><use href="/icons.svg#icon-bot"></use></svg>
+    <span>Ask AI Co-Pilot</span>
+  </button>
+
+  <aside id="ai-chat-drawer" class="ai-chat-drawer">
+    <div class="chat-header">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 10px; height: 10px; border-radius: 50%; background: var(--accent-green);"></div>
+        <div>
+          <h4 style="font-size: 0.95rem;">AI Representative</h4>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Groq Llama 3.3 70B &bull; Sub-Second</span>
+        </div>
+      </div>
+      <button id="close-ai-chat-btn" class="btn-icon" aria-label="Close Chat">&times;</button>
+    </div>
+
+    <div class="chat-messages" id="chat-messages-container">
+      <div class="chat-msg bot">
+        Hello! I am Niharika's Virtual AI Representative. Ask me anything about her projects, skill proficiencies, achievements, architecture experience, or role suitability!
+      </div>
+    </div>
+
+    <!-- Quick prompt chips -->
+    <div style="padding: 8px 16px; display: flex; gap: 6px; overflow-x: auto; background: var(--bg-tertiary);" id="chat-quick-chips">
+      <button class="filter-btn quick-chip" data-query="What is your tech stack?">Tech Stack</button>
+      <button class="filter-btn quick-chip" data-query="Tell me about your top projects">Top Projects</button>
+      <button class="filter-btn quick-chip" data-query="What are your key achievements?">Achievements</button>
+      <button class="filter-btn quick-chip" data-query="How can I contact or hire you?">Contact</button>
+    </div>
+
+    <form id="chat-input-form" class="chat-input-row">
+      <input type="text" id="chat-input-text" class="form-input" style="flex: 1;" placeholder="Ask AI co-pilot a question..." autocomplete="off">
+      <button type="submit" class="btn btn-primary" style="padding: 10px 16px;">
+        <svg class="icon"><use href="/icons.svg#icon-send"></use></svg>
+      </button>
+    </form>
+  </aside>
+
+  <!-- ================= PROJECT DETAIL MODAL ================= -->
+  <div id="project-modal" class="modal-backdrop">
+    <div class="modal-window glass-card">
+      <button class="btn-icon modal-close-btn" style="position: absolute; top: 20px; right: 20px;" aria-label="Close Modal">&times;</button>
+      <div id="project-modal-content">
+        <!-- Injected via main.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= CERTIFICATE LIGHTBOX MODAL ================= -->
+  <div id="cert-modal" class="modal-backdrop">
+    <div class="modal-window glass-card" style="max-width: 650px; text-align: center;">
+      <button class="btn-icon modal-close-btn" style="position: absolute; top: 20px; right: 20px;" aria-label="Close Modal">&times;</button>
+      <img id="cert-modal-img" src="" alt="Certificate Preview" style="width: 100%; border-radius: var(--radius-md); margin-top: 16px;">
+      <h3 id="cert-modal-title" style="margin-top: 16px;"></h3>
+      <p id="cert-modal-issuer" style="color: var(--text-muted);"></p>
+    </div>
+  </div>
+
+  <!-- ================= ADMIN PASSCODE MODAL ================= -->
+  <div id="admin-auth-modal" class="modal-backdrop">
+    <div class="modal-window glass-card" style="max-width: 420px; text-align: center;">
+      <button class="btn-icon modal-close-btn" style="position: absolute; top: 20px; right: 20px;" aria-label="Close Modal">&times;</button>
+      <svg class="icon" style="width: 48px; height: 48px; color: var(--accent-cyan); margin-bottom: 16px;"><use href="/icons.svg#icon-lock"></use></svg>
+      <h3>Admin Authentication</h3>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Enter security passcode to unlock developer console.</p>
+      <form id="admin-passcode-form">
+        <input type="password" id="admin-passcode-input" class="form-input" style="width: 100%; text-align: center; font-size: 1.2rem; letter-spacing: 4px;" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" autofocus required>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 16px;">Authenticate</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= ADMIN MANAGEMENT CONSOLE MODAL ================= -->
+  <div id="admin-console-modal" class="modal-backdrop">
+    <div class="modal-window glass-card admin-modal">
+      
+      <!-- Header Bar -->
+      <div class="admin-header-bar">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <svg class="icon" style="color: var(--accent-cyan); width: 24px; height: 24px;"><use href="/icons.svg#icon-terminal"></use></svg>
+          <div>
+            <h3 style="font-size: 1.15rem; margin: 0;">Developer Control Panel</h3>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Session Authenticated &bull; ALL_ME Management Engine</span>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span id="admin-cloud-status-badge" class="gradient-badge" style="font-size: 0.72rem; padding: 4px 10px;">
+            <svg class="icon" style="width: 12px; height: 12px;"><use href="/icons.svg#icon-database"></use></svg>
+            Cloud Mode
+          </span>
+          <button id="admin-logout-btn" class="action-btn delete" style="padding: 6px 12px;" title="Lock Session">
+            <svg class="icon" style="width: 14px; height: 14px;"><use href="/icons.svg#icon-lock"></use></svg>
+            Lock Session
+          </button>
+          <button class="btn-icon modal-close-btn" aria-label="Close Admin">&times;</button>
+        </div>
+      </div>
+
+      <!-- Main 2-Column Layout -->
+      <div class="admin-layout">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="admin-sidebar" id="admin-tabs-nav">
+          <button class="admin-tab-btn active" data-pane="pane-skills">
+            <svg class="icon"><use href="/icons.svg#icon-code"></use></svg>
+            <span>Manage Toolkit</span>
+          </button>
+          <button class="admin-tab-btn" data-pane="pane-projects">
+            <svg class="icon"><use href="/icons.svg#icon-terminal"></use></svg>
+            <span>Manage Projects</span>
+          </button>
+          <button class="admin-tab-btn" data-pane="pane-timeline">
+            <svg class="icon"><use href="/icons.svg#icon-briefcase"></use></svg>
+            <span>Manage Journey</span>
+          </button>
+          <button class="admin-tab-btn" data-pane="pane-certs">
+            <svg class="icon"><use href="/icons.svg#icon-book"></use></svg>
+            <span>Certificates</span>
+          </button>
+          <button class="admin-tab-btn" data-pane="pane-achievements">
+            <svg class="icon"><use href="/icons.svg#icon-award"></use></svg>
+            <span>Achievements</span>
+          </button>
+          <button class="admin-tab-btn" data-pane="pane-messages">
+            <svg class="icon"><use href="/icons.svg#icon-send"></use></svg>
+            <span>Visitor Logs</span>
+          </button>
+          <button class="admin-tab-btn" data-pane="pane-settings">
+            <svg class="icon"><use href="/icons.svg#icon-bot"></use></svg>
+            <span>AI & Profile Settings</span>
+          </button>
+          <button class="admin-tab-btn" data-pane="pane-cloud">
+            <svg class="icon"><use href="/icons.svg#icon-database"></use></svg>
+            <span>Cloud Sync & Backup</span>
+          </button>
+        </aside>
+
+        <!-- Right Content Panes -->
+        <div class="admin-content-pane">
+
+          <!-- PANE A: TECH STACK & CATEGORIES -->
+          <div id="pane-skills" class="admin-pane active">
+            <h3>Technical Toolkit Database</h3>
+            <p class="admin-pane-desc">Manage skills, live proficiencies, and independent category filters.</p>
+            
+            <div class="admin-tech-grid">
+              <!-- Left: Skills management -->
+              <div>
+                <h4 style="margin-bottom: 12px; color: var(--accent-cyan); font-size: 0.95rem;">Manage Technologies</h4>
+                <form id="admin-add-skill-form" style="display: flex; flex-direction: column; gap: 12px; background: var(--glass-card); padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--glass-border);">
+                  <input type="hidden" id="admin-skill-id" value="">
+                  <div class="form-row-2">
+                    <div class="form-group">
+                      <label style="font-size: 0.8rem; color: var(--text-muted);">Skill Name</label>
+                      <input type="text" id="skill-name-input" class="form-input" placeholder="e.g. Next.js, FastAPI" required>
+                    </div>
+                    <div class="form-group">
+                      <label style="font-size: 0.8rem; color: var(--text-muted);">Category</label>
+                      <select id="skill-cat-select" class="form-input" required></select>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                      <label style="font-size: 0.8rem; color: var(--text-muted);">Proficiency Level</label>
+                      <span id="prof-label" style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent-cyan);">85%</span>
+                    </div>
+                    <input type="range" id="skill-level-slider" min="10" max="100" value="85" style="width: 100%; accent-color: var(--accent-cyan);">
+                  </div>
+                  <div style="display: flex; gap: 10px; margin-top: 4px;">
+                    <button type="submit" id="admin-skill-submit-btn" class="btn btn-primary" style="padding: 8px 18px; font-size: 0.85rem;">Add Technology</button>
+                    <button type="button" id="admin-skill-cancel-btn" class="btn btn-secondary" style="display: none; padding: 8px 14px; font-size: 0.85rem;">Cancel Edit</button>
+                  </div>
+                </form>
+
+                <div class="admin-list" id="admin-skills-list"></div>
+              </div>
+
+              <!-- Right: Standalone Categories Management -->
+              <div>
+                <div class="admin-category-mgmt">
+                  <h4 style="margin-bottom: 8px; color: var(--accent-cyan); font-size: 0.95rem;">Manage Categories</h4>
+                  <p style="color: var(--text-muted); font-size: 0.78rem; margin-bottom: 14px;">Add or delete custom skill categories independently.</p>
+                  
+                  <form id="admin-add-category-form" style="display: flex; gap: 8px; margin-bottom: 16px;">
+                    <input type="text" id="admin-category-name-input" class="form-input" placeholder="e.g. Mobile, Testing..." required style="flex: 1; padding: 8px 12px; font-size: 0.85rem;">
+                    <button type="submit" class="btn btn-primary" style="padding: 8px 14px; font-size: 0.8rem;">Add</button>
+                  </form>
+
+                  <div id="admin-categories-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 280px; overflow-y: auto;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANE B: PROJECTS -->
+          <div id="pane-projects" class="admin-pane">
+            <h3>Featured Projects Database</h3>
+            <p class="admin-pane-desc">Manage showcased projects, dynamic technology tags, and AI description drafts.</p>
+            
+            <form id="admin-add-project-form" style="display: flex; flex-direction: column; gap: 14px; background: var(--glass-card); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--glass-border);">
+              <input type="hidden" id="admin-proj-id" value="">
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">Project Title</label>
+                  <input type="text" id="proj-title-input" class="form-input" placeholder="e.g. NeuralEdge Distributed Pipeline" required>
+                </div>
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">Theme Category</label>
+                  <input type="text" id="proj-cat-input" class="form-input" placeholder="e.g. AI / ML, Backend, Distributed Systems" required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label style="font-size: 0.8rem; color: var(--text-muted);">Select Technology Tags</label>
+                <div id="admin-project-tech-tags" style="display: flex; flex-wrap: wrap; gap: 6px; max-height: 100px; overflow-y: auto; padding: 10px; border: 1px solid var(--glass-border); border-radius: var(--radius-sm); background: rgba(0,0,0,0.25);"></div>
+                <input type="text" id="proj-tags-input" class="form-input" placeholder="Or enter custom tags (comma separated: React, Python, Docker)" style="margin-top: 8px;">
+              </div>
+
+              <div class="ai-assistant-helper">
+                <div class="ai-helper-desc">
+                  <strong>AI Co-Pilot:</strong> Auto-draft an architectural description based on title and tags.
+                </div>
+                <button type="button" id="ai-suggest-desc-btn" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;">
+                  <svg class="icon"><use href="/icons.svg#icon-sparkles"></use></svg> Draft Description
+                </button>
+              </div>
+
+              <div class="form-group">
+                <label style="font-size: 0.8rem; color: var(--text-muted);">Project Description</label>
+                <textarea id="proj-desc-input" class="form-textarea" rows="3" placeholder="Summarize the core architectural functionality and impact..." required></textarea>
+              </div>
+
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">GitHub Repository</label>
+                  <input type="url" id="proj-github-input" class="form-input" placeholder="https://github.com/...">
+                </div>
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">Live Deployment URL</label>
+                  <input type="text" id="proj-live-input" class="form-input" placeholder="https://... or #home">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label style="font-size: 0.8rem; color: var(--text-muted);">Project Screenshot / Image (Upload File from Device or Paste URL)</label>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                  <input type="file" id="proj-file-input" class="form-input" accept="image/*" style="flex: 1; min-width: 180px; padding: 6px 10px;">
+                  <span style="color: var(--text-muted); font-size: 0.8rem;">or</span>
+                  <input type="url" id="proj-img-input" class="form-input" placeholder="https://example.com/cover.jpg" style="flex: 1; min-width: 200px;">
+                </div>
+                <div id="proj-img-preview-box" class="admin-img-preview-box" style="display: none;">
+                  <img id="proj-img-preview" src="" alt="Project Preview">
+                  <button type="button" id="proj-img-remove-btn" class="action-btn delete" style="padding: 4px 8px; font-size: 0.75rem;">Remove Image</button>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 10px;">
+                <button type="submit" id="admin-proj-submit-btn" class="btn btn-primary" style="padding: 8px 18px; font-size: 0.85rem;">Save Project</button>
+                <button type="button" id="admin-proj-cancel-btn" class="btn btn-secondary" style="display: none; padding: 8px 14px; font-size: 0.85rem;">Cancel Edit</button>
+              </div>
+            </form>
+
+            <div class="admin-list" id="admin-projects-list"></div>
+          </div>
+
+          <!-- PANE C: TIMELINE & JOURNEY -->
+          <div id="pane-timeline" class="admin-pane">
+            <h3>Professional Journey Database</h3>
+            <p class="admin-pane-desc">Manage academic milestones, engineering roles, and career progression.</p>
+            
+            <form id="admin-add-timeline-form" style="display: flex; flex-direction: column; gap: 12px; background: var(--glass-card); padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--glass-border);">
+              <input type="hidden" id="admin-time-id" value="">
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">Title / Role</label>
+                  <input type="text" id="time-title-input" class="form-input" placeholder="e.g. Full-Stack Engineer, B.Tech CSE" required>
+                </div>
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">Institution / Company</label>
+                  <input type="text" id="time-company-input" class="form-input" placeholder="e.g. Innovatech Labs, University" required>
+                </div>
+              </div>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">Date Range</label>
+                  <input type="text" id="time-daterange-input" class="form-input" placeholder="e.g. 2024 — Present" required>
+                </div>
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">Entry Type</label>
+                  <select id="time-type-select" class="form-input" required>
+                    <option value="experience">Professional Experience</option>
+                    <option value="education">Education</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label style="font-size: 0.8rem; color: var(--text-muted);">Key Descriptions & Coursework</label>
+                <textarea id="time-desc-input" class="form-textarea" rows="2" placeholder="Responsibilities, tech utilized, and achievements..." required></textarea>
+              </div>
+              <div style="display: flex; gap: 10px;">
+                <button type="submit" id="admin-time-submit-btn" class="btn btn-primary" style="padding: 8px 18px; font-size: 0.85rem;">Save Journey Entry</button>
+                <button type="button" id="admin-time-cancel-btn" class="btn btn-secondary" style="display: none; padding: 8px 14px; font-size: 0.85rem;">Cancel Edit</button>
+              </div>
+            </form>
+
+            <div class="admin-list" id="admin-timeline-list"></div>
+          </div>
+
+          <!-- PANE D: CERTIFICATES -->
+          <div id="pane-certs" class="admin-pane">
+            <h3>Certifications & Credentials Database</h3>
+            <p class="admin-pane-desc">Manage verified credentials, official issuing bodies, and skill tags.</p>
+            
+            <form id="admin-add-cert-form" style="display: flex; flex-direction: column; gap: 12px; background: var(--glass-card); padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--glass-border);">
+              <input type="hidden" id="admin-cert-id" value="">
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">Certificate Title</label>
+                  <input type="text" id="cert-title-input" class="form-input" placeholder="e.g. AWS Certified Developer" required>
+                </div>
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">Issuing Organization</label>
+                  <input type="text" id="cert-issuer-input" class="form-input" placeholder="e.g. Amazon Web Services, Meta" required>
+                </div>
+              </div>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">Issue Date</label>
+                  <input type="text" id="cert-date-input" class="form-input" placeholder="e.g. 2024" required>
+                </div>
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">Verification Link URL</label>
+                  <input type="url" id="cert-url-input" class="form-input" placeholder="https://aws.amazon.com/verify/...">
+                </div>
+              </div>
+              <div class="form-group">
+                <label style="font-size: 0.8rem; color: var(--text-muted);">Skills Covered</label>
+                <input type="text" id="cert-skills-input" class="form-input" placeholder="e.g. AWS Lambda, DynamoDB, Docker">
+              </div>
+              <div class="form-group">
+                <label style="font-size: 0.8rem; color: var(--text-muted);">Certificate Image / Badge (Upload File from Device or Paste URL)</label>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                  <input type="file" id="cert-file-input" class="form-input" accept="image/*" style="flex: 1; min-width: 180px; padding: 6px 10px;">
+                  <span style="color: var(--text-muted); font-size: 0.8rem;">or</span>
+                  <input type="url" id="cert-img-input" class="form-input" placeholder="https://example.com/badge.jpg" style="flex: 1; min-width: 200px;">
+                </div>
+                <div id="cert-img-preview-box" class="admin-img-preview-box" style="display: none;">
+                  <img id="cert-img-preview" src="" alt="Certificate Preview">
+                  <button type="button" id="cert-img-remove-btn" class="action-btn delete" style="padding: 4px 8px; font-size: 0.75rem;">Remove Image</button>
+                </div>
+              </div>
+              <div style="display: flex; gap: 10px;">
+                <button type="submit" id="admin-cert-submit-btn" class="btn btn-primary" style="padding: 8px 18px; font-size: 0.85rem;">Save Certificate</button>
+                <button type="button" id="admin-cert-cancel-btn" class="btn btn-secondary" style="display: none; padding: 8px 14px; font-size: 0.85rem;">Cancel Edit</button>
+              </div>
+            </form>
+
+            <div class="admin-list" id="admin-certs-list"></div>
+          </div>
+
+          <!-- PANE E: ACHIEVEMENTS -->
+          <div id="pane-achievements" class="admin-pane">
+            <h3>Key Achievements & Honors Database</h3>
+            <p class="admin-pane-desc">Manage hackathon victories, research publications, awards, and recognitions.</p>
+            
+            <form id="admin-add-ach-form" style="display: flex; flex-direction: column; gap: 12px; background: var(--glass-card); padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--glass-border);">
+              <input type="hidden" id="admin-ach-id" value="">
+              <div class="form-row-3">
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">Achievement Title</label>
+                  <input type="text" id="ach-title-input" class="form-input" placeholder="e.g. Smart India Hackathon Winner" required>
+                </div>
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">Category</label>
+                  <input type="text" id="ach-cat-input" class="form-input" placeholder="e.g. National Competition, Research" required>
+                </div>
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">Highlight Badge</label>
+                  <input type="text" id="ach-highlight-input" class="form-input" placeholder="e.g. 1st Place / 10,000 Teams" required>
+                </div>
+              </div>
+              <div class="form-row-3">
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">Organization / Host</label>
+                  <input type="text" id="ach-org-input" class="form-input" placeholder="e.g. Ministry of Education, IEEE" required>
+                </div>
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">Date</label>
+                  <input type="text" id="ach-date-input" class="form-input" placeholder="e.g. 2024" required>
+                </div>
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">Proof / Reference URL</label>
+                  <input type="url" id="ach-link-input" class="form-input" placeholder="https://github.com/... or publication">
+                </div>
+              </div>
+              <div class="form-group">
+                <label style="font-size: 0.8rem; color: var(--text-muted);">Achievement Photo / Banner (Upload File from Device or Paste URL)</label>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                  <input type="file" id="ach-file-input" class="form-input" accept="image/*" style="flex: 1; min-width: 180px; padding: 6px 10px;">
+                  <span style="color: var(--text-muted); font-size: 0.8rem;">or</span>
+                  <input type="url" id="ach-img-input" class="form-input" placeholder="https://example.com/trophy.jpg" style="flex: 1; min-width: 200px;">
+                </div>
+                <div id="ach-img-preview-box" class="admin-img-preview-box" style="display: none;">
+                  <img id="ach-img-preview" src="" alt="Achievement Preview">
+                  <button type="button" id="ach-img-remove-btn" class="action-btn delete" style="padding: 4px 8px; font-size: 0.75rem;">Remove Image</button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label style="font-size: 0.8rem; color: var(--text-muted);">Description</label>
+                <textarea id="ach-desc-input" class="form-textarea" rows="2" placeholder="Details of solution built, impact, and significance..." required></textarea>
+              </div>
+              <div style="display: flex; gap: 10px;">
+                <button type="submit" id="admin-ach-submit-btn" class="btn btn-primary" style="padding: 8px 18px; font-size: 0.85rem;">Save Achievement</button>
+                <button type="button" id="admin-ach-cancel-btn" class="btn btn-secondary" style="display: none; padding: 8px 14px; font-size: 0.85rem;">Cancel Edit</button>
+              </div>
+            </form>
+
+            <div class="admin-list" id="admin-achievements-list"></div>
+          </div>
+
+          <!-- PANE F: VISITOR LOGS -->
+          <div id="pane-messages" class="admin-pane">
+            <h3>Visitor Inquiry Logs</h3>
+            <p class="admin-pane-desc">Messages submitted through the Contact tab. Click "Draft AI Reply" to generate instant responses.</p>
+            <div id="admin-messages-container" style="display: flex; flex-direction: column; gap: 12px;"></div>
+          </div>
+
+          <!-- PANE G: SETTINGS & AI -->
+          <div id="pane-settings" class="admin-pane">
+            <h3>AI Co-Pilot & Profile Configuration</h3>
+            <p class="admin-pane-desc">Configure your Groq Llama 3.3 70B AI engine and synchronize developer social portals.</p>
+            
+            <form id="admin-settings-form" style="display: flex; flex-direction: column; gap: 16px; background: var(--glass-card); padding: 22px; border-radius: var(--radius-md); border: 1px solid var(--glass-border);">
+              <div class="form-group" style="padding: 16px; background: rgba(0, 242, 254, 0.04); border: 1px solid rgba(0, 242, 254, 0.25); border-radius: var(--radius-md);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <label style="font-weight: 700; color: var(--accent-cyan); font-size: 0.9rem;">Groq API Key (Free Tier: 600+ tok/s Llama 3.3 70B)</label>
+                  <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" style="color: var(--accent-cyan); font-size: 0.8rem; text-decoration: underline;">Get free key at console.groq.com ↗</a>
+                </div>
+                <input type="password" id="setting-groq-key" class="form-input" placeholder="gsk_...">
+                <span style="font-size: 0.76rem; color: var(--text-dim); margin-top: 6px; display: block;">Key is stored securely in browser localStorage and used directly for sub-second inference.</span>
+              </div>
+
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">Developer Full Name</label>
+                  <input type="text" id="setting-name" class="form-input" required>
+                </div>
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">Email Address</label>
+                  <input type="email" id="setting-email" class="form-input" required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label style="font-size: 0.8rem; color: var(--text-muted);">Profile Bio (Context for AI Co-Pilot Chatbot)</label>
+                <textarea id="setting-bio" class="form-textarea" rows="2" required></textarea>
+              </div>
+
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">Location</label>
+                  <input type="text" id="setting-location" class="form-input">
+                </div>
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">LinkedIn URL</label>
+                  <input type="url" id="setting-linkedin" class="form-input">
+                </div>
+              </div>
+
+              <div class="form-row-3">
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">GitHub URL</label>
+                  <input type="url" id="setting-github" class="form-input">
+                </div>
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">Codolio URL</label>
+                  <input type="url" id="setting-codolio" class="form-input">
+                </div>
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">Medium URL</label>
+                  <input type="url" id="setting-medium" class="form-input">
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary" style="align-self: flex-start;">Save Settings</button>
+            </form>
+          </div>
+
+          <!-- PANE H: CLOUD SYNC & BACKUP -->
+          <div id="pane-cloud" class="admin-pane">
+            <h3>Cloud Synchronization & Database Backup</h3>
+            <p class="admin-pane-desc">Sync changes across devices with Supabase Cloud or export complete JSON backups.</p>
+
+            <!-- Supabase Cloud Credentials Card -->
+            <div class="glass-card" style="padding: 22px; margin-bottom: 24px; border: 1px solid rgba(0, 242, 254, 0.25);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <svg class="icon" style="color: var(--accent-cyan); width: 22px; height: 22px;"><use href="/icons.svg#icon-database"></use></svg>
+                  <h4 style="margin: 0; font-size: 1.05rem;">Supabase Database Connection</h4>
+                </div>
+                <a href="https://supabase.com/dashboard" target="_blank" rel="noopener noreferrer" style="color: var(--accent-cyan); font-size: 0.8rem; text-decoration: underline;">Open Supabase Console ↗</a>
+              </div>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px;">
+                Enter your free Supabase project URL and anon public key. You can also configure them via <code>.env</code> file (<code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code>).
+              </p>
+              
+              <form id="admin-supabase-config-form" style="display: flex; flex-direction: column; gap: 12px;">
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">Supabase Project URL</label>
+                  <input type="url" id="setting-supabase-url" class="form-input" placeholder="https://xxxxxxxxxxxx.supabase.co">
+                </div>
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">Supabase Anon Public API Key</label>
+                  <input type="password" id="setting-supabase-key" class="form-input" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 4px;">
+                  <button type="submit" class="btn btn-primary" style="padding: 8px 18px; font-size: 0.85rem;">Save Cloud Connection</button>
+                  <button type="button" id="admin-supabase-disconnect-btn" class="action-btn delete" style="padding: 8px 14px; font-size: 0.85rem;">Disconnect Cloud</button>
+                  <span id="supabase-save-status" style="font-size: 0.8rem; color: var(--accent-cyan); display: none;">✓ Connected & Saved!</span>
+                </div>
+              </form>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+              <div class="glass-card" style="padding: 20px;">
+                <h4 style="margin-bottom: 6px; font-size: 1rem;">Supabase Cloud Sync ☁️</h4>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 14px;">Upload all local portfolio collections to Supabase PostgreSQL database.</p>
+                <button id="admin-sync-cloud-btn" class="btn btn-primary" style="width: 100%;">Sync Local Data to Cloud Now</button>
+              </div>
+              <div class="glass-card" style="padding: 20px;">
+                <h4 style="margin-bottom: 6px; font-size: 1rem; color: #f87171;">Purge Cache 🗑️</h4>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 14px;">Reset local browser storage and restore default showcase state.</p>
+                <button id="admin-clear-cache-btn" class="action-btn delete" style="width: 100%; justify-content: center; padding: 10px;">Clear Local Cache</button>
+              </div>
+            </div>
+
+            <div style="background: var(--glass-card); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--glass-border);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h4 style="font-size: 0.95rem; margin: 0;">Database JSON Snapshot</h4>
+                <span id="admin-backup-toast" style="font-size: 0.8rem; color: var(--accent-cyan); display: none;">✓ Copied to clipboard!</span>
+              </div>
+              <div style="display: flex; gap: 10px; margin-bottom: 14px;">
+                <button id="admin-copy-backup-btn" class="btn btn-secondary" style="font-size: 0.85rem;">Copy Database Backup</button>
+                <button id="admin-restore-toggle-btn" class="btn btn-secondary" style="font-size: 0.85rem;">Restore from Backup JSON</button>
+              </div>
+              <div id="admin-restore-box" style="display: none;">
+                <textarea id="admin-backup-textarea" class="form-textarea" rows="6" placeholder="Paste database JSON snapshot here..."></textarea>
+                <button id="admin-restore-backup-btn" class="btn btn-primary" style="margin-top: 10px; font-size: 0.85rem;">Apply & Restore Database</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= ATS-FRIENDLY PRINT RESUME CONTAINER (?print=resume / ?print=cv) ================= -->
+  <div class="ats-resume-container" id="ats-resume-root">
+    <div class="ats-header">
+      <div class="ats-name" id="ats-name">Niharika</div>
+      <div class="ats-contacts" id="ats-contacts">
+        Ludhiana, Punjab, India &bull; niharika@example.com &bull; linkedin.com &bull; github.com
+      </div>
+    </div>
+
+    <div class="ats-section">
+      <div class="ats-section-title">Professional Summary</div>
+      <p id="ats-summary" style="font-size: 10pt; text-align: justify;"></p>
+    </div>
+
+    <div class="ats-section">
+      <div class="ats-section-title">Technical Skills</div>
+      <div id="ats-skills-content" style="font-size: 10pt;"></div>
+    </div>
+
+    <div class="ats-section">
+      <div class="ats-section-title">Featured Projects</div>
+      <div id="ats-projects-content"></div>
+    </div>
+
+    <div class="ats-section">
+      <div class="ats-section-title">Experience & Academic Background</div>
+      <div id="ats-journey-content"></div>
+    </div>
+
+    <div class="ats-section">
+      <div class="ats-section-title">Certifications & Credentials</div>
+      <div id="ats-certs-content"></div>
+    </div>
+
+    <div class="ats-section">
+      <div class="ats-section-title">Key Achievements & Honors</div>
+      <div id="ats-achievements-content"></div>
+    </div>
+  </div>
+
+  <!-- Main JavaScript Bundle -->
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
