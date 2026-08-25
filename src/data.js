@@ -341,6 +341,84 @@ function normalizeTechStack(s) {
   };
 }
 
+// --- Data Serializers for Supabase (Lowercase column compatibility) ---
+function serializeSettings(s) {
+  return {
+    id: 'main_settings',
+    ownername: s.ownerName ?? s.ownername ?? '',
+    ownerbio: s.ownerBio ?? s.ownerbio ?? '',
+    email: s.email ?? '',
+    location: s.location ?? '',
+    linkedin: s.linkedin ?? '',
+    github: s.github ?? '',
+    codolio: s.codolio ?? '',
+    medium: s.medium ?? '',
+    groqkey: s.groqKey ?? s.groqkey ?? '',
+    categories: s.categories || []
+  };
+}
+
+function serializeProject(p) {
+  return {
+    id: p.id,
+    title: p.title || '',
+    category: p.category || 'General',
+    description: p.description || '',
+    tags: Array.isArray(p.tags) ? p.tags : [],
+    githuburl: p.githubUrl ?? p.githuburl ?? '',
+    liveurl: p.liveUrl ?? p.liveurl ?? '',
+    image: p.image || ''
+  };
+}
+
+function serializeTimeline(t) {
+  return {
+    id: t.id,
+    title: t.title || '',
+    company: t.company || '',
+    role: t.role || 'Engineer',
+    daterange: t.dateRange ?? t.daterange ?? '',
+    type: t.type || 'experience',
+    description: t.description || ''
+  };
+}
+
+function serializeCertificate(c) {
+  return {
+    id: c.id,
+    title: c.title || '',
+    issuer: c.issuer || '',
+    date: c.date || '',
+    credentialurl: c.credentialUrl ?? c.credentialurl ?? '',
+    skills: c.skills || '',
+    image: c.image || ''
+  };
+}
+
+function serializeAchievement(a) {
+  return {
+    id: a.id,
+    title: a.title || '',
+    category: a.category || 'General',
+    highlight: a.highlight || '',
+    organization: a.organization || '',
+    date: a.date || '',
+    link: a.link || '',
+    image: a.image || '',
+    description: a.description || ''
+  };
+}
+
+function serializeTechStack(s) {
+  return {
+    id: s.id,
+    name: s.name || '',
+    category: s.category || 'General',
+    level: typeof s.level === 'number' ? s.level : parseInt(s.level || 80),
+    icon: s.icon || 'icon-code'
+  };
+}
+
 // Background Cloud Sync
 export async function syncWithCloud() {
   const supabase = getSupabase();
@@ -359,23 +437,22 @@ export async function syncWithCloud() {
       local.settings = normalizeSettings(cloudSettings);
     } else if (setErr && setErr.code === 'PGRST116') {
       // Table is empty, upload initial local settings
-      await supabase.from('portfolio_settings').upsert([local.settings]);
+      await supabase.from('portfolio_settings').upsert([serializeSettings(local.settings)]);
     } else if (setErr) {
       console.warn('Supabase fetch error for portfolio_settings:', setErr);
     }
 
     // 2. Sync Collections
     const collections = [
-      { table: 'portfolio_tech_stacks', key: 'tech_stacks', normalizer: normalizeTechStack },
-      { table: 'portfolio_projects', key: 'projects', normalizer: normalizeProject },
-      { table: 'portfolio_timeline', key: 'timeline', normalizer: normalizeTimeline },
-      { table: 'portfolio_certificates', key: 'certificates', normalizer: normalizeCertificate },
-      { table: 'portfolio_achievements', key: 'achievements', normalizer: normalizeAchievement },
-      { table: 'portfolio_blog', key: 'blog', normalizer: (b) => b },
-      { table: 'portfolio_messages', key: 'messages', normalizer: (m) => m }
+      { table: 'portfolio_tech_stacks', key: 'tech_stacks', normalizer: normalizeTechStack, serializer: serializeTechStack },
+      { table: 'portfolio_projects', key: 'projects', normalizer: normalizeProject, serializer: serializeProject },
+      { table: 'portfolio_timeline', key: 'timeline', normalizer: normalizeTimeline, serializer: serializeTimeline },
+      { table: 'portfolio_certificates', key: 'certificates', normalizer: normalizeCertificate, serializer: serializeCertificate },
+      { table: 'portfolio_achievements', key: 'achievements', normalizer: normalizeAchievement, serializer: serializeAchievement },
+      { table: 'portfolio_messages', key: 'messages', normalizer: (m) => m, serializer: (m) => m }
     ];
 
-    for (const { table, key, normalizer } of collections) {
+    for (const { table, key, normalizer, serializer } of collections) {
       const { data, error } = await supabase.from(table).select('*');
       if (error) {
         console.warn(`Supabase fetch error for ${table}:`, error);
@@ -387,7 +464,7 @@ export async function syncWithCloud() {
         } else if (local[key] && local[key].length > 0) {
           // Cloud table is empty but local has seed data - auto upload
           try {
-            await supabase.from(table).upsert(local[key]);
+            await supabase.from(table).upsert(local[key].map(serializer));
           } catch (upErr) {
             console.warn(`Failed to auto-seed cloud table ${table}:`, upErr);
           }
@@ -461,7 +538,7 @@ export async function pushLocalDataToCloud() {
 
   // 1. Settings
   try {
-    const { error } = await supabase.from('portfolio_settings').upsert([local.settings]);
+    const { error } = await supabase.from('portfolio_settings').upsert([serializeSettings(local.settings)]);
     if (error) throw error;
     results.details.push('Profile Settings synced');
   } catch (e) {
@@ -471,20 +548,20 @@ export async function pushLocalDataToCloud() {
 
   // 2. Collections
   const collections = [
-    { table: 'portfolio_tech_stacks', key: 'tech_stacks', name: 'Tech Stack' },
-    { table: 'portfolio_projects', key: 'projects', name: 'Projects' },
-    { table: 'portfolio_timeline', key: 'timeline', name: 'Journey' },
-    { table: 'portfolio_certificates', key: 'certificates', name: 'Certificates' },
-    { table: 'portfolio_achievements', key: 'achievements', name: 'Achievements' },
-    { table: 'portfolio_blog', key: 'blog', name: 'Blog' },
-    { table: 'portfolio_messages', key: 'messages', name: 'Messages' }
+    { table: 'portfolio_tech_stacks', key: 'tech_stacks', name: 'Tech Stack', serializer: serializeTechStack },
+    { table: 'portfolio_projects', key: 'projects', name: 'Projects', serializer: serializeProject },
+    { table: 'portfolio_timeline', key: 'timeline', name: 'Journey', serializer: serializeTimeline },
+    { table: 'portfolio_certificates', key: 'certificates', name: 'Certificates', serializer: serializeCertificate },
+    { table: 'portfolio_achievements', key: 'achievements', name: 'Achievements', serializer: serializeAchievement },
+    { table: 'portfolio_messages', key: 'messages', name: 'Messages', serializer: (m) => m }
   ];
 
-  for (const { table, key, name } of collections) {
+  for (const { table, key, name, serializer } of collections) {
     const items = local[key] || [];
     if (items.length > 0) {
       try {
-        const { error } = await supabase.from(table).upsert(items);
+        const payload = items.map(serializer);
+        const { error } = await supabase.from(table).upsert(payload);
         if (error) throw error;
         results.details.push(`${name} (${items.length} items synced)`);
       } catch (err) {
@@ -507,7 +584,7 @@ export async function saveSettings(newSettings) {
   const supabase = getSupabase();
   if (supabase) {
     try {
-      await supabase.from('portfolio_settings').upsert([data.settings]);
+      await supabase.from('portfolio_settings').upsert([serializeSettings(data.settings)]);
     } catch (e) {
       console.warn('Cloud save settings failed:', e);
     }
@@ -530,7 +607,7 @@ export async function saveTechStack(item) {
   const supabase = getSupabase();
   if (supabase) {
     try {
-      await supabase.from('portfolio_tech_stacks').upsert([record]);
+      await supabase.from('portfolio_tech_stacks').upsert([serializeTechStack(record)]);
     } catch (e) {
       console.warn('Cloud save tech stack failed:', e);
     }
@@ -568,7 +645,7 @@ export async function saveProject(item) {
   const supabase = getSupabase();
   if (supabase) {
     try {
-      await supabase.from('portfolio_projects').upsert([record]);
+      await supabase.from('portfolio_projects').upsert([serializeProject(record)]);
     } catch (e) {
       console.warn('Cloud save project failed:', e);
     }
@@ -606,7 +683,7 @@ export async function saveTimelineItem(item) {
   const supabase = getSupabase();
   if (supabase) {
     try {
-      await supabase.from('portfolio_timeline').upsert([record]);
+      await supabase.from('portfolio_timeline').upsert([serializeTimeline(record)]);
     } catch (e) {
       console.warn('Cloud save timeline failed:', e);
     }
@@ -644,7 +721,7 @@ export async function saveCertificate(item) {
   const supabase = getSupabase();
   if (supabase) {
     try {
-      await supabase.from('portfolio_certificates').upsert([record]);
+      await supabase.from('portfolio_certificates').upsert([serializeCertificate(record)]);
     } catch (e) {
       console.warn('Cloud save certificate failed:', e);
     }
@@ -683,7 +760,7 @@ export async function saveAchievement(item) {
   const supabase = getSupabase();
   if (supabase) {
     try {
-      await supabase.from('portfolio_achievements').upsert([record]);
+      await supabase.from('portfolio_achievements').upsert([serializeAchievement(record)]);
     } catch (e) {
       console.warn('Cloud save achievement failed:', e);
     }
