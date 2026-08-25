@@ -1,6 +1,7 @@
 import {
   getLocalData,
   syncWithCloud,
+  pushLocalDataToCloud,
   saveSettings,
   saveTechStack,
   deleteTechStack,
@@ -1518,13 +1519,23 @@ function initAdminPaneHandlers() {
     renderAllUI();
   });
 
-  // Cloud Sync Now
+  // Cloud Sync Now (Push all local collections to Supabase Cloud)
   document.getElementById('admin-sync-cloud-btn')?.addEventListener('click', async () => {
     const btn = document.getElementById('admin-sync-cloud-btn');
-    btn.textContent = 'Syncing...';
-    await syncWithCloud();
-    btn.textContent = 'Sync Complete! ☁️';
-    setTimeout(() => { btn.textContent = 'Sync Local Data to Cloud Now'; }, 2000);
+    if (!isSupabaseConnected()) {
+      alert('Please configure your Supabase Project URL and Anon Public Key in the box above first.');
+      return;
+    }
+    btn.textContent = 'Uploading to Cloud...';
+    try {
+      const res = await pushLocalDataToCloud();
+      btn.textContent = 'Upload Complete! ☁️';
+      alert('All local items uploaded to Supabase Cloud successfully!\n\n' + res.details.join('\n'));
+    } catch (err) {
+      alert('Cloud upload failed: ' + (err.message || err));
+      btn.textContent = 'Sync Local Data to Cloud Now';
+    }
+    setTimeout(() => { btn.textContent = 'Sync Local Data to Cloud Now'; }, 3000);
   });
 
   // Clear Local Cache

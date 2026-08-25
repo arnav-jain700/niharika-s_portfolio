@@ -312,6 +312,54 @@ export async function syncWithCloud() {
   }
 }
 
+// Push all local data items to Cloud Supabase
+export async function pushLocalDataToCloud() {
+  const supabase = getSupabase();
+  const local = getLocalData();
+  if (!supabase) {
+    throw new Error('Supabase is not connected. Please provide your Supabase Project URL and Anon API Key.');
+  }
+
+  const results = { success: true, details: [] };
+
+  // 1. Settings
+  try {
+    const { error } = await supabase.from('portfolio_settings').upsert([local.settings]);
+    if (error) throw error;
+    results.details.push('Profile Settings synced');
+  } catch (e) {
+    console.error('Push settings error:', e);
+    results.details.push(`Settings error: ${e.message}`);
+  }
+
+  // 2. Collections
+  const collections = [
+    { table: 'portfolio_tech_stacks', key: 'tech_stacks', name: 'Tech Stack' },
+    { table: 'portfolio_projects', key: 'projects', name: 'Projects' },
+    { table: 'portfolio_timeline', key: 'timeline', name: 'Journey' },
+    { table: 'portfolio_certificates', key: 'certificates', name: 'Certificates' },
+    { table: 'portfolio_achievements', key: 'achievements', name: 'Achievements' },
+    { table: 'portfolio_blog', key: 'blog', name: 'Blog' },
+    { table: 'portfolio_messages', key: 'messages', name: 'Messages' }
+  ];
+
+  for (const { table, key, name } of collections) {
+    const items = local[key] || [];
+    if (items.length > 0) {
+      try {
+        const { error } = await supabase.from(table).upsert(items);
+        if (error) throw error;
+        results.details.push(`${name} (${items.length} items synced)`);
+      } catch (err) {
+        console.error(`Push ${table} error:`, err);
+        results.details.push(`${name} failed: ${err.message}`);
+      }
+    }
+  }
+
+  return results;
+}
+
 // --- Direct CRUD Methods ---
 
 export async function saveSettings(newSettings) {
