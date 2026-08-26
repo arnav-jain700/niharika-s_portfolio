@@ -125,8 +125,9 @@ h1, h2, h3, h4, h5, h6 {
 .gradient-text {
   background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-blue) 50%, var(--accent-purple) 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
-  display: inline-block;
+  display: inline;
 }
 
 .gradient-badge {
@@ -365,10 +366,21 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 20px;
 }
 
-.hero-content h1 {
+.hero-content h1, .hero-title {
   font-size: 3.5rem;
   margin-bottom: 16px;
   letter-spacing: -1px;
+  line-height: 1.15;
+}
+
+.hero-greeting {
+  display: inline;
+  white-space: nowrap;
+}
+
+.hero-tagline {
+  display: block;
+  margin-top: 6px;
 }
 
 .hero-bio {
@@ -1293,5 +1305,60 @@ body.print-mode .ats-resume-container {
   }
   .fit-lists-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 100px 20px 60px;
+  }
+  .hero-content h1, .hero-title {
+    font-size: 2.35rem;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+  }
+  .hero-bio {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+  .stats-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+  }
+  .stat-card {
+    padding: 12px 8px;
+  }
+  .stat-number {
+    font-size: 1.4rem;
+  }
+  .stat-label {
+    font-size: 0.68rem;
+  }
+  .projects-grid, .certs-grid, .achievements-grid, .skills-grid {
+    grid-template-columns: 1fr;
+  }
+  .hero-cta-group {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .hero-cta-group .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-content h1, .hero-title {
+    font-size: 1.95rem;
+    line-height: 1.25;
+  }
+  .hero-greeting {
+    display: block;
+    margin-bottom: 4px;
+  }
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
   }
 }
