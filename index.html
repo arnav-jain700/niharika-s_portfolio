@@ -35,6 +35,7 @@
             <li><a href="#journey" class="nav-link">Journey</a></li>
             <li><a href="#skills" class="nav-link">Skills</a></li>
             <li><a href="#projects" class="nav-link">Projects</a></li>
+            <li><a href="#coding" class="nav-link">Profiles</a></li>
             <li><a href="#certificates" class="nav-link">Certificates</a></li>
             <li><a href="#achievements" class="nav-link">Achievements</a></li>
             <li><a href="#contact" class="nav-link">Contact</a></li>
@@ -167,6 +168,73 @@
         </div>
 
         <div class="projects-grid" id="projects-grid-container">
+          <!-- Injected via main.js -->
+        </div>
+      </section>
+
+      <!-- ================= CODING PROFILES & ALGORITHMS VIEW ================= -->
+      <section id="coding" class="section-wrapper">
+        <div class="section-header">
+          <span class="section-tag">Competitive Programming & DSA</span>
+          <h2>Coding Profiles & Metrics</h2>
+          <p>Live verified algorithmic ratings, problem-solving distributions, and contest rankings across major platforms.</p>
+        </div>
+
+        <!-- Live Sync Status & Manual Trigger Header Bar -->
+        <div class="coding-sync-bar glass-card">
+          <div class="coding-sync-status">
+            <span class="pulse-indicator"></span>
+            <span id="coding-sync-status-text">Live Platform Sync Active</span>
+            <span class="sync-timestamp" id="coding-last-sync-time">Updated: Just now</span>
+          </div>
+          <button id="btn-refresh-coding-stats" class="btn btn-secondary" style="padding: 6px 14px; font-size: 0.82rem;">
+            <svg class="icon" style="width: 14px; height: 14px;"><use href="/icons.svg#icon-refresh"></use></svg>
+            Sync Live Stats
+          </button>
+        </div>
+
+        <!-- Problem Solving Aggregate Banner -->
+        <div class="coding-stats-summary-grid">
+          <div class="coding-summary-card glass-card">
+            <div class="coding-summary-icon" style="color: #FFA116;">
+              <svg class="icon"><use href="/icons.svg#icon-code"></use></svg>
+            </div>
+            <div>
+              <div class="coding-summary-val" id="summary-total-solved">990+</div>
+              <div class="coding-summary-lbl">Problems Solved Across Platforms</div>
+            </div>
+          </div>
+          <div class="coding-summary-card glass-card">
+            <div class="coding-summary-icon" style="color: var(--accent-cyan);">
+              <svg class="icon"><use href="/icons.svg#icon-zap"></use></svg>
+            </div>
+            <div>
+              <div class="coding-summary-val" id="summary-peak-rating">1865</div>
+              <div class="coding-summary-lbl">Peak Contest Rating</div>
+            </div>
+          </div>
+          <div class="coding-summary-card glass-card">
+            <div class="coding-summary-icon" style="color: var(--accent-purple);">
+              <svg class="icon"><use href="/icons.svg#icon-activity"></use></svg>
+            </div>
+            <div>
+              <div class="coding-summary-val" id="summary-contests-count">50+</div>
+              <div class="coding-summary-lbl">Contests Participated</div>
+            </div>
+          </div>
+          <div class="coding-summary-card glass-card">
+            <div class="coding-summary-icon" style="color: var(--accent-green);">
+              <svg class="icon"><use href="/icons.svg#icon-award"></use></svg>
+            </div>
+            <div>
+              <div class="coding-summary-val" id="summary-global-percentile">Top 3.8%</div>
+              <div class="coding-summary-lbl">Global Ranking Tier</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Platforms Grid: LeetCode, Codeforces, CodeChef, Codolio -->
+        <div class="coding-platforms-grid" id="coding-platforms-container">
           <!-- Injected via main.js -->
         </div>
       </section>
@@ -390,6 +458,10 @@
           <button class="admin-tab-btn" data-pane="pane-achievements">
             <svg class="icon"><use href="/icons.svg#icon-award"></use></svg>
             <span>Achievements</span>
+          </button>
+          <button class="admin-tab-btn" data-pane="pane-coding">
+            <svg class="icon"><use href="/icons.svg#icon-code"></use></svg>
+            <span>Coding Profiles</span>
           </button>
           <button class="admin-tab-btn" data-pane="pane-messages">
             <svg class="icon"><use href="/icons.svg#icon-send"></use></svg>
@@ -693,6 +765,134 @@
             <h3>Visitor Inquiry Logs</h3>
             <p class="admin-pane-desc">Messages submitted through the Contact tab. Click "Draft AI Reply" to generate instant responses.</p>
             <div id="admin-messages-container" style="display: flex; flex-direction: column; gap: 12px;"></div>
+          </div>
+
+          <!-- PANE: CODING PROFILES -->
+          <div id="pane-coding" class="admin-pane">
+            <h3>Competitive Coding Profiles & Stats</h3>
+            <p class="admin-pane-desc">Manage platform handles, live API stats synchronization, and problem-solving metrics.</p>
+
+            <form id="admin-coding-form" style="display: flex; flex-direction: column; gap: 18px;">
+              
+              <!-- LeetCode Group -->
+              <div class="glass-card" style="padding: 18px; border-left: 3px solid #FFA116;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <svg class="icon" style="width: 20px; height: 20px; color: #FFA116;"><use href="/icons.svg#icon-leetcode"></use></svg>
+                    <h4 style="font-size: 1rem; margin: 0;">LeetCode Configuration</h4>
+                  </div>
+                  <span style="font-size: 0.75rem; color: var(--text-dim); font-family: var(--font-mono);">leetcode.com/u/handle</span>
+                </div>
+                <div class="form-row-3">
+                  <div class="form-group">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">LeetCode Username</label>
+                    <input type="text" id="admin-lc-handle" class="form-input" placeholder="e.g. niharika18">
+                  </div>
+                  <div class="form-group">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Total Solved</label>
+                    <input type="number" id="admin-lc-solved" class="form-input" placeholder="e.g. 420">
+                  </div>
+                  <div class="form-group">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Contest Rating</label>
+                    <input type="number" id="admin-lc-rating" class="form-input" placeholder="e.g. 1845">
+                  </div>
+                </div>
+                <div class="form-row-3" style="margin-top: 10px;">
+                  <div class="form-group">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Easy Solved</label>
+                    <input type="number" id="admin-lc-easy" class="form-input" placeholder="e.g. 150">
+                  </div>
+                  <div class="form-group">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Medium Solved</label>
+                    <input type="number" id="admin-lc-medium" class="form-input" placeholder="e.g. 220">
+                  </div>
+                  <div class="form-group">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Hard Solved</label>
+                    <input type="number" id="admin-lc-hard" class="form-input" placeholder="e.g. 50">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Codeforces Group -->
+              <div class="glass-card" style="padding: 18px; border-left: 3px solid #1F8ACB;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <svg class="icon" style="width: 20px; height: 20px; color: #1F8ACB;"><use href="/icons.svg#icon-codeforces"></use></svg>
+                    <h4 style="font-size: 1rem; margin: 0;">Codeforces Configuration</h4>
+                  </div>
+                  <span style="font-size: 0.75rem; color: var(--text-dim); font-family: var(--font-mono);">codeforces.com/profile/handle</span>
+                </div>
+                <div class="form-row-3">
+                  <div class="form-group">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Codeforces Handle</label>
+                    <input type="text" id="admin-cf-handle" class="form-input" placeholder="e.g. niharika18">
+                  </div>
+                  <div class="form-group">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Current Rating</label>
+                    <input type="number" id="admin-cf-rating" class="form-input" placeholder="e.g. 1468">
+                  </div>
+                  <div class="form-group">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Rank Title</label>
+                    <input type="text" id="admin-cf-rank" class="form-input" placeholder="e.g. Specialist">
+                  </div>
+                </div>
+              </div>
+
+              <!-- CodeChef Group -->
+              <div class="glass-card" style="padding: 18px; border-left: 3px solid #E2A03F;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <svg class="icon" style="width: 20px; height: 20px; color: #E2A03F;"><use href="/icons.svg#icon-codechef"></use></svg>
+                    <h4 style="font-size: 1rem; margin: 0;">CodeChef Configuration</h4>
+                  </div>
+                  <span style="font-size: 0.75rem; color: var(--text-dim); font-family: var(--font-mono);">codechef.com/users/handle</span>
+                </div>
+                <div class="form-row-3">
+                  <div class="form-group">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">CodeChef Handle</label>
+                    <input type="text" id="admin-cc-handle" class="form-input" placeholder="e.g. niharika18">
+                  </div>
+                  <div class="form-group">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Star Rating</label>
+                    <input type="text" id="admin-cc-stars" class="form-input" placeholder="e.g. 4★">
+                  </div>
+                  <div class="form-group">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Rating</label>
+                    <input type="number" id="admin-cc-rating" class="form-input" placeholder="e.g. 1820">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Codolio Group -->
+              <div class="glass-card" style="padding: 18px; border-left: 3px solid var(--accent-cyan);">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <svg class="icon" style="width: 20px; height: 20px; color: var(--accent-cyan);"><use href="/icons.svg#icon-codolio"></use></svg>
+                    <h4 style="font-size: 1rem; margin: 0;">Codolio Configuration</h4>
+                  </div>
+                  <span style="font-size: 0.75rem; color: var(--text-dim); font-family: var(--font-mono);">codolio.com/profile/username</span>
+                </div>
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Codolio Profile URL</label>
+                    <input type="url" id="admin-cd-url" class="form-input" placeholder="https://codolio.com/profile/niharika">
+                  </div>
+                  <div class="form-group">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Developer Score / Index</label>
+                    <input type="number" id="admin-cd-score" class="form-input" placeholder="e.g. 875">
+                  </div>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                <button type="submit" id="admin-save-coding-btn" class="btn btn-primary" style="padding: 10px 20px;">Save Coding Settings</button>
+                <button type="button" id="admin-fetch-live-stats-btn" class="btn btn-secondary" style="padding: 10px 16px;">
+                  <svg class="icon"><use href="/icons.svg#icon-refresh"></use></svg>
+                  Fetch & Test Live Data
+                </button>
+                <span id="admin-coding-save-status" style="font-size: 0.85rem; color: var(--accent-cyan); display: none;">✓ Profiles Saved!</span>
+              </div>
+            </form>
           </div>
 
           <!-- PANE G: SETTINGS & AI -->

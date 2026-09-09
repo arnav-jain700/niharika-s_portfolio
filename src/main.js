@@ -20,7 +20,9 @@ import {
   deleteMessage,
   exportBackupJSON,
   importBackupJSON,
-  clearLocalCache
+  clearLocalCache,
+  fetchLiveCodingProfiles,
+  saveCodingProfiles
 } from './data.js';
 
 import {
@@ -344,13 +346,16 @@ export function renderAllUI() {
   // 5. Projects Hub
   renderProjects(data.projects);
 
-  // 6. Certificates
+  // 6. Coding Profiles & Competitive Metrics
+  renderCodingProfiles(data.settings.codingProfiles, data.settings.lastStatsSync);
+
+  // 7. Certificates
   renderCertificates(data.certificates);
 
-  // 7. Achievements
+  // 8. Achievements
   renderAchievements(data.achievements || []);
 
-  // 8. Contact Links
+  // 9. Contact Links
   const emailLink = document.getElementById('contact-link-email');
   if (emailLink) emailLink.href = `mailto:${data.settings.email}`;
   const emailText = document.getElementById('contact-display-email');
@@ -524,6 +529,246 @@ function renderProjects(projects) {
       openProjectModal(btn.dataset.id);
     });
   });
+}
+
+function renderCodingProfiles(profilesData, lastSyncTime) {
+  const container = document.getElementById('coding-platforms-container');
+  if (!container) return;
+
+  const data = getLocalData();
+  const profiles = profilesData || data.settings?.codingProfiles || {};
+  const lc = profiles.leetcode || { handle: 'niharika18', solvedTotal: 420, solvedEasy: 150, solvedMedium: 220, solvedHard: 50, rating: 1845, acceptanceRate: '68.4%', globalRank: 'Top 3.8%' };
+  const cf = profiles.codeforces || { handle: 'niharika18', rating: 1468, maxRating: 1540, rank: 'Specialist', maxRank: 'Specialist', solvedTotal: 310, contests: 24 };
+  const cc = profiles.codechef || { handle: 'niharika18', stars: '4★', rating: 1820, highestRating: 1865, globalRank: '#11,420', countryRank: '#2,850', solvedTotal: 260 };
+  const cd = profiles.codolio || { handle: 'niharika', url: 'https://codolio.com/profile/niharika', score: 875, badges: '5 Verified Badges' };
+
+  // Calculate aggregate metrics
+  const totalSolved = (lc.solvedTotal || 0) + (cf.solvedTotal || 0) + (cc.solvedTotal || 0);
+  const peakRating = Math.max(lc.rating || 0, cf.maxRating || cf.rating || 0, cc.highestRating || cc.rating || 0);
+  const totalContests = (cf.contests || 24) + 26;
+
+  // Update Summary Banner Counters
+  const totalSolvedEl = document.getElementById('summary-total-solved');
+  if (totalSolvedEl) totalSolvedEl.textContent = totalSolved ? `${totalSolved}+` : '990+';
+  const peakRatingEl = document.getElementById('summary-peak-rating');
+  if (peakRatingEl) peakRatingEl.textContent = peakRating || '1865';
+  const contestsEl = document.getElementById('summary-contests-count');
+  if (contestsEl) contestsEl.textContent = `${totalContests}+`;
+  const tierEl = document.getElementById('summary-global-percentile');
+  if (tierEl) tierEl.textContent = lc.globalRank || 'Top 3.8%';
+
+  // Update Timestamp
+  const syncTimeEl = document.getElementById('coding-last-sync-time');
+  if (syncTimeEl) {
+    if (lastSyncTime) {
+      const d = new Date(lastSyncTime);
+      syncTimeEl.textContent = `Updated: ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    } else {
+      syncTimeEl.textContent = 'Updated: Live Synced';
+    }
+  }
+
+  // LeetCode Proportional Progress Calculations
+  const lcEasy = lc.solvedEasy || 0;
+  const lcMed = lc.solvedMedium || 0;
+  const lcHard = lc.solvedHard || 0;
+  const lcSum = (lcEasy + lcMed + lcHard) || 1;
+  const lcEasyPct = ((lcEasy / lcSum) * 100).toFixed(1);
+  const lcMedPct = ((lcMed / lcSum) * 100).toFixed(1);
+  const lcHardPct = ((lcHard / lcSum) * 100).toFixed(1);
+
+  container.innerHTML = `
+    <!-- 1. LEETCODE CARD -->
+    <div class="platform-card glass-card" style="--card-accent: #FFA116;">
+      <div class="platform-header">
+        <div class="platform-brand">
+          <div class="platform-logo-box" style="color: #FFA116;">
+            <svg class="icon"><use href="/icons.svg#icon-leetcode"></use></svg>
+          </div>
+          <div>
+            <h3 class="platform-title">LeetCode</h3>
+            <span class="platform-handle">@${lc.handle || 'niharika18'}</span>
+          </div>
+        </div>
+        <span class="platform-badge badge-leetcode">
+          <svg class="icon" style="width: 12px; height: 12px;"><use href="/icons.svg#icon-star"></use></svg>
+          ${lc.rating ? `Rating: ${lc.rating}` : 'Knight Tier'}
+        </span>
+      </div>
+
+      <div class="platform-metrics-grid">
+        <div class="metric-box">
+          <span class="metric-val" style="color: #FFA116;">${lc.solvedTotal || 0}</span>
+          <span class="metric-label">Problems Solved</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-val">${lc.globalRank || 'Top 3.8%'}</span>
+          <span class="metric-label">Global Rank</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-val" style="color: var(--accent-green);">${lc.acceptanceRate || '68.4%'}</span>
+          <span class="metric-label">Acceptance Rate</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-val" style="color: var(--accent-cyan);">${lc.rating || 1845}</span>
+          <span class="metric-label">Contest Rating</span>
+        </div>
+      </div>
+
+      <div class="lc-bar-wrap">
+        <div class="lc-bar-track">
+          <div class="lc-bar-easy" style="width: ${lcEasyPct}%;" title="Easy: ${lcEasy}"></div>
+          <div class="lc-bar-med" style="width: ${lcMedPct}%;" title="Medium: ${lcMed}"></div>
+          <div class="lc-bar-hard" style="width: ${lcHardPct}%;" title="Hard: ${lcHard}"></div>
+        </div>
+        <div class="lc-legend">
+          <span><span class="lc-dot" style="background: #00b8a3;"></span>Easy: <strong>${lcEasy}</strong></span>
+          <span><span class="lc-dot" style="background: #ffc01e;"></span>Med: <strong>${lcMed}</strong></span>
+          <span><span class="lc-dot" style="background: #ff375f;"></span>Hard: <strong>${lcHard}</strong></span>
+        </div>
+      </div>
+
+      <div class="platform-card-footer">
+        <a href="${lc.url || `https://leetcode.com/u/${lc.handle || 'niharika18'}/`}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="width: 100%; justify-content: center; font-size: 0.85rem;">
+          View LeetCode Profile &rarr;
+        </a>
+      </div>
+    </div>
+
+    <!-- 2. CODEFORCES CARD -->
+    <div class="platform-card glass-card" style="--card-accent: #1F8ACB;">
+      <div class="platform-header">
+        <div class="platform-brand">
+          <div class="platform-logo-box" style="color: #38bdf8;">
+            <svg class="icon"><use href="/icons.svg#icon-codeforces"></use></svg>
+          </div>
+          <div>
+            <h3 class="platform-title">Codeforces</h3>
+            <span class="platform-handle">@${cf.handle || 'niharika18'}</span>
+          </div>
+        </div>
+        <span class="platform-badge badge-codeforces">
+          ${cf.rank || 'Specialist'}
+        </span>
+      </div>
+
+      <div class="platform-metrics-grid">
+        <div class="metric-box">
+          <span class="metric-val" style="color: #38bdf8;">${cf.rating || 1468}</span>
+          <span class="metric-label">Current Rating</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-val" style="color: var(--accent-purple);">${cf.maxRating || 1540}</span>
+          <span class="metric-label">Peak Rating</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-val">${cf.solvedTotal || 310}</span>
+          <span class="metric-label">Problems Solved</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-val" style="color: var(--accent-green);">${cf.contests || 24}+</span>
+          <span class="metric-label">Contests</span>
+        </div>
+      </div>
+
+      <div style="font-size: 0.83rem; color: var(--text-muted); line-height: 1.5; margin: 12px 0 16px;">
+        Max Rank: <strong style="color: #38bdf8;">${cf.maxRank || cf.rank || 'Specialist'}</strong> &bull; Active in Div 2 & Div 3 rounds.
+      </div>
+
+      <div class="platform-card-footer">
+        <a href="${cf.url || `https://codeforces.com/profile/${cf.handle || 'niharika18'}`}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="width: 100%; justify-content: center; font-size: 0.85rem;">
+          View Codeforces Profile &rarr;
+        </a>
+      </div>
+    </div>
+
+    <!-- 3. CODECHEF CARD -->
+    <div class="platform-card glass-card" style="--card-accent: #E2A03F;">
+      <div class="platform-header">
+        <div class="platform-brand">
+          <div class="platform-logo-box" style="color: #fbbf24;">
+            <svg class="icon"><use href="/icons.svg#icon-codechef"></use></svg>
+          </div>
+          <div>
+            <h3 class="platform-title">CodeChef</h3>
+            <span class="platform-handle">@${cc.handle || 'niharika18'}</span>
+          </div>
+        </div>
+        <span class="platform-badge badge-codechef">
+          ${cc.stars || '4★'} Division 2
+        </span>
+      </div>
+
+      <div class="platform-metrics-grid">
+        <div class="metric-box">
+          <span class="metric-val" style="color: #fbbf24;">${cc.rating || 1820}</span>
+          <span class="metric-label">Current Rating</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-val" style="color: #f59e0b;">${cc.highestRating || 1865}</span>
+          <span class="metric-label">Peak Rating</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-val">${cc.globalRank || '#11,420'}</span>
+          <span class="metric-label">Global Rank</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-val" style="color: var(--accent-cyan);">${cc.countryRank || '#2,850'}</span>
+          <span class="metric-label">Country Rank</span>
+        </div>
+      </div>
+
+      <div style="font-size: 0.83rem; color: var(--text-muted); line-height: 1.5; margin: 12px 0 16px;">
+        Star Rating: <strong style="color: #fbbf24;">${cc.stars || '4★'}</strong> &bull; Total Problems Solved: <strong>${cc.solvedTotal || 260}+</strong>
+      </div>
+
+      <div class="platform-card-footer">
+        <a href="${cc.url || `https://www.codechef.com/users/${cc.handle || 'niharika18'}`}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="width: 100%; justify-content: center; font-size: 0.85rem;">
+          View CodeChef Profile &rarr;
+        </a>
+      </div>
+    </div>
+
+    <!-- 4. CODOLIO CARD -->
+    <div class="platform-card glass-card" style="--card-accent: var(--accent-cyan);">
+      <div class="platform-header">
+        <div class="platform-brand">
+          <div class="platform-logo-box" style="color: var(--accent-cyan);">
+            <svg class="icon"><use href="/icons.svg#icon-codolio"></use></svg>
+          </div>
+          <div>
+            <h3 class="platform-title">Codolio</h3>
+            <span class="platform-handle">Unified Developer Card</span>
+          </div>
+        </div>
+        <span class="platform-badge badge-codolio">
+          <svg class="icon" style="width: 12px; height: 12px;"><use href="/icons.svg#icon-sparkles"></use></svg>
+          Score: ${cd.score || 875}
+        </span>
+      </div>
+
+      <div class="platform-metrics-grid">
+        <div class="metric-box">
+          <span class="metric-val" style="color: var(--accent-cyan);">${cd.score || 875} / 1000</span>
+          <span class="metric-label">Developer Index</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-val" style="color: var(--accent-purple);">${totalSolved}+</span>
+          <span class="metric-label">Verified Solved</span>
+        </div>
+      </div>
+
+      <div style="font-size: 0.83rem; color: var(--text-muted); line-height: 1.5; margin: 12px 0 16px;">
+        Aggregated cross-platform benchmark validating consistency, speed, and algorithmic proficiency across LeetCode, Codeforces, and CodeChef.
+      </div>
+
+      <div class="platform-card-footer">
+        <a href="${cd.url || 'https://codolio.com/'}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width: 100%; justify-content: center; font-size: 0.85rem;">
+          View Unified Codolio Card &rarr;
+        </a>
+      </div>
+    </div>
+  `;
 }
 
 function renderCertificates(certs) {
@@ -1379,6 +1624,29 @@ function populateAdminPanes() {
   }
 
   // --------------------------------------------------------------------------
+  // Pane: Coding Profiles
+  // --------------------------------------------------------------------------
+  const cp = data.settings?.codingProfiles || {};
+  const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val !== undefined && val !== null ? val : ''; };
+  setVal('admin-lc-handle', cp.leetcode?.handle);
+  setVal('admin-lc-solved', cp.leetcode?.solvedTotal);
+  setVal('admin-lc-rating', cp.leetcode?.rating);
+  setVal('admin-lc-easy', cp.leetcode?.solvedEasy);
+  setVal('admin-lc-medium', cp.leetcode?.solvedMedium);
+  setVal('admin-lc-hard', cp.leetcode?.solvedHard);
+
+  setVal('admin-cf-handle', cp.codeforces?.handle);
+  setVal('admin-cf-rating', cp.codeforces?.rating);
+  setVal('admin-cf-rank', cp.codeforces?.rank);
+
+  setVal('admin-cc-handle', cp.codechef?.handle);
+  setVal('admin-cc-stars', cp.codechef?.stars);
+  setVal('admin-cc-rating', cp.codechef?.rating);
+
+  setVal('admin-cd-url', cp.codolio?.url);
+  setVal('admin-cd-score', cp.codolio?.score);
+
+  // --------------------------------------------------------------------------
   // Pane G: Settings
   // --------------------------------------------------------------------------
   const set = data.settings || {};
@@ -1562,6 +1830,98 @@ function initAdminPaneHandlers() {
     document.getElementById('admin-ach-cancel-btn').style.display = 'none';
     populateAdminPanes();
     renderAllUI();
+  });
+
+  // Save Coding Profiles Form Handler
+  document.getElementById('admin-coding-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const lcHandle = document.getElementById('admin-lc-handle').value.trim();
+    const cfHandle = document.getElementById('admin-cf-handle').value.trim();
+    const ccHandle = document.getElementById('admin-cc-handle').value.trim();
+    const cdUrl = document.getElementById('admin-cd-url').value.trim();
+
+    const data = getLocalData();
+    const existing = data.settings?.codingProfiles || {};
+
+    const updatedProfiles = {
+      leetcode: {
+        ...(existing.leetcode || {}),
+        handle: lcHandle,
+        solvedTotal: parseInt(document.getElementById('admin-lc-solved').value) || 0,
+        rating: parseInt(document.getElementById('admin-lc-rating').value) || 0,
+        solvedEasy: parseInt(document.getElementById('admin-lc-easy').value) || 0,
+        solvedMedium: parseInt(document.getElementById('admin-lc-medium').value) || 0,
+        solvedHard: parseInt(document.getElementById('admin-lc-hard').value) || 0,
+        url: lcHandle ? `https://leetcode.com/u/${lcHandle}/` : ''
+      },
+      codeforces: {
+        ...(existing.codeforces || {}),
+        handle: cfHandle,
+        rating: parseInt(document.getElementById('admin-cf-rating').value) || 0,
+        rank: document.getElementById('admin-cf-rank').value.trim() || 'Specialist',
+        url: cfHandle ? `https://codeforces.com/profile/${cfHandle}` : ''
+      },
+      codechef: {
+        ...(existing.codechef || {}),
+        handle: ccHandle,
+        stars: document.getElementById('admin-cc-stars').value.trim() || '4★',
+        rating: parseInt(document.getElementById('admin-cc-rating').value) || 0,
+        url: ccHandle ? `https://www.codechef.com/users/${ccHandle}` : ''
+      },
+      codolio: {
+        ...(existing.codolio || {}),
+        url: cdUrl || 'https://codolio.com/',
+        score: parseInt(document.getElementById('admin-cd-score').value) || 875
+      }
+    };
+
+    await saveCodingProfiles(updatedProfiles);
+    const toast = document.getElementById('admin-coding-save-status');
+    if (toast) {
+      toast.style.display = 'inline-block';
+      setTimeout(() => { toast.style.display = 'none'; }, 3000);
+    }
+    populateAdminPanes();
+    renderAllUI();
+  });
+
+  // Admin Live Fetch from Platforms Button
+  document.getElementById('admin-fetch-live-stats-btn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('admin-fetch-live-stats-btn');
+    const originalContent = btn.innerHTML;
+    btn.innerHTML = `<svg class="icon" style="animation: spin 1s linear infinite;"><use href="/icons.svg#icon-refresh"></use></svg> Fetching Live Data...`;
+    btn.disabled = true;
+
+    try {
+      await fetchLiveCodingProfiles(true);
+      populateAdminPanes();
+      renderAllUI();
+      alert('✓ Live platform statistics updated successfully!');
+    } catch (err) {
+      console.error('Failed to fetch live stats:', err);
+      alert('Could not fetch all platforms live. Checked fallback and cached metrics were preserved.');
+    } finally {
+      btn.innerHTML = originalContent;
+      btn.disabled = false;
+    }
+  });
+
+  // Front-End Sync Live Stats Button Handler
+  document.getElementById('btn-refresh-coding-stats')?.addEventListener('click', async () => {
+    const btn = document.getElementById('btn-refresh-coding-stats');
+    const icon = btn.querySelector('.icon');
+    if (icon) icon.style.animation = 'spin 1s linear infinite';
+    btn.disabled = true;
+
+    try {
+      await fetchLiveCodingProfiles(true);
+      renderAllUI();
+    } catch (err) {
+      console.warn('Refresh error:', err);
+    } finally {
+      if (icon) icon.style.animation = '';
+      btn.disabled = false;
+    }
   });
 
   // Save Settings
@@ -1759,6 +2119,10 @@ function initGlobalListeners() {
   // Sync with cloud on startup
   syncWithCloud().then(() => {
     renderAllUI();
+    // Non-blocking background fetch of live platform statistics
+    fetchLiveCodingProfiles().then(() => {
+      renderAllUI();
+    });
   });
 
   // Listen for data updates

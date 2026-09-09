@@ -14,7 +14,47 @@ const DEFAULT_DATA = {
     medium: 'https://medium.com/',
     groqKey: '',
     geminiKey: '',
-    categories: ['Frontend', 'Backend', 'Databases', 'DevOps', 'AI / ML', 'Tools']
+    categories: ['Frontend', 'Backend', 'Databases', 'DevOps', 'AI / ML', 'Tools'],
+    codingProfiles: {
+      leetcode: {
+        handle: 'niharika18',
+        url: 'https://leetcode.com/u/niharika18/',
+        solvedTotal: 420,
+        solvedEasy: 150,
+        solvedMedium: 220,
+        solvedHard: 50,
+        acceptanceRate: '68.4%',
+        globalRank: 'Top 3.8%',
+        rating: 1845
+      },
+      codeforces: {
+        handle: 'niharika18',
+        url: 'https://codeforces.com/profile/niharika18',
+        rating: 1468,
+        maxRating: 1540,
+        rank: 'Specialist',
+        maxRank: 'Specialist',
+        solvedTotal: 310,
+        contests: 24
+      },
+      codechef: {
+        handle: 'niharika18',
+        url: 'https://www.codechef.com/users/niharika18',
+        stars: '4★',
+        rating: 1820,
+        highestRating: 1865,
+        globalRank: '#11,420',
+        countryRank: '#2,850',
+        solvedTotal: 260
+      },
+      codolio: {
+        handle: 'niharika',
+        url: 'https://codolio.com/profile/niharika',
+        score: 875,
+        badges: '5 Verified Badges',
+        summary: 'Unified cross-platform problem solving profile aggregating contest history & DSA strengths.'
+      }
+    }
   },
   tech_stacks: [
     { id: 'tech-1', name: 'JavaScript / ES6+', category: 'Frontend', level: 95, icon: 'icon-code' },
@@ -271,7 +311,9 @@ function normalizeSettings(s) {
     medium: s.medium ?? DEFAULT_DATA.settings.medium,
     groqKey: s.groqKey ?? s.groqkey ?? '',
     geminiKey: s.geminiKey ?? s.geminikey ?? '',
-    categories: Array.isArray(s.categories) ? s.categories : (typeof s.categories === 'string' ? JSON.parse(s.categories || '[]') : DEFAULT_DATA.settings.categories)
+    categories: Array.isArray(s.categories) ? s.categories : (typeof s.categories === 'string' ? JSON.parse(s.categories || '[]') : DEFAULT_DATA.settings.categories),
+    codingProfiles: s.codingProfiles ?? (s.codingprofiles ? (typeof s.codingprofiles === 'string' ? JSON.parse(s.codingprofiles) : s.codingprofiles) : DEFAULT_DATA.settings.codingProfiles),
+    lastStatsSync: s.lastStatsSync ?? s.laststatssync ?? null
   };
 }
 
@@ -354,7 +396,9 @@ function serializeSettings(s) {
     codolio: s.codolio ?? '',
     medium: s.medium ?? '',
     groqkey: s.groqKey ?? s.groqkey ?? '',
-    categories: s.categories || []
+    categories: s.categories || [],
+    codingprofiles: s.codingProfiles || DEFAULT_DATA.settings.codingProfiles,
+    laststatssync: s.lastStatsSync || new Date().toISOString()
   };
 }
 
@@ -923,4 +967,109 @@ export function clearLocalCache() {
   localStorage.removeItem(STORAGE_KEY);
   memoryStore = JSON.parse(JSON.stringify(DEFAULT_DATA));
   saveToStorage();
+}
+
+// Live Coding Profiles Fetcher (LeetCode, Codeforces, CodeChef)
+export async function fetchLiveCodingProfiles(forceRefresh = false) {
+  const data = getLocalData();
+  const profiles = data.settings.codingProfiles || DEFAULT_DATA.settings.codingProfiles;
+
+  const leetcodeHandle = profiles.leetcode?.handle || '';
+  const codeforcesHandle = profiles.codeforces?.handle || '';
+  const codechefHandle = profiles.codechef?.handle || '';
+
+  let hasUpdates = false;
+
+  // 1. Try Vercel Serverless Proxy
+  try {
+    const url = `/api/coding-stats?leetcode=${encodeURIComponent(leetcodeHandle)}&codeforces=${encodeURIComponent(codeforcesHandle)}&codechef=${encodeURIComponent(codechefHandle)}${forceRefresh ? '&t=' + Date.now() : ''}`;
+    const res = await fetch(url);
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.data) {
+        if (json.data.leetcode && json.data.leetcode.solvedTotal) {
+          profiles.leetcode = { ...profiles.leetcode, ...json.data.leetcode };
+          hasUpdates = true;
+        }
+        if (json.data.codeforces && json.data.codeforces.rating) {
+          profiles.codeforces = { ...profiles.codeforces, ...json.data.codeforces };
+          hasUpdates = true;
+        }
+        if (json.data.codechef && json.data.codechef.rating) {
+          profiles.codechef = { ...profiles.codechef, ...json.data.codechef };
+          hasUpdates = true;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Coding stats proxy error, attempting direct client fetch:', err);
+  }
+
+  // 2. Direct Fallback if proxy was offline or missing fields
+  if (!hasUpdates) {
+    // Leetcode direct fallback
+    if (leetcodeHandle) {
+      try {
+        const lcRes = await fetch(`https://leetcode-stats-api.herokuapp.com/${encodeURIComponent(leetcodeHandle)}`);
+        if (lcRes.ok) {
+          const lc = await lcRes.json();
+          if (lc.status === 'success') {
+            profiles.leetcode.solvedTotal = lc.totalSolved;
+            profiles.leetcode.solvedEasy = lc.easySolved;
+            profiles.leetcode.solvedMedium = lc.mediumSolved;
+            profiles.leetcode.solvedHard = lc.hardSolved;
+            profiles.leetcode.acceptanceRate = `${lc.acceptanceRate}%`;
+            profiles.leetcode.globalRank = lc.ranking ? `#${lc.ranking.toLocaleString()}` : profiles.leetcode.globalRank;
+            hasUpdates = true;
+          }
+        }
+      } catch (e) {
+        console.warn('Direct LeetCode fetch failed:', e);
+      }
+    }
+
+    // Codeforces direct fallback
+    if (codeforcesHandle) {
+      try {
+        const cfRes = await fetch(`https://codeforces.com/api/user.info?handles=${encodeURIComponent(codeforcesHandle)}`);
+        if (cfRes.ok) {
+          const cf = await cfRes.json();
+          if (cf.status === 'OK' && cf.result?.[0]) {
+            const u = cf.result[0];
+            profiles.codeforces.rating = u.rating || profiles.codeforces.rating;
+            profiles.codeforces.maxRating = u.maxRating || profiles.codeforces.maxRating;
+            profiles.codeforces.rank = u.rank ? u.rank.charAt(0).toUpperCase() + u.rank.slice(1) : profiles.codeforces.rank;
+            hasUpdates = true;
+          }
+        }
+      } catch (e) {
+        console.warn('Direct Codeforces fetch failed:', e);
+      }
+    }
+  }
+
+  if (hasUpdates) {
+    data.settings.codingProfiles = profiles;
+    data.settings.lastStatsSync = new Date().toISOString();
+    saveToStorage();
+  }
+
+  return profiles;
+}
+
+export async function saveCodingProfiles(updatedProfiles) {
+  const data = getLocalData();
+  data.settings.codingProfiles = { ...data.settings.codingProfiles, ...updatedProfiles };
+  data.settings.lastStatsSync = new Date().toISOString();
+  saveToStorage();
+
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      await supabase.from('portfolio_settings').upsert([serializeSettings(data.settings)]);
+    } catch (e) {
+      console.warn('Cloud save coding profiles failed:', e);
+    }
+  }
+  return data.settings.codingProfiles;
 }
