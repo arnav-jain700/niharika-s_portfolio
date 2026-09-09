@@ -144,32 +144,12 @@ function initParticleCanvas() {
   animate();
 }
 
+// Force dark theme as the permanent theme
+document.documentElement.setAttribute('data-theme', 'dark');
+localStorage.removeItem('portfolio_theme');
+
 // ==========================================================================
-// 2. Theme Management (Dark / Light)
-// ==========================================================================
-function initTheme() {
-  const toggleBtn = document.getElementById('theme-toggle-btn');
-  const savedTheme = localStorage.getItem('portfolio_theme') || 'dark';
-  document.documentElement.setAttribute('data-theme', savedTheme);
-  updateThemeIcon(savedTheme);
-
-  toggleBtn?.addEventListener('click', () => {
-    const current = document.documentElement.getAttribute('data-theme') || 'dark';
-    const next = current === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('portfolio_theme', next);
-    updateThemeIcon(next);
-  });
-}
-
-function updateThemeIcon(theme) {
-  const icon = document.querySelector('#theme-toggle-btn use');
-  if (icon) {
-    icon.setAttribute('href', theme === 'dark' ? '/icons.svg#icon-moon' : '/icons.svg#icon-sun');
-  }
-}
-
-// ==========================================================================// Utility: Smart Formatter for Markdown Bullet Points, Lists & Paragraphs
+// 2. Utility: Smart Formatter for Markdown Bullet Points, Lists & Paragraphs// Utility: Smart Formatter for Markdown Bullet Points, Lists & Paragraphs
 function formatDescription(text, isCompact = false) {
   if (!text) return '';
 
@@ -2172,7 +2152,6 @@ function initGlobalListeners() {
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
   initParticleCanvas();
-  initTheme();
   renderAllUI();
   initAIChatDrawer();
   initContactForm();
