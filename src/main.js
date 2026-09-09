@@ -22,7 +22,8 @@ import {
   importBackupJSON,
   clearLocalCache,
   fetchLiveCodingProfiles,
-  saveCodingProfiles
+  saveCodingProfiles,
+  extractHandle
 } from './data.js';
 
 import {
@@ -1835,10 +1836,22 @@ function initAdminPaneHandlers() {
   // Save Coding Profiles Form Handler
   document.getElementById('admin-coding-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const lcHandle = document.getElementById('admin-lc-handle').value.trim();
-    const cfHandle = document.getElementById('admin-cf-handle').value.trim();
-    const ccHandle = document.getElementById('admin-cc-handle').value.trim();
-    const cdUrl = document.getElementById('admin-cd-url').value.trim();
+    const saveBtn = document.getElementById('admin-save-coding-btn');
+    const origText = saveBtn ? saveBtn.innerHTML : 'Save Coding Settings';
+    if (saveBtn) {
+      saveBtn.innerHTML = `<svg class="icon" style="animation: spin 1s linear infinite;"><use href="/icons.svg#icon-refresh"></use></svg> Saving & Syncing Live Stats...`;
+      saveBtn.disabled = true;
+    }
+
+    const lcRaw = document.getElementById('admin-lc-handle').value.trim();
+    const cfRaw = document.getElementById('admin-cf-handle').value.trim();
+    const ccRaw = document.getElementById('admin-cc-handle').value.trim();
+    const cdRaw = document.getElementById('admin-cd-url').value.trim();
+
+    const lcHandle = extractHandle(lcRaw, 'leetcode');
+    const cfHandle = extractHandle(cfRaw, 'codeforces');
+    const ccHandle = extractHandle(ccRaw, 'codechef');
+    const cdUrl = extractHandle(cdRaw, 'codolio');
 
     const data = getLocalData();
     const existing = data.settings?.codingProfiles || {};
@@ -1847,40 +1860,54 @@ function initAdminPaneHandlers() {
       leetcode: {
         ...(existing.leetcode || {}),
         handle: lcHandle,
-        solvedTotal: parseInt(document.getElementById('admin-lc-solved').value) || 0,
-        rating: parseInt(document.getElementById('admin-lc-rating').value) || 0,
-        solvedEasy: parseInt(document.getElementById('admin-lc-easy').value) || 0,
-        solvedMedium: parseInt(document.getElementById('admin-lc-medium').value) || 0,
-        solvedHard: parseInt(document.getElementById('admin-lc-hard').value) || 0,
+        solvedTotal: parseInt(document.getElementById('admin-lc-solved').value) || (existing.leetcode?.solvedTotal || 0),
+        rating: parseInt(document.getElementById('admin-lc-rating').value) || (existing.leetcode?.rating || 0),
+        solvedEasy: parseInt(document.getElementById('admin-lc-easy').value) || (existing.leetcode?.solvedEasy || 0),
+        solvedMedium: parseInt(document.getElementById('admin-lc-medium').value) || (existing.leetcode?.solvedMedium || 0),
+        solvedHard: parseInt(document.getElementById('admin-lc-hard').value) || (existing.leetcode?.solvedHard || 0),
         url: lcHandle ? `https://leetcode.com/u/${lcHandle}/` : ''
       },
       codeforces: {
         ...(existing.codeforces || {}),
         handle: cfHandle,
-        rating: parseInt(document.getElementById('admin-cf-rating').value) || 0,
-        rank: document.getElementById('admin-cf-rank').value.trim() || 'Specialist',
+        rating: parseInt(document.getElementById('admin-cf-rating').value) || (existing.codeforces?.rating || 0),
+        rank: document.getElementById('admin-cf-rank').value.trim() || existing.codeforces?.rank || 'Specialist',
         url: cfHandle ? `https://codeforces.com/profile/${cfHandle}` : ''
       },
       codechef: {
         ...(existing.codechef || {}),
         handle: ccHandle,
-        stars: document.getElementById('admin-cc-stars').value.trim() || '4★',
-        rating: parseInt(document.getElementById('admin-cc-rating').value) || 0,
+        stars: document.getElementById('admin-cc-stars').value.trim() || existing.codechef?.stars || '4★',
+        rating: parseInt(document.getElementById('admin-cc-rating').value) || (existing.codechef?.rating || 0),
         url: ccHandle ? `https://www.codechef.com/users/${ccHandle}` : ''
       },
       codolio: {
         ...(existing.codolio || {}),
-        url: cdUrl || 'https://codolio.com/',
-        score: parseInt(document.getElementById('admin-cd-score').value) || 875
+        url: cdUrl || (cdRaw.startsWith('http') ? cdRaw : (cdRaw ? `https://codolio.com/profile/${cdRaw.replace(/^@/,'')}` : 'https://codolio.com/')),
+        score: parseInt(document.getElementById('admin-cd-score').value) || (existing.codolio?.score || 875)
       }
     };
 
     await saveCodingProfiles(updatedProfiles);
+
+    // Auto-fetch live statistics immediately after saving handles
+    try {
+      await fetchLiveCodingProfiles(true);
+    } catch (fetchErr) {
+      console.warn('Auto live fetch on save encountered error:', fetchErr);
+    }
+
     const toast = document.getElementById('admin-coding-save-status');
     if (toast) {
       toast.style.display = 'inline-block';
-      setTimeout(() => { toast.style.display = 'none'; }, 3000);
+      setTimeout(() => { toast.style.display = 'none'; }, 3500);
     }
+
+    if (saveBtn) {
+      saveBtn.innerHTML = origText;
+      saveBtn.disabled = false;
+    }
+
     populateAdminPanes();
     renderAllUI();
   });

@@ -61,8 +61,15 @@ CREATE TABLE IF NOT EXISTS portfolio_settings (
   groqKey TEXT DEFAULT '',
   geminiKey TEXT DEFAULT '',
   categories JSONB DEFAULT '["Frontend", "Backend", "Databases", "DevOps", "AI / ML", "Tools"]'::jsonb,
+  codingprofiles JSONB DEFAULT '{}'::jsonb,
+  laststatssync TIMESTAMPTZ DEFAULT NOW(),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Schema Migration for Existing Databases:
+ALTER TABLE portfolio_settings ADD COLUMN IF NOT EXISTS codingprofiles JSONB DEFAULT '{}'::jsonb;
+ALTER TABLE portfolio_settings ADD COLUMN IF NOT EXISTS laststatssync TIMESTAMPTZ DEFAULT NOW();
+
 
 -- 2. Technical Skills & Toolkit
 CREATE TABLE IF NOT EXISTS portfolio_tech_stacks (

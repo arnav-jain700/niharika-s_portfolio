@@ -296,9 +296,62 @@ function saveToStorage() {
   }
 }
 
+// Handle / Username Extractor (Strips URLs, @, and slashes)
+export function extractHandle(input, platform) {
+  if (!input) return '';
+  let str = String(input).trim();
+  // Strip query parameters (?...) and hash fragments (#...)
+  str = str.split('?')[0].split('#')[0].replace(/\/+$/, '');
+
+  if (platform === 'leetcode') {
+    const match = str.match(/(?:leetcode\.com\/(?:u\/)?|@|^)([a-zA-Z0-9_\-]+)$/i) || str.match(/([a-zA-Z0-9_\-]+)$/);
+    return match ? match[1] : str.replace(/^@/, '');
+  }
+  if (platform === 'codeforces') {
+    const match = str.match(/(?:codeforces\.com\/profile\/|@|^)([a-zA-Z0-9_\.\-]+)$/i) || str.match(/([a-zA-Z0-9_\.\-]+)$/);
+    return match ? match[1] : str.replace(/^@/, '');
+  }
+  if (platform === 'codechef') {
+    const match = str.match(/(?:codechef\.com\/users\/|@|^)([a-zA-Z0-9_]+)$/i) || str.match(/([a-zA-Z0-9_]+)$/);
+    return match ? match[1] : str.replace(/^@/, '');
+  }
+  if (platform === 'codolio') {
+    if (!str.startsWith('http')) {
+      const h = str.replace(/^@/, '');
+      return `https://codolio.com/profile/${h}`;
+    }
+    return str;
+  }
+  return str.replace(/^@/, '');
+}
+
 // --- Data Normalization Helpers (Fix PostgreSQL lowercase key compatibility) ---
 function normalizeSettings(s) {
-  if (!s) return DEFAULT_DATA.settings;
+  if (!s) return memoryStore?.settings || DEFAULT_DATA.settings;
+  const currentLocalProfiles = memoryStore?.settings?.codingProfiles || DEFAULT_DATA.settings.codingProfiles;
+  
+  let parsedProfiles = null;
+  if (s.codingProfiles && typeof s.codingProfiles === 'object' && Object.keys(s.codingProfiles).length > 0) {
+    parsedProfiles = s.codingProfiles;
+  } else if (s.codingprofiles) {
+    try {
+      parsedProfiles = typeof s.codingprofiles === 'string' ? JSON.parse(s.codingprofiles) : s.codingprofiles;
+    } catch (e) {
+      console.warn('Failed to parse codingprofiles JSON:', e);
+    }
+  }
+
+  // Merge carefully: if parsedProfiles is found, merge with currentLocalProfiles so no fields are lost
+  let mergedProfiles = currentLocalProfiles;
+  if (parsedProfiles && typeof parsedProfiles === 'object') {
+    mergedProfiles = {
+      leetcode: { ...(currentLocalProfiles.leetcode || {}), ...(parsedProfiles.leetcode || {}) },
+      codeforces: { ...(currentLocalProfiles.codeforces || {}), ...(parsedProfiles.codeforces || {}) },
+      codechef: { ...(currentLocalProfiles.codechef || {}), ...(parsedProfiles.codechef || {}) },
+      codolio: { ...(currentLocalProfiles.codolio || {}), ...(parsedProfiles.codolio || {}) }
+    };
+  }
+
   return {
     id: 'main_settings',
     ownerName: s.ownerName ?? s.ownername ?? DEFAULT_DATA.settings.ownerName,
@@ -312,8 +365,8 @@ function normalizeSettings(s) {
     groqKey: s.groqKey ?? s.groqkey ?? '',
     geminiKey: s.geminiKey ?? s.geminikey ?? '',
     categories: Array.isArray(s.categories) ? s.categories : (typeof s.categories === 'string' ? JSON.parse(s.categories || '[]') : DEFAULT_DATA.settings.categories),
-    codingProfiles: s.codingProfiles ?? (s.codingprofiles ? (typeof s.codingprofiles === 'string' ? JSON.parse(s.codingprofiles) : s.codingprofiles) : DEFAULT_DATA.settings.codingProfiles),
-    lastStatsSync: s.lastStatsSync ?? s.laststatssync ?? null
+    codingProfiles: mergedProfiles,
+    lastStatsSync: s.lastStatsSync ?? s.laststatssync ?? (memoryStore?.settings?.lastStatsSync || null)
   };
 }
 
@@ -463,6 +516,45 @@ function serializeTechStack(s) {
   };
 }
 
+// Robust Cloud Upsert for Settings with schema backward-compatibility
+async function upsertSettingsToSupabase(supabase, settings) {
+  if (!supabase) return { ok: false };
+  const payload = serializeSettings(settings);
+  try {
+    const { error } = await supabase.from('portfolio_settings').upsert([payload]);
+    if (error) {
+      if (error.code === '42703' || (error.message && (error.message.includes('codingprofiles') || error.message.includes('laststatssync') || error.message.includes('column')))) {
+        console.warn('Supabase portfolio_settings table missing codingprofiles/laststatssync column. Retrying backward-compatible upsert...');
+        const legacyPayload = {
+          id: payload.id,
+          ownername: payload.ownername,
+          ownerbio: payload.ownerbio,
+          email: payload.email,
+          location: payload.location,
+          linkedin: payload.linkedin,
+          github: payload.github,
+          codolio: payload.codolio,
+          medium: payload.medium,
+          groqkey: payload.groqkey,
+          categories: payload.categories
+        };
+        const { error: fallbackErr } = await supabase.from('portfolio_settings').upsert([legacyPayload]);
+        if (fallbackErr) {
+          console.warn('Fallback settings upsert failed:', fallbackErr);
+          return { ok: false, error: fallbackErr, partial: true };
+        }
+        return { ok: true, partial: true };
+      }
+      console.warn('Cloud save settings error:', error);
+      return { ok: false, error };
+    }
+    return { ok: true, partial: false };
+  } catch (err) {
+    console.warn('Cloud upsert settings exception:', err);
+    return { ok: false, error: err };
+  }
+}
+
 // Background Cloud Sync
 export async function syncWithCloud() {
   const supabase = getSupabase();
@@ -481,7 +573,7 @@ export async function syncWithCloud() {
       local.settings = normalizeSettings(cloudSettings);
     } else if (setErr && setErr.code === 'PGRST116') {
       // Table is empty, upload initial local settings
-      await supabase.from('portfolio_settings').upsert([serializeSettings(local.settings)]);
+      await upsertSettingsToSupabase(supabase, local.settings);
     } else if (setErr) {
       console.warn('Supabase fetch error for portfolio_settings:', setErr);
     }
@@ -582,9 +674,12 @@ export async function pushLocalDataToCloud() {
 
   // 1. Settings
   try {
-    const { error } = await supabase.from('portfolio_settings').upsert([serializeSettings(local.settings)]);
-    if (error) throw error;
-    results.details.push('Profile Settings synced');
+    const res = await upsertSettingsToSupabase(supabase, local.settings);
+    if (res?.partial) {
+      results.details.push('Profile Settings synced (Note: Run ALTER TABLE migration in Supabase to sync coding profiles cloud-side)');
+    } else {
+      results.details.push('Profile Settings synced');
+    }
   } catch (e) {
     console.error('Push settings error:', e);
     results.details.push(`Settings error: ${e.message}`);
@@ -627,11 +722,7 @@ export async function saveSettings(newSettings) {
 
   const supabase = getSupabase();
   if (supabase) {
-    try {
-      await supabase.from('portfolio_settings').upsert([serializeSettings(data.settings)]);
-    } catch (e) {
-      console.warn('Cloud save settings failed:', e);
-    }
+    await upsertSettingsToSupabase(supabase, data.settings);
   }
   return data.settings;
 }
@@ -974,9 +1065,23 @@ export async function fetchLiveCodingProfiles(forceRefresh = false) {
   const data = getLocalData();
   const profiles = data.settings.codingProfiles || DEFAULT_DATA.settings.codingProfiles;
 
-  const leetcodeHandle = profiles.leetcode?.handle || '';
-  const codeforcesHandle = profiles.codeforces?.handle || '';
-  const codechefHandle = profiles.codechef?.handle || '';
+  const leetcodeHandle = extractHandle(profiles.leetcode?.handle || '', 'leetcode');
+  const codeforcesHandle = extractHandle(profiles.codeforces?.handle || '', 'codeforces');
+  const codechefHandle = extractHandle(profiles.codechef?.handle || '', 'codechef');
+
+  // Ensure cleaned handles and URLs are set
+  if (leetcodeHandle) {
+    profiles.leetcode.handle = leetcodeHandle;
+    profiles.leetcode.url = `https://leetcode.com/u/${leetcodeHandle}/`;
+  }
+  if (codeforcesHandle) {
+    profiles.codeforces.handle = codeforcesHandle;
+    profiles.codeforces.url = `https://codeforces.com/profile/${codeforcesHandle}`;
+  }
+  if (codechefHandle) {
+    profiles.codechef.handle = codechefHandle;
+    profiles.codechef.url = `https://www.codechef.com/users/${codechefHandle}`;
+  }
 
   let hasUpdates = false;
 
@@ -987,15 +1092,15 @@ export async function fetchLiveCodingProfiles(forceRefresh = false) {
     if (res.ok) {
       const json = await res.json();
       if (json.success && json.data) {
-        if (json.data.leetcode && json.data.leetcode.solvedTotal) {
+        if (json.data.leetcode && (json.data.leetcode.solvedTotal !== undefined || json.data.leetcode.rating)) {
           profiles.leetcode = { ...profiles.leetcode, ...json.data.leetcode };
           hasUpdates = true;
         }
-        if (json.data.codeforces && json.data.codeforces.rating) {
+        if (json.data.codeforces && (json.data.codeforces.rating !== undefined || json.data.codeforces.solvedTotal !== undefined)) {
           profiles.codeforces = { ...profiles.codeforces, ...json.data.codeforces };
           hasUpdates = true;
         }
-        if (json.data.codechef && json.data.codechef.rating) {
+        if (json.data.codechef && (json.data.codechef.rating !== undefined || json.data.codechef.solvedTotal !== undefined)) {
           profiles.codechef = { ...profiles.codechef, ...json.data.codechef };
           hasUpdates = true;
         }
@@ -1031,27 +1136,72 @@ export async function fetchLiveCodingProfiles(forceRefresh = false) {
     // Codeforces direct fallback
     if (codeforcesHandle) {
       try {
-        const cfRes = await fetch(`https://codeforces.com/api/user.info?handles=${encodeURIComponent(codeforcesHandle)}`);
-        if (cfRes.ok) {
-          const cf = await cfRes.json();
+        const [cfRes, cfStatus] = await Promise.allSettled([
+          fetch(`https://codeforces.com/api/user.info?handles=${encodeURIComponent(codeforcesHandle)}`),
+          fetch(`https://codeforces.com/api/user.status?handle=${encodeURIComponent(codeforcesHandle)}&from=1&count=2000`)
+        ]);
+
+        if (cfRes.status === 'fulfilled' && cfRes.value.ok) {
+          const cf = await cfRes.value.json();
           if (cf.status === 'OK' && cf.result?.[0]) {
             const u = cf.result[0];
             profiles.codeforces.rating = u.rating || profiles.codeforces.rating;
             profiles.codeforces.maxRating = u.maxRating || profiles.codeforces.maxRating;
             profiles.codeforces.rank = u.rank ? u.rank.charAt(0).toUpperCase() + u.rank.slice(1) : profiles.codeforces.rank;
+            profiles.codeforces.maxRank = u.maxRank ? u.maxRank.charAt(0).toUpperCase() + u.maxRank.slice(1) : profiles.codeforces.maxRank;
             hasUpdates = true;
+          }
+        }
+
+        if (cfStatus.status === 'fulfilled' && cfStatus.value.ok) {
+          const cfs = await cfStatus.value.json();
+          if (cfs.status === 'OK' && Array.isArray(cfs.result)) {
+            const solvedSet = new Set();
+            cfs.result.forEach(sub => {
+              if (sub.verdict === 'OK' && sub.problem) {
+                solvedSet.add(`${sub.problem.contestId}-${sub.problem.index}`);
+              }
+            });
+            if (solvedSet.size > 0) {
+              profiles.codeforces.solvedTotal = solvedSet.size;
+              hasUpdates = true;
+            }
           }
         }
       } catch (e) {
         console.warn('Direct Codeforces fetch failed:', e);
       }
     }
+
+    // CodeChef direct fallback
+    if (codechefHandle) {
+      try {
+        const ccRes = await fetch(`https://codechef-api.vercel.app/handle/${encodeURIComponent(codechefHandle)}`);
+        if (ccRes.ok) {
+          const cc = await ccRes.json();
+          if (cc.success !== false) {
+            profiles.codechef.stars = cc.stars ? `${cc.stars}` : profiles.codechef.stars;
+            profiles.codechef.rating = cc.currentRating || profiles.codechef.rating;
+            profiles.codechef.highestRating = cc.highestRating || profiles.codechef.highestRating;
+            profiles.codechef.globalRank = cc.globalRank ? `#${Number(cc.globalRank).toLocaleString()}` : profiles.codechef.globalRank;
+            profiles.codechef.countryRank = cc.countryRank ? `#${Number(cc.countryRank).toLocaleString()}` : profiles.codechef.countryRank;
+            profiles.codechef.solvedTotal = cc.problemsSolved || profiles.codechef.solvedTotal;
+            hasUpdates = true;
+          }
+        }
+      } catch (e) {
+        console.warn('Direct CodeChef fetch failed:', e);
+      }
+    }
   }
 
-  if (hasUpdates) {
-    data.settings.codingProfiles = profiles;
-    data.settings.lastStatsSync = new Date().toISOString();
-    saveToStorage();
+  data.settings.codingProfiles = profiles;
+  data.settings.lastStatsSync = new Date().toISOString();
+  saveToStorage();
+
+  const supabase = getSupabase();
+  if (supabase) {
+    await upsertSettingsToSupabase(supabase, data.settings);
   }
 
   return profiles;
@@ -1065,11 +1215,7 @@ export async function saveCodingProfiles(updatedProfiles) {
 
   const supabase = getSupabase();
   if (supabase) {
-    try {
-      await supabase.from('portfolio_settings').upsert([serializeSettings(data.settings)]);
-    } catch (e) {
-      console.warn('Cloud save coding profiles failed:', e);
-    }
+    await upsertSettingsToSupabase(supabase, data.settings);
   }
   return data.settings.codingProfiles;
 }
