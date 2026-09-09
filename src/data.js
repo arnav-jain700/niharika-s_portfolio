@@ -1085,22 +1085,22 @@ export async function fetchLiveCodingProfiles(forceRefresh = false) {
 
   let hasUpdates = false;
 
-  // 1. Try Vercel Serverless Proxy
+  // 1. Try Vercel Serverless Proxy / Vite Dev Middleware
   try {
     const url = `/api/coding-stats?leetcode=${encodeURIComponent(leetcodeHandle)}&codeforces=${encodeURIComponent(codeforcesHandle)}&codechef=${encodeURIComponent(codechefHandle)}${forceRefresh ? '&t=' + Date.now() : ''}`;
     const res = await fetch(url);
     if (res.ok) {
       const json = await res.json();
       if (json.success && json.data) {
-        if (json.data.leetcode && (json.data.leetcode.solvedTotal !== undefined || json.data.leetcode.rating)) {
+        if (json.data.leetcode && json.data.leetcode.solvedTotal !== undefined) {
           profiles.leetcode = { ...profiles.leetcode, ...json.data.leetcode };
           hasUpdates = true;
         }
-        if (json.data.codeforces && (json.data.codeforces.rating !== undefined || json.data.codeforces.solvedTotal !== undefined)) {
+        if (json.data.codeforces && (json.data.codeforces.rating !== undefined || json.data.codeforces.solvedTotal !== undefined || json.data.codeforces.handle)) {
           profiles.codeforces = { ...profiles.codeforces, ...json.data.codeforces };
           hasUpdates = true;
         }
-        if (json.data.codechef && (json.data.codechef.rating !== undefined || json.data.codechef.solvedTotal !== undefined)) {
+        if (json.data.codechef && (json.data.codechef.rating !== undefined || json.data.codechef.stars || json.data.codechef.handle)) {
           profiles.codechef = { ...profiles.codechef, ...json.data.codechef };
           hasUpdates = true;
         }
@@ -1115,21 +1115,42 @@ export async function fetchLiveCodingProfiles(forceRefresh = false) {
     // Leetcode direct fallback
     if (leetcodeHandle) {
       try {
-        const lcRes = await fetch(`https://leetcode-stats-api.herokuapp.com/${encodeURIComponent(leetcodeHandle)}`);
+        const lcRes = await fetch(`https://leetcode-api-faisalshohag.vercel.app/${encodeURIComponent(leetcodeHandle)}`);
         if (lcRes.ok) {
           const lc = await lcRes.json();
-          if (lc.status === 'success') {
+          if (lc && lc.totalSolved !== undefined) {
             profiles.leetcode.solvedTotal = lc.totalSolved;
-            profiles.leetcode.solvedEasy = lc.easySolved;
-            profiles.leetcode.solvedMedium = lc.mediumSolved;
-            profiles.leetcode.solvedHard = lc.hardSolved;
-            profiles.leetcode.acceptanceRate = `${lc.acceptanceRate}%`;
-            profiles.leetcode.globalRank = lc.ranking ? `#${lc.ranking.toLocaleString()}` : profiles.leetcode.globalRank;
+            profiles.leetcode.solvedEasy = lc.easySolved || 0;
+            profiles.leetcode.solvedMedium = lc.mediumSolved || 0;
+            profiles.leetcode.solvedHard = lc.hardSolved || 0;
+            profiles.leetcode.acceptanceRate = lc.acceptanceRate ? `${lc.acceptanceRate}%` : '65%';
+            profiles.leetcode.globalRank = lc.ranking && lc.ranking < 5000000 ? `#${Number(lc.ranking).toLocaleString()}` : (lc.ranking ? `#${Number(lc.ranking).toLocaleString()}` : profiles.leetcode.globalRank);
+            if (lc.contributionPoint) profiles.leetcode.rating = lc.contributionPoint;
             hasUpdates = true;
           }
         }
       } catch (e) {
-        console.warn('Direct LeetCode fetch failed:', e);
+        console.warn('Direct LeetCode fetch 1 failed:', e);
+      }
+
+      if (!hasUpdates) {
+        try {
+          const lcRes2 = await fetch(`https://alfa-leetcode-api.onrender.com/userProfile/${encodeURIComponent(leetcodeHandle)}`);
+          if (lcRes2.ok) {
+            const lc2 = await lcRes2.json();
+            if (lc2 && lc2.totalSolved !== undefined) {
+              profiles.leetcode.solvedTotal = lc2.totalSolved;
+              profiles.leetcode.solvedEasy = lc2.easySolved || 0;
+              profiles.leetcode.solvedMedium = lc2.mediumSolved || 0;
+              profiles.leetcode.solvedHard = lc2.hardSolved || 0;
+              profiles.leetcode.acceptanceRate = lc2.acceptanceRate ? `${lc2.acceptanceRate}%` : '65%';
+              profiles.leetcode.globalRank = lc2.ranking && lc2.ranking < 5000000 ? `#${Number(lc2.ranking).toLocaleString()}` : profiles.leetcode.globalRank;
+              hasUpdates = true;
+            }
+          }
+        } catch (e) {
+          console.warn('Direct LeetCode fetch 2 failed:', e);
+        }
       }
     }
 
@@ -1145,10 +1166,10 @@ export async function fetchLiveCodingProfiles(forceRefresh = false) {
           const cf = await cfRes.value.json();
           if (cf.status === 'OK' && cf.result?.[0]) {
             const u = cf.result[0];
-            profiles.codeforces.rating = u.rating || profiles.codeforces.rating;
-            profiles.codeforces.maxRating = u.maxRating || profiles.codeforces.maxRating;
-            profiles.codeforces.rank = u.rank ? u.rank.charAt(0).toUpperCase() + u.rank.slice(1) : profiles.codeforces.rank;
-            profiles.codeforces.maxRank = u.maxRank ? u.maxRank.charAt(0).toUpperCase() + u.maxRank.slice(1) : profiles.codeforces.maxRank;
+            profiles.codeforces.rating = u.rating || 0;
+            profiles.codeforces.maxRating = u.maxRating || 0;
+            profiles.codeforces.rank = u.rank ? u.rank.charAt(0).toUpperCase() + u.rank.slice(1) : 'Unrated';
+            profiles.codeforces.maxRank = u.maxRank ? u.maxRank.charAt(0).toUpperCase() + u.maxRank.slice(1) : 'Unrated';
             hasUpdates = true;
           }
         }
@@ -1162,10 +1183,8 @@ export async function fetchLiveCodingProfiles(forceRefresh = false) {
                 solvedSet.add(`${sub.problem.contestId}-${sub.problem.index}`);
               }
             });
-            if (solvedSet.size > 0) {
-              profiles.codeforces.solvedTotal = solvedSet.size;
-              hasUpdates = true;
-            }
+            profiles.codeforces.solvedTotal = solvedSet.size;
+            hasUpdates = true;
           }
         }
       } catch (e) {
@@ -1176,16 +1195,19 @@ export async function fetchLiveCodingProfiles(forceRefresh = false) {
     // CodeChef direct fallback
     if (codechefHandle) {
       try {
-        const ccRes = await fetch(`https://codechef-api.vercel.app/handle/${encodeURIComponent(codechefHandle)}`);
+        const ccRes = await fetch(`https://codechef-api-gamma.vercel.app/handle/${encodeURIComponent(codechefHandle)}`);
         if (ccRes.ok) {
           const cc = await ccRes.json();
-          if (cc.success !== false) {
-            profiles.codechef.stars = cc.stars ? `${cc.stars}` : profiles.codechef.stars;
-            profiles.codechef.rating = cc.currentRating || profiles.codechef.rating;
-            profiles.codechef.highestRating = cc.highestRating || profiles.codechef.highestRating;
+          if (cc && cc.success !== false) {
+            profiles.codechef.stars = cc.stars ? (cc.stars.includes('★') ? cc.stars : `${cc.stars}★`) : (profiles.codechef.stars || '2★');
+            profiles.codechef.rating = cc.currentRating || profiles.codechef.rating || 0;
+            profiles.codechef.highestRating = cc.highestRating || profiles.codechef.highestRating || 0;
             profiles.codechef.globalRank = cc.globalRank ? `#${Number(cc.globalRank).toLocaleString()}` : profiles.codechef.globalRank;
             profiles.codechef.countryRank = cc.countryRank ? `#${Number(cc.countryRank).toLocaleString()}` : profiles.codechef.countryRank;
-            profiles.codechef.solvedTotal = cc.problemsSolved || profiles.codechef.solvedTotal;
+            if (cc.heatMap) {
+              const solvedFromHeatmap = cc.heatMap.reduce((acc, cur) => acc + (cur.value || 0), 0);
+              if (solvedFromHeatmap > 0) profiles.codechef.solvedTotal = solvedFromHeatmap;
+            }
             hasUpdates = true;
           }
         }
