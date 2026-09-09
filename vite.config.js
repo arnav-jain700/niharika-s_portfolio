@@ -1,11 +1,12 @@
 import { defineConfig } from 'vite';
 
-export default defineConfig({
-  server: {
-    port: 5173,
+function codingStatsPlugin() {
+  return {
+    name: 'coding-stats-plugin',
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
-        if (req.url && req.url.startsWith('/api/coding-stats')) {
+        const urlPath = req.url ? req.url.split('?')[0] : '';
+        if (urlPath === '/api/coding-stats' || urlPath === '/api/coding-stats.js') {
           try {
             const parsedUrl = new URL(req.url, 'http://localhost:5173');
             const handlerModule = await server.ssrLoadModule('/api/coding-stats.js');
@@ -47,5 +48,9 @@ export default defineConfig({
         next();
       });
     }
-  }
+  };
+}
+
+export default defineConfig({
+  plugins: [codingStatsPlugin()]
 });
