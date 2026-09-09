@@ -2125,6 +2125,15 @@ function initGlobalListeners() {
     });
   });
 
+  // Automatic periodic background refresh every 10 minutes
+  setInterval(() => {
+    if (!document.hidden) {
+      fetchLiveCodingProfiles().then(() => {
+        renderAllUI();
+      });
+    }
+  }, 10 * 60 * 1000);
+
   // Listen for data updates
   window.addEventListener('portfolio_data_changed', () => {
     renderAllUI();
