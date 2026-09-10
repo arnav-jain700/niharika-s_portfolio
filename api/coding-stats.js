@@ -127,9 +127,9 @@ export default async function handler(req, res) {
             solvedEasy: easy,
             solvedMedium: medium,
             solvedHard: hard,
-            acceptanceRate: '68%',
-            globalRank: rank && rank < 5000000 ? `#${Number(rank).toLocaleString()}` : (contest?.topPercentage ? `Top ${contest.topPercentage}%` : 'Top 5%'),
-            rating: contest ? Math.round(contest.rating) : (user.profile?.reputation || 1845),
+            acceptanceRate: total > 0 ? '68%' : 'N/A',
+            globalRank: rank && rank < 5000000 ? `#${Number(rank).toLocaleString()}` : (contest?.topPercentage ? `Top ${contest.topPercentage}%` : null),
+            rating: contest ? Math.round(contest.rating) : (user.profile?.reputation || null),
             url: `https://leetcode.com/u/${leetcode}/`
           };
           return;
@@ -151,9 +151,9 @@ export default async function handler(req, res) {
             solvedEasy: d.easySolved || 0,
             solvedMedium: d.mediumSolved || 0,
             solvedHard: d.hardSolved || 0,
-            acceptanceRate: d.acceptanceRate ? `${d.acceptanceRate}%` : '65%',
-            globalRank: d.ranking && d.ranking < 5000000 ? `#${Number(d.ranking).toLocaleString()}` : (d.ranking ? `#${Number(d.ranking).toLocaleString()}` : 'Top 5%'),
-            rating: d.contributionPoint || 1845,
+            acceptanceRate: d.acceptanceRate ? `${d.acceptanceRate}%` : 'N/A',
+            globalRank: d.ranking && d.ranking < 5000000 ? `#${Number(d.ranking).toLocaleString()}` : (d.ranking ? `#${Number(d.ranking).toLocaleString()}` : null),
+            rating: d.contributionPoint || null,
             url: `https://leetcode.com/u/${leetcode}/`
           };
           return;
@@ -175,9 +175,9 @@ export default async function handler(req, res) {
             solvedEasy: d2.easySolved || 0,
             solvedMedium: d2.mediumSolved || 0,
             solvedHard: d2.hardSolved || 0,
-            acceptanceRate: d2.acceptanceRate ? `${d2.acceptanceRate}%` : '65%',
-            globalRank: d2.ranking && d2.ranking < 5000000 ? `#${Number(d2.ranking).toLocaleString()}` : (d2.ranking ? `#${Number(d2.ranking).toLocaleString()}` : 'Top 5%'),
-            rating: 1845,
+            acceptanceRate: d2.acceptanceRate ? `${d2.acceptanceRate}%` : 'N/A',
+            globalRank: d2.ranking && d2.ranking < 5000000 ? `#${Number(d2.ranking).toLocaleString()}` : null,
+            rating: null,
             url: `https://leetcode.com/u/${leetcode}/`
           };
         }
@@ -249,7 +249,7 @@ export default async function handler(req, res) {
         if (d && d.success !== false) {
           stats.codechef = {
             handle: codechef,
-            stars: d.stars ? (d.stars.includes('★') ? d.stars : `${d.stars}★`) : '2★',
+            stars: d.stars ? (d.stars.includes('★') ? d.stars : `${d.stars}★`) : null,
             rating: d.currentRating || 0,
             highestRating: d.highestRating || 0,
             globalRank: d.globalRank ? `#${Number(d.globalRank).toLocaleString()}` : null,
@@ -280,7 +280,7 @@ export default async function handler(req, res) {
           handle: codechef,
           rating: ratingMatch ? parseInt(ratingMatch[1]) : (highestMatch ? parseInt(highestMatch[1]) : 0),
           highestRating: highestMatch ? parseInt(highestMatch[1]) : 0,
-          stars: starsMatch ? starsMatch[1] : '2★',
+          stars: starsMatch ? starsMatch[1] : null,
           solvedTotal: solvedMatch ? parseInt(solvedMatch[1]) : 0,
           url: `https://www.codechef.com/users/${codechef}`
         };

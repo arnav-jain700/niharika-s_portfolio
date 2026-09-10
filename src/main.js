@@ -436,18 +436,54 @@ function renderTimeline(timeline) {
   `).join('');
 }
 
+let activeSkillFilter = 'ALL';
+
 function renderSkills(skills) {
+  const filterBar = document.getElementById('skills-filter-bar');
   const grid = document.getElementById('skills-grid-container');
   if (!grid) return;
 
-  grid.innerHTML = (skills || []).map(s => `
-    <div class="skill-card glass-card">
-      <div class="skill-icon-wrap">
-        <svg class="icon"><use href="/icons.svg#${s.icon || 'icon-code'}"></use></svg>
+  const allSkills = skills || [];
+
+  if (filterBar) {
+    filterBar.querySelectorAll('.filter-btn').forEach(btn => {
+      const filterVal = btn.dataset.filter || 'ALL';
+      btn.classList.toggle('active', activeSkillFilter === filterVal);
+      btn.onclick = () => {
+        activeSkillFilter = filterVal;
+        renderSkills(allSkills);
+      };
+    });
+  }
+
+  const filtered = activeSkillFilter === 'ALL'
+    ? allSkills
+    : allSkills.filter(s => {
+        const cat = (s.category || 'Technical').toLowerCase();
+        if (activeSkillFilter === 'Non-Technical') {
+          return cat === 'non-technical' || cat.includes('non') || cat.includes('soft');
+        } else {
+          return cat !== 'non-technical' && !cat.includes('non') && !cat.includes('soft');
+        }
+      });
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">No skills found in this classification.</div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(s => {
+    const isNonTech = (s.category || '').toLowerCase().includes('non');
+    const defaultIcon = isNonTech ? 'icon-star' : 'icon-code';
+    return `
+      <div class="skill-card glass-card">
+        <div class="skill-icon-wrap">
+          <svg class="icon"><use href="/icons.svg#${s.icon || defaultIcon}"></use></svg>
+        </div>
+        <span class="skill-name">${s.name}</span>
       </div>
-      <span class="skill-name">${s.name}</span>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 let projectSearchQuery = '';
@@ -504,25 +540,29 @@ function renderCodingProfiles(profilesData, lastSyncTime) {
 
   const data = getLocalData();
   const profiles = profilesData || data.settings?.codingProfiles || {};
-  const lc = profiles.leetcode || { handle: 'niharika18', solvedTotal: 420, solvedEasy: 150, solvedMedium: 220, solvedHard: 50, rating: 1845, acceptanceRate: '68.4%', globalRank: 'Top 3.8%' };
-  const cf = profiles.codeforces || { handle: 'niharika18', rating: 1468, maxRating: 1540, rank: 'Specialist', maxRank: 'Specialist', solvedTotal: 310, contests: 24 };
-  const cc = profiles.codechef || { handle: 'niharika18', stars: '4★', rating: 1820, highestRating: 1865, globalRank: '#11,420', countryRank: '#2,850', solvedTotal: 260 };
-  const cd = profiles.codolio || { handle: 'niharika', url: 'https://codolio.com/profile/niharika', score: 875, badges: '5 Verified Badges' };
+  const lc = profiles.leetcode || {};
+  const cf = profiles.codeforces || {};
+  const cc = profiles.codechef || {};
+  const cd = profiles.codolio || {};
 
-  // Calculate aggregate metrics
-  const totalSolved = (lc.solvedTotal || 0) + (cf.solvedTotal || 0) + (cc.solvedTotal || 0);
-  const peakRating = Math.max(lc.rating || 0, cf.maxRating || cf.rating || 0, cc.highestRating || cc.rating || 0);
-  const totalContests = (cf.contests || 24) + 26;
+  // Calculate aggregate metrics accurately without falsy default replacements
+  const totalSolved = (parseInt(lc.solvedTotal) || 0) + (parseInt(cf.solvedTotal) || 0) + (parseInt(cc.solvedTotal) || 0);
+  const peakRating = Math.max(
+    parseInt(lc.rating) || 0,
+    parseInt(cf.maxRating) || parseInt(cf.rating) || 0,
+    parseInt(cc.highestRating) || parseInt(cc.rating) || 0
+  );
+  const totalContests = (parseInt(cf.contests) || 0) + (parseInt(cc.contests) || 0);
 
   // Update Summary Banner Counters
   const totalSolvedEl = document.getElementById('summary-total-solved');
-  if (totalSolvedEl) totalSolvedEl.textContent = totalSolved ? `${totalSolved}+` : '990+';
+  if (totalSolvedEl) totalSolvedEl.textContent = totalSolved > 0 ? `${totalSolved}+` : '0';
   const peakRatingEl = document.getElementById('summary-peak-rating');
-  if (peakRatingEl) peakRatingEl.textContent = peakRating || '1865';
+  if (peakRatingEl) peakRatingEl.textContent = peakRating > 0 ? `${peakRating}` : 'Unrated';
   const contestsEl = document.getElementById('summary-contests-count');
-  if (contestsEl) contestsEl.textContent = `${totalContests}+`;
+  if (contestsEl) contestsEl.textContent = totalContests > 0 ? `${totalContests}+` : (cf.contests ? `${cf.contests}` : 'Active');
   const tierEl = document.getElementById('summary-global-percentile');
-  if (tierEl) tierEl.textContent = lc.globalRank || 'Top 3.8%';
+  if (tierEl) tierEl.textContent = lc.globalRank || (lc.rating ? `Rating: ${lc.rating}` : (lc.solvedTotal > 0 ? `${lc.solvedTotal} Solved` : 'Active Solver'));
 
   // Update Timestamp
   const syncTimeEl = document.getElementById('coding-last-sync-time');
@@ -536,9 +576,9 @@ function renderCodingProfiles(profilesData, lastSyncTime) {
   }
 
   // LeetCode Proportional Progress Calculations
-  const lcEasy = lc.solvedEasy || 0;
-  const lcMed = lc.solvedMedium || 0;
-  const lcHard = lc.solvedHard || 0;
+  const lcEasy = parseInt(lc.solvedEasy) || 0;
+  const lcMed = parseInt(lc.solvedMedium) || 0;
+  const lcHard = parseInt(lc.solvedHard) || 0;
   const lcSum = (lcEasy + lcMed + lcHard) || 1;
   const lcEasyPct = ((lcEasy / lcSum) * 100).toFixed(1);
   const lcMedPct = ((lcMed / lcSum) * 100).toFixed(1);
@@ -554,30 +594,30 @@ function renderCodingProfiles(profilesData, lastSyncTime) {
           </div>
           <div>
             <h3 class="platform-title">LeetCode</h3>
-            <span class="platform-handle">@${lc.handle || 'niharika18'}</span>
+            <span class="platform-handle">@${lc.handle || 'user'}</span>
           </div>
         </div>
         <span class="platform-badge badge-leetcode">
           <svg class="icon" style="width: 12px; height: 12px;"><use href="/icons.svg#icon-star"></use></svg>
-          ${lc.rating ? `Rating: ${lc.rating}` : 'Knight Tier'}
+          ${lc.rating ? `Rating: ${lc.rating}` : (lc.solvedTotal > 0 ? `${lc.solvedTotal} Solved` : 'Active Solver')}
         </span>
       </div>
 
       <div class="platform-metrics-grid">
         <div class="metric-box">
-          <span class="metric-val" style="color: #FFA116;">${lc.solvedTotal || 0}</span>
+          <span class="metric-val" style="color: #FFA116;">${lc.solvedTotal !== undefined && lc.solvedTotal !== null ? lc.solvedTotal : 0}</span>
           <span class="metric-label">Problems Solved</span>
         </div>
         <div class="metric-box">
-          <span class="metric-val">${lc.globalRank || 'Top 3.8%'}</span>
+          <span class="metric-val">${lc.globalRank || 'Active'}</span>
           <span class="metric-label">Global Rank</span>
         </div>
         <div class="metric-box">
-          <span class="metric-val" style="color: var(--accent-green);">${lc.acceptanceRate || '68.4%'}</span>
+          <span class="metric-val" style="color: var(--accent-green);">${lc.acceptanceRate || 'N/A'}</span>
           <span class="metric-label">Acceptance Rate</span>
         </div>
         <div class="metric-box">
-          <span class="metric-val" style="color: var(--accent-cyan);">${lc.rating || 1845}</span>
+          <span class="metric-val" style="color: var(--accent-cyan);">${lc.rating ? lc.rating : 'Unrated'}</span>
           <span class="metric-label">Contest Rating</span>
         </div>
       </div>
@@ -596,7 +636,7 @@ function renderCodingProfiles(profilesData, lastSyncTime) {
       </div>
 
       <div class="platform-card-footer">
-        <a href="${lc.url || `https://leetcode.com/u/${lc.handle || 'niharika18'}/`}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="width: 100%; justify-content: center; font-size: 0.85rem;">
+        <a href="${lc.url || (lc.handle ? `https://leetcode.com/u/${lc.handle}/` : 'https://leetcode.com/')}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="width: 100%; justify-content: center; font-size: 0.85rem;">
           View LeetCode Profile &rarr;
         </a>
       </div>
@@ -611,39 +651,39 @@ function renderCodingProfiles(profilesData, lastSyncTime) {
           </div>
           <div>
             <h3 class="platform-title">Codeforces</h3>
-            <span class="platform-handle">@${cf.handle || 'niharika18'}</span>
+            <span class="platform-handle">@${cf.handle || 'user'}</span>
           </div>
         </div>
         <span class="platform-badge badge-codeforces">
-          ${cf.rank || 'Specialist'}
+          ${cf.rank || (cf.rating > 0 ? `Rating ${cf.rating}` : 'Active')}
         </span>
       </div>
 
       <div class="platform-metrics-grid">
         <div class="metric-box">
-          <span class="metric-val" style="color: #38bdf8;">${cf.rating || 1468}</span>
+          <span class="metric-val" style="color: #38bdf8;">${cf.rating > 0 ? cf.rating : 'Unrated'}</span>
           <span class="metric-label">Current Rating</span>
         </div>
         <div class="metric-box">
-          <span class="metric-val" style="color: var(--accent-purple);">${cf.maxRating || 1540}</span>
+          <span class="metric-val" style="color: var(--accent-purple);">${cf.maxRating > 0 ? cf.maxRating : (cf.rating > 0 ? cf.rating : 'Unrated')}</span>
           <span class="metric-label">Peak Rating</span>
         </div>
         <div class="metric-box">
-          <span class="metric-val">${cf.solvedTotal || 310}</span>
+          <span class="metric-val">${cf.solvedTotal !== undefined && cf.solvedTotal !== null ? cf.solvedTotal : 0}</span>
           <span class="metric-label">Problems Solved</span>
         </div>
         <div class="metric-box">
-          <span class="metric-val" style="color: var(--accent-green);">${cf.contests || 24}+</span>
+          <span class="metric-val" style="color: var(--accent-green);">${cf.contests > 0 ? `${cf.contests}+` : (cf.rating > 0 ? 'Rated' : 'Active')}</span>
           <span class="metric-label">Contests</span>
         </div>
       </div>
 
       <div style="font-size: 0.83rem; color: var(--text-muted); line-height: 1.5; margin: 12px 0 16px;">
-        Max Rank: <strong style="color: #38bdf8;">${cf.maxRank || cf.rank || 'Specialist'}</strong> &bull; Active in Div 2 & Div 3 rounds.
+        Max Rank: <strong style="color: #38bdf8;">${cf.maxRank || cf.rank || 'Active'}</strong>${cf.organization ? ` &bull; ${cf.organization}` : ''}
       </div>
 
       <div class="platform-card-footer">
-        <a href="${cf.url || `https://codeforces.com/profile/${cf.handle || 'niharika18'}`}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="width: 100%; justify-content: center; font-size: 0.85rem;">
+        <a href="${cf.url || (cf.handle ? `https://codeforces.com/profile/${cf.handle}` : 'https://codeforces.com/')}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="width: 100%; justify-content: center; font-size: 0.85rem;">
           View Codeforces Profile &rarr;
         </a>
       </div>
@@ -658,39 +698,39 @@ function renderCodingProfiles(profilesData, lastSyncTime) {
           </div>
           <div>
             <h3 class="platform-title">CodeChef</h3>
-            <span class="platform-handle">@${cc.handle || 'niharika18'}</span>
+            <span class="platform-handle">@${cc.handle || 'user'}</span>
           </div>
         </div>
         <span class="platform-badge badge-codechef">
-          ${cc.stars || '4★'} Division 2
+          ${cc.stars ? `${cc.stars}` : (cc.rating > 0 ? `Rating ${cc.rating}` : 'Active')}
         </span>
       </div>
 
       <div class="platform-metrics-grid">
         <div class="metric-box">
-          <span class="metric-val" style="color: #fbbf24;">${cc.rating || 1820}</span>
+          <span class="metric-val" style="color: #fbbf24;">${cc.rating > 0 ? cc.rating : 'Unrated'}</span>
           <span class="metric-label">Current Rating</span>
         </div>
         <div class="metric-box">
-          <span class="metric-val" style="color: #f59e0b;">${cc.highestRating || 1865}</span>
+          <span class="metric-val" style="color: #f59e0b;">${cc.highestRating > 0 ? cc.highestRating : (cc.rating > 0 ? cc.rating : 'Unrated')}</span>
           <span class="metric-label">Peak Rating</span>
         </div>
         <div class="metric-box">
-          <span class="metric-val">${cc.globalRank || '#11,420'}</span>
+          <span class="metric-val">${cc.globalRank || (cc.countryRank || (cc.solvedTotal > 0 ? `${cc.solvedTotal} Solved` : 'Active'))}</span>
           <span class="metric-label">Global Rank</span>
         </div>
         <div class="metric-box">
-          <span class="metric-val" style="color: var(--accent-cyan);">${cc.countryRank || '#2,850'}</span>
-          <span class="metric-label">Country Rank</span>
+          <span class="metric-val" style="color: var(--accent-cyan);">${cc.stars || (cc.rating > 0 ? 'Rated' : 'Active')}</span>
+          <span class="metric-label">Division / Stars</span>
         </div>
       </div>
 
       <div style="font-size: 0.83rem; color: var(--text-muted); line-height: 1.5; margin: 12px 0 16px;">
-        Star Rating: <strong style="color: #fbbf24;">${cc.stars || '4★'}</strong> &bull; Total Problems Solved: <strong>${cc.solvedTotal || 260}+</strong>
+        Total Problems Solved: <strong>${cc.solvedTotal !== undefined && cc.solvedTotal !== null ? cc.solvedTotal : 0}</strong>
       </div>
 
       <div class="platform-card-footer">
-        <a href="${cc.url || `https://www.codechef.com/users/${cc.handle || 'niharika18'}`}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="width: 100%; justify-content: center; font-size: 0.85rem;">
+        <a href="${cc.url || (cc.handle ? `https://www.codechef.com/users/${cc.handle}` : 'https://www.codechef.com/')}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="width: 100%; justify-content: center; font-size: 0.85rem;">
           View CodeChef Profile &rarr;
         </a>
       </div>
@@ -705,28 +745,28 @@ function renderCodingProfiles(profilesData, lastSyncTime) {
           </div>
           <div>
             <h3 class="platform-title">Codolio</h3>
-            <span class="platform-handle">Unified Developer Card</span>
+            <span class="platform-handle">@${cd.handle || 'developer'}</span>
           </div>
         </div>
         <span class="platform-badge badge-codolio">
           <svg class="icon" style="width: 12px; height: 12px;"><use href="/icons.svg#icon-sparkles"></use></svg>
-          Score: ${cd.score || 875}
+          ${cd.score ? `Score: ${cd.score}` : 'Verified Profile'}
         </span>
       </div>
 
       <div class="platform-metrics-grid">
         <div class="metric-box">
-          <span class="metric-val" style="color: var(--accent-cyan);">${cd.score || 875} / 1000</span>
+          <span class="metric-val" style="color: var(--accent-cyan);">${cd.score ? `${cd.score} / 1000` : 'Active'}</span>
           <span class="metric-label">Developer Index</span>
         </div>
         <div class="metric-box">
-          <span class="metric-val" style="color: var(--accent-purple);">${totalSolved}+</span>
-          <span class="metric-label">Verified Solved</span>
+          <span class="metric-val" style="color: var(--accent-purple);">${totalSolved > 0 ? `${totalSolved}+` : 'Verified'}</span>
+          <span class="metric-label">Problems Solved</span>
         </div>
       </div>
 
       <div style="font-size: 0.83rem; color: var(--text-muted); line-height: 1.5; margin: 12px 0 16px;">
-        Aggregated cross-platform benchmark validating consistency, speed, and algorithmic proficiency across LeetCode, Codeforces, and CodeChef.
+        Aggregated cross-platform benchmark validating consistency, speed, and algorithmic problem solving across LeetCode, Codeforces, and CodeChef.
       </div>
 
       <div class="platform-card-footer">
@@ -1162,25 +1202,34 @@ function populateAdminPanes() {
   }
 
   // --------------------------------------------------------------------------
-  // Pane A: Tech Stack
+  // Pane A: Skillset
   // --------------------------------------------------------------------------
-  // Render Tech Items List
+  // Render Skills List
   const skillsList = document.getElementById('admin-skills-list');
   if (skillsList) {
-    skillsList.innerHTML = data.tech_stacks.map(s => `
-      <div class="admin-list-item">
-        <div class="admin-list-info" style="flex: 1; display: flex; align-items: center; gap: 12px;">
-          <div class="skill-icon-wrap" style="width: 32px; height: 32px; border-radius: 6px;">
-            <svg class="icon" style="color: var(--accent-cyan); width: 16px; height: 16px;"><use href="/icons.svg#${s.icon || 'icon-code'}"></use></svg>
+    skillsList.innerHTML = data.tech_stacks.map(s => {
+      const isNonTech = (s.category || '').toLowerCase().includes('non');
+      const badgeClass = isNonTech ? 'tag-badge' : 'gradient-badge';
+      const typeLabel = isNonTech ? 'Non-Technical' : 'Technical';
+      const iconName = s.icon || (isNonTech ? 'icon-star' : 'icon-code');
+      return `
+        <div class="admin-list-item">
+          <div class="admin-list-info" style="flex: 1; display: flex; align-items: center; gap: 12px;">
+            <div class="skill-icon-wrap" style="width: 32px; height: 32px; border-radius: 6px;">
+              <svg class="icon" style="color: var(--accent-cyan); width: 16px; height: 16px;"><use href="/icons.svg#${iconName}"></use></svg>
+            </div>
+            <div>
+              <h4 style="margin: 0; font-size: 0.95rem;">${s.name}</h4>
+              <span class="${badgeClass}" style="font-size: 0.7rem; padding: 1px 8px; margin-top: 3px; display: inline-block;">${typeLabel}</span>
+            </div>
           </div>
-          <h4 style="margin: 0; font-size: 0.95rem;">${s.name}</h4>
+          <div class="admin-list-actions">
+            <button class="action-btn edit-skill-btn" data-id="${s.id}">Edit</button>
+            <button class="action-btn delete delete-skill-btn" data-id="${s.id}">Delete</button>
+          </div>
         </div>
-        <div class="admin-list-actions">
-          <button class="action-btn edit-skill-btn" data-id="${s.id}">Edit</button>
-          <button class="action-btn delete delete-skill-btn" data-id="${s.id}">Delete</button>
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
 
     // Edit Skill
     skillsList.querySelectorAll('.edit-skill-btn').forEach(btn => {
@@ -1189,7 +1238,11 @@ function populateAdminPanes() {
         if (!item) return;
         document.getElementById('admin-skill-id').value = item.id;
         document.getElementById('skill-name-input').value = item.name;
-        document.getElementById('admin-skill-submit-btn').textContent = 'Update Technology';
+        const typeSelect = document.getElementById('skill-type-select');
+        if (typeSelect) {
+          typeSelect.value = (item.category || '').toLowerCase().includes('non') ? 'Non-Technical' : 'Technical';
+        }
+        document.getElementById('admin-skill-submit-btn').textContent = 'Update Skill';
         document.getElementById('admin-skill-cancel-btn').style.display = 'inline-block';
         document.getElementById('admin-add-skill-form').scrollIntoView({ behavior: 'smooth' });
       });
@@ -1198,7 +1251,7 @@ function populateAdminPanes() {
     // Delete Skill
     skillsList.querySelectorAll('.delete-skill-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
-        if (confirm('Delete this technology entry?')) {
+        if (confirm('Delete this skill entry?')) {
           await deleteTechStack(btn.dataset.id);
           populateAdminPanes();
           renderAllUI();
@@ -1211,7 +1264,7 @@ function populateAdminPanes() {
   document.getElementById('admin-skill-cancel-btn')?.addEventListener('click', () => {
     document.getElementById('admin-add-skill-form').reset();
     document.getElementById('admin-skill-id').value = '';
-    document.getElementById('admin-skill-submit-btn').textContent = 'Add Technology';
+    document.getElementById('admin-skill-submit-btn').textContent = 'Add Skill';
     document.getElementById('admin-skill-cancel-btn').style.display = 'none';
   });
 
@@ -1615,23 +1668,22 @@ function populateAdminPanes() {
 }
 
 function initAdminPaneHandlers() {
-  // Add/Update Technology
+  // Add/Update Skill
   document.getElementById('admin-add-skill-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('admin-skill-id').value || undefined;
     const name = document.getElementById('skill-name-input').value.trim();
     if (!name) return;
 
-    const data = getLocalData();
-    const existing = id ? data.tech_stacks.find(s => s.id === id) : null;
-    const category = existing?.category || 'General';
-    const level = existing?.level || 100;
-    const icon = existing?.icon || 'icon-code';
+    const typeSelect = document.getElementById('skill-type-select');
+    const category = typeSelect ? typeSelect.value : 'Technical';
+    const level = 100;
+    const icon = category === 'Non-Technical' ? 'icon-star' : 'icon-code';
 
     await saveTechStack({ id, name, category, level, icon });
     e.target.reset();
     document.getElementById('admin-skill-id').value = '';
-    document.getElementById('admin-skill-submit-btn').textContent = 'Add Technology';
+    document.getElementById('admin-skill-submit-btn').textContent = 'Add Skill';
     document.getElementById('admin-skill-cancel-btn').style.display = 'none';
     populateAdminPanes();
     renderAllUI();
@@ -1762,45 +1814,56 @@ function initAdminPaneHandlers() {
     const data = getLocalData();
     const existing = data.settings?.codingProfiles || {};
 
+    const getNum = (id, fallback) => {
+      const val = document.getElementById(id)?.value?.trim();
+      return val !== '' && !isNaN(val) ? parseInt(val) : fallback;
+    };
+    const getStr = (id, fallback) => {
+      const val = document.getElementById(id)?.value?.trim();
+      return val !== undefined && val !== '' ? val : fallback;
+    };
+
     const updatedProfiles = {
       leetcode: {
         ...(existing.leetcode || {}),
         handle: lcHandle,
-        solvedTotal: parseInt(document.getElementById('admin-lc-solved').value) || (existing.leetcode?.solvedTotal || 0),
-        rating: parseInt(document.getElementById('admin-lc-rating').value) || (existing.leetcode?.rating || 0),
-        solvedEasy: parseInt(document.getElementById('admin-lc-easy').value) || (existing.leetcode?.solvedEasy || 0),
-        solvedMedium: parseInt(document.getElementById('admin-lc-medium').value) || (existing.leetcode?.solvedMedium || 0),
-        solvedHard: parseInt(document.getElementById('admin-lc-hard').value) || (existing.leetcode?.solvedHard || 0),
+        solvedTotal: getNum('admin-lc-solved', existing.leetcode?.solvedTotal ?? 0),
+        rating: getNum('admin-lc-rating', existing.leetcode?.rating ?? null),
+        solvedEasy: getNum('admin-lc-easy', existing.leetcode?.solvedEasy ?? 0),
+        solvedMedium: getNum('admin-lc-medium', existing.leetcode?.solvedMedium ?? 0),
+        solvedHard: getNum('admin-lc-hard', existing.leetcode?.solvedHard ?? 0),
         url: lcHandle ? `https://leetcode.com/u/${lcHandle}/` : ''
       },
       codeforces: {
         ...(existing.codeforces || {}),
         handle: cfHandle,
-        rating: parseInt(document.getElementById('admin-cf-rating').value) || (existing.codeforces?.rating || 0),
-        rank: document.getElementById('admin-cf-rank').value.trim() || existing.codeforces?.rank || 'Specialist',
+        rating: getNum('admin-cf-rating', existing.codeforces?.rating ?? 0),
+        rank: getStr('admin-cf-rank', existing.codeforces?.rank || 'Unrated'),
         url: cfHandle ? `https://codeforces.com/profile/${cfHandle}` : ''
       },
       codechef: {
         ...(existing.codechef || {}),
         handle: ccHandle,
-        stars: document.getElementById('admin-cc-stars').value.trim() || existing.codechef?.stars || '4★',
-        rating: parseInt(document.getElementById('admin-cc-rating').value) || (existing.codechef?.rating || 0),
+        stars: getStr('admin-cc-stars', existing.codechef?.stars || 'Unrated'),
+        rating: getNum('admin-cc-rating', existing.codechef?.rating ?? 0),
         url: ccHandle ? `https://www.codechef.com/users/${ccHandle}` : ''
       },
       codolio: {
         ...(existing.codolio || {}),
         url: cdUrl || (cdRaw.startsWith('http') ? cdRaw : (cdRaw ? `https://codolio.com/profile/${cdRaw.replace(/^@/,'')}` : 'https://codolio.com/')),
-        score: parseInt(document.getElementById('admin-cd-score').value) || (existing.codolio?.score || 875)
+        score: getNum('admin-cd-score', existing.codolio?.score ?? null)
       }
     };
 
     await saveCodingProfiles(updatedProfiles);
 
-    // Auto-fetch live statistics immediately after saving handles
-    try {
-      await fetchLiveCodingProfiles(true);
-    } catch (fetchErr) {
-      console.warn('Auto live fetch on save encountered error:', fetchErr);
+    // If handles were provided, attempt live synchronization
+    if (lcHandle || cfHandle || ccHandle) {
+      try {
+        await fetchLiveCodingProfiles(true);
+      } catch (fetchErr) {
+        console.warn('Auto live fetch on save encountered error:', fetchErr);
+      }
     }
 
     const toast = document.getElementById('admin-coding-save-status');

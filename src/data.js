@@ -57,18 +57,26 @@ const DEFAULT_DATA = {
     }
   },
   tech_stacks: [
-    { id: 'tech-1', name: 'JavaScript / ES6+', category: 'Frontend', level: 95, icon: 'icon-code' },
-    { id: 'tech-2', name: 'React & Next.js', category: 'Frontend', level: 92, icon: 'icon-code' },
-    { id: 'tech-3', name: 'TypeScript', category: 'Frontend', level: 88, icon: 'icon-code' },
-    { id: 'tech-4', name: 'Node.js & Express', category: 'Backend', level: 90, icon: 'icon-terminal' },
-    { id: 'tech-5', name: 'Python & FastAPI', category: 'Backend', level: 92, icon: 'icon-cpu' },
-    { id: 'tech-6', name: 'PostgreSQL & Supabase', category: 'Databases', level: 88, icon: 'icon-database' },
-    { id: 'tech-7', name: 'Redis & Caching', category: 'Databases', level: 85, icon: 'icon-database' },
-    { id: 'tech-8', name: 'Docker & Microservices', category: 'DevOps', level: 84, icon: 'icon-cpu' },
-    { id: 'tech-9', name: 'CI/CD & Vercel Edge', category: 'DevOps', level: 86, icon: 'icon-terminal' },
-    { id: 'tech-10', name: 'Groq Llama 3.3 / AI Agents', category: 'AI / ML', level: 94, icon: 'icon-bot' },
-    { id: 'tech-11', name: 'RAG & Vector Search', category: 'AI / ML', level: 87, icon: 'icon-sparkles' },
-    { id: 'tech-12', name: 'Git & Version Control', category: 'Tools', level: 95, icon: 'icon-terminal' }
+    // Technical Skills
+    { id: 'tech-1', name: 'JavaScript / ES6+', category: 'Technical', level: 95, icon: 'icon-code' },
+    { id: 'tech-2', name: 'React & Next.js', category: 'Technical', level: 92, icon: 'icon-code' },
+    { id: 'tech-3', name: 'TypeScript', category: 'Technical', level: 88, icon: 'icon-code' },
+    { id: 'tech-4', name: 'Node.js & Express', category: 'Technical', level: 90, icon: 'icon-terminal' },
+    { id: 'tech-5', name: 'Python & FastAPI', category: 'Technical', level: 92, icon: 'icon-cpu' },
+    { id: 'tech-6', name: 'PostgreSQL & Supabase', category: 'Technical', level: 88, icon: 'icon-database' },
+    { id: 'tech-7', name: 'Redis & Caching', category: 'Technical', level: 85, icon: 'icon-database' },
+    { id: 'tech-8', name: 'Docker & Microservices', category: 'Technical', level: 84, icon: 'icon-cpu' },
+    { id: 'tech-9', name: 'CI/CD & Cloud Infrastructure', category: 'Technical', level: 86, icon: 'icon-terminal' },
+    { id: 'tech-10', name: 'AI Engineering & Agents', category: 'Technical', level: 94, icon: 'icon-bot' },
+    { id: 'tech-11', name: 'Data Structures & Algorithms', category: 'Technical', level: 90, icon: 'icon-code' },
+    { id: 'tech-12', name: 'Git & Version Control', category: 'Technical', level: 95, icon: 'icon-terminal' },
+    // Non-Technical / Professional Skills
+    { id: 'tech-13', name: 'System Architecture & Design', category: 'Non-Technical', level: 90, icon: 'icon-cpu' },
+    { id: 'tech-14', name: 'Agile & Scrum Methodologies', category: 'Non-Technical', level: 92, icon: 'icon-check' },
+    { id: 'tech-15', name: 'Cross-Functional Team Leadership', category: 'Non-Technical', level: 88, icon: 'icon-star' },
+    { id: 'tech-16', name: 'Technical Writing & Documentation', category: 'Non-Technical', level: 90, icon: 'icon-book' },
+    { id: 'tech-17', name: 'Problem Solving & Critical Thinking', category: 'Non-Technical', level: 95, icon: 'icon-sparkles' },
+    { id: 'tech-18', name: 'Client & Stakeholder Communication', category: 'Non-Technical', level: 87, icon: 'icon-send' }
   ],
   projects: [
     {
@@ -1123,8 +1131,8 @@ export async function fetchLiveCodingProfiles(forceRefresh = false) {
             profiles.leetcode.solvedEasy = lc.easySolved || 0;
             profiles.leetcode.solvedMedium = lc.mediumSolved || 0;
             profiles.leetcode.solvedHard = lc.hardSolved || 0;
-            profiles.leetcode.acceptanceRate = lc.acceptanceRate ? `${lc.acceptanceRate}%` : '65%';
-            profiles.leetcode.globalRank = lc.ranking && lc.ranking < 5000000 ? `#${Number(lc.ranking).toLocaleString()}` : (lc.ranking ? `#${Number(lc.ranking).toLocaleString()}` : profiles.leetcode.globalRank);
+            profiles.leetcode.acceptanceRate = lc.acceptanceRate ? `${lc.acceptanceRate}%` : 'N/A';
+            profiles.leetcode.globalRank = lc.ranking && lc.ranking < 5000000 ? `#${Number(lc.ranking).toLocaleString()}` : (lc.ranking ? `#${Number(lc.ranking).toLocaleString()}` : null);
             if (lc.contributionPoint) profiles.leetcode.rating = lc.contributionPoint;
             hasUpdates = true;
           }
@@ -1143,8 +1151,8 @@ export async function fetchLiveCodingProfiles(forceRefresh = false) {
               profiles.leetcode.solvedEasy = lc2.easySolved || 0;
               profiles.leetcode.solvedMedium = lc2.mediumSolved || 0;
               profiles.leetcode.solvedHard = lc2.hardSolved || 0;
-              profiles.leetcode.acceptanceRate = lc2.acceptanceRate ? `${lc2.acceptanceRate}%` : '65%';
-              profiles.leetcode.globalRank = lc2.ranking && lc2.ranking < 5000000 ? `#${Number(lc2.ranking).toLocaleString()}` : profiles.leetcode.globalRank;
+              profiles.leetcode.acceptanceRate = lc2.acceptanceRate ? `${lc2.acceptanceRate}%` : 'N/A';
+              profiles.leetcode.globalRank = lc2.ranking && lc2.ranking < 5000000 ? `#${Number(lc2.ranking).toLocaleString()}` : null;
               hasUpdates = true;
             }
           }

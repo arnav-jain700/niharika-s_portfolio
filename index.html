@@ -33,7 +33,7 @@
           <ul class="nav-links" id="nav-links-list">
             <li><a href="#home" class="nav-link active">Home</a></li>
             <li><a href="#journey" class="nav-link">Journey</a></li>
-            <li><a href="#skills" class="nav-link">Skills</a></li>
+            <li><a href="#skills" class="nav-link">Skillset</a></li>
             <li><a href="#projects" class="nav-link">Projects</a></li>
             <li><a href="#coding" class="nav-link">Profiles</a></li>
             <li><a href="#certificates" class="nav-link">Certificates</a></li>
@@ -135,12 +135,18 @@
         </div>
       </section>
 
-      <!-- ================= SKILLS VIEW ================= -->
+      <!-- ================= SKILLSET VIEW ================= -->
       <section id="skills" class="section-wrapper">
         <div class="section-header">
-          <span class="section-tag">Toolkit & Architecture</span>
-          <h2>Technical Expertise</h2>
-          <p>Languages, frameworks, libraries, databases, and engineering tools.</p>
+          <span class="section-tag">Core Capabilities</span>
+          <h2>Skillset</h2>
+          <p>Technical engineering proficiencies, system architectures, and professional non-technical skills.</p>
+        </div>
+
+        <div class="skills-filter-bar" id="skills-filter-bar">
+          <button class="filter-btn active" data-filter="ALL">All Skills</button>
+          <button class="filter-btn" data-filter="Technical">Technical Skills</button>
+          <button class="filter-btn" data-filter="Non-Technical">Non-Technical Skills</button>
         </div>
 
         <div class="skills-grid" id="skills-grid-container">
@@ -476,21 +482,30 @@
         <!-- Right Content Panes -->
         <div class="admin-content-pane">
 
-          <!-- PANE A: TECH STACK -->
+          <!-- PANE A: SKILLSET -->
           <div id="pane-skills" class="admin-pane active">
-            <h3>Technical Toolkit Database</h3>
-            <p class="admin-pane-desc">Manage technologies and developer tools in your tech stack.</p>
+            <h3>Skillset Database</h3>
+            <p class="admin-pane-desc">Manage technical and non-technical skills in your portfolio.</p>
             
             <div style="max-width: 640px;">
-              <h4 style="margin-bottom: 12px; color: var(--accent-cyan); font-size: 0.95rem;">Manage Technologies</h4>
+              <h4 style="margin-bottom: 12px; color: var(--accent-cyan); font-size: 0.95rem;">Manage Skills</h4>
               <form id="admin-add-skill-form" style="display: flex; flex-direction: column; gap: 12px; background: var(--glass-card); padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--glass-border); margin-bottom: 20px;">
                 <input type="hidden" id="admin-skill-id" value="">
-                <div class="form-group">
-                  <label style="font-size: 0.8rem; color: var(--text-muted);">Technology / Tool Name</label>
-                  <input type="text" id="skill-name-input" class="form-input" placeholder="e.g. Next.js, FastAPI, Docker, PostgreSQL" required>
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Skill Name</label>
+                    <input type="text" id="skill-name-input" class="form-input" placeholder="e.g. Next.js, System Architecture" required>
+                  </div>
+                  <div class="form-group">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Skill Classification</label>
+                    <select id="skill-type-select" class="form-input" required>
+                      <option value="Technical">Technical</option>
+                      <option value="Non-Technical">Non-Technical</option>
+                    </select>
+                  </div>
                 </div>
                 <div style="display: flex; gap: 10px; margin-top: 4px;">
-                  <button type="submit" id="admin-skill-submit-btn" class="btn btn-primary" style="padding: 8px 18px; font-size: 0.85rem;">Add Technology</button>
+                  <button type="submit" id="admin-skill-submit-btn" class="btn btn-primary" style="padding: 8px 18px; font-size: 0.85rem;">Add Skill</button>
                   <button type="button" id="admin-skill-cancel-btn" class="btn btn-secondary" style="display: none; padding: 8px 14px; font-size: 0.85rem;">Cancel Edit</button>
                 </div>
               </form>
