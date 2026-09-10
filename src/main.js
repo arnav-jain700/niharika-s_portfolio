@@ -322,9 +322,14 @@ export function renderAllUI() {
   if (footerOwner) footerOwner.textContent = data.settings.ownerName;
 
   // Stat Counters
-  document.getElementById('stat-projects-count').textContent = (data.projects?.length || 0) + '+';
-  document.getElementById('stat-skills-count').textContent = (data.tech_stacks?.length || 0) + '+';
-  document.getElementById('stat-awards-count').textContent = (data.achievements?.length || 0) + '+';
+  const projCount = document.getElementById('stat-projects-count');
+  if (projCount) projCount.textContent = (data.projects?.length || 0) + '+';
+  const skillsCount = document.getElementById('stat-skills-count');
+  if (skillsCount) skillsCount.textContent = (data.tech_stacks?.length || 0) + '+';
+  const certsCount = document.getElementById('stat-certs-count');
+  if (certsCount) certsCount.textContent = (data.certificates?.length || 0) + '+';
+  const awardsCount = document.getElementById('stat-awards-count');
+  if (awardsCount) awardsCount.textContent = (data.achievements?.length || 0) + '+';
 
   // 2. Featured Projects Carousel
   renderCarousel(data.projects);
