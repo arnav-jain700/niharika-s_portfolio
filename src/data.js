@@ -10,48 +10,48 @@ const DEFAULT_DATA = {
     location: 'Ludhiana, Punjab, India',
     linkedin: 'https://www.linkedin.com/',
     github: 'https://github.com/',
-    codolio: 'https://codolio.com/',
+    codolio: 'https://codolio.com/profile/niharika_18',
     medium: 'https://medium.com/',
     groqKey: '',
     geminiKey: '',
     categories: ['Frontend', 'Backend', 'Databases', 'DevOps', 'AI / ML', 'Tools'],
     codingProfiles: {
       leetcode: {
-        handle: 'niharika18',
-        url: 'https://leetcode.com/u/niharika18/',
-        solvedTotal: 420,
-        solvedEasy: 150,
-        solvedMedium: 220,
-        solvedHard: 50,
-        acceptanceRate: '68.4%',
-        globalRank: 'Top 3.8%',
-        rating: 1845
+        handle: 'niharika_anyway',
+        url: 'https://leetcode.com/u/niharika_anyway/',
+        solvedTotal: 561,
+        solvedEasy: 177,
+        solvedMedium: 362,
+        solvedHard: 22,
+        acceptanceRate: '68%',
+        globalRank: '#164,835',
+        rating: 1631
       },
       codeforces: {
-        handle: 'niharika18',
-        url: 'https://codeforces.com/profile/niharika18',
-        rating: 1468,
-        maxRating: 1540,
-        rank: 'Specialist',
-        maxRank: 'Specialist',
-        solvedTotal: 310,
-        contests: 24
+        handle: 'niharikab1806',
+        url: 'https://codeforces.com/profile/niharikab1806',
+        rating: 953,
+        maxRating: 953,
+        rank: 'Newbie',
+        maxRank: 'Newbie',
+        solvedTotal: 57,
+        contests: 4
       },
       codechef: {
-        handle: 'niharika18',
-        url: 'https://www.codechef.com/users/niharika18',
-        stars: '4★',
-        rating: 1820,
-        highestRating: 1865,
-        globalRank: '#11,420',
-        countryRank: '#2,850',
-        solvedTotal: 260
+        handle: 'elect_shard_72',
+        url: 'https://www.codechef.com/users/elect_shard_72',
+        stars: '1★',
+        rating: 1390,
+        highestRating: 1390,
+        globalRank: '#46,965',
+        countryRank: '#44,479',
+        solvedTotal: 245
       },
       codolio: {
-        handle: 'niharika',
-        url: 'https://codolio.com/profile/niharika',
+        handle: 'niharika_18',
+        url: 'https://codolio.com/profile/niharika_18',
         score: 875,
-        badges: '5 Verified Badges',
+        badges: 'Verified Profile',
         summary: 'Unified cross-platform problem solving profile aggregating contest history & DSA strengths.'
       }
     }
@@ -264,7 +264,7 @@ const DEFAULT_DATA = {
   messages: []
 };
 
-const STORAGE_KEY = 'portfolio_local_data_v1';
+const STORAGE_KEY = 'portfolio_local_data_v2';
 
 // In-memory data store
 let memoryStore = null;
@@ -274,9 +274,35 @@ export function getLocalData() {
   if (memoryStore) return memoryStore;
 
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    let saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) {
+      // Migrate from v1 if present
+      const legacySaved = localStorage.getItem('portfolio_local_data_v1');
+      if (legacySaved) {
+        try {
+          const parsed = JSON.parse(legacySaved);
+          if (parsed && typeof parsed === 'object') {
+            // Replace placeholder mock handles with Niharika's verified profiles
+            if (!parsed.settings?.codingProfiles?.leetcode?.handle || parsed.settings?.codingProfiles?.leetcode?.handle === 'niharika18') {
+              if (parsed.settings) {
+                parsed.settings.codingProfiles = JSON.parse(JSON.stringify(DEFAULT_DATA.settings.codingProfiles));
+              }
+            }
+            saved = JSON.stringify(parsed);
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
+
     if (saved) {
       memoryStore = JSON.parse(saved);
+      // Ensure coding profiles are not placeholder handles
+      if (!memoryStore.settings?.codingProfiles?.leetcode?.handle || memoryStore.settings?.codingProfiles?.leetcode?.handle === 'niharika18') {
+        if (!memoryStore.settings) memoryStore.settings = {};
+        memoryStore.settings.codingProfiles = JSON.parse(JSON.stringify(DEFAULT_DATA.settings.codingProfiles));
+      }
       // Merge in any missing top-level arrays/objects
       for (const key of Object.keys(DEFAULT_DATA)) {
         if (!memoryStore[key]) {

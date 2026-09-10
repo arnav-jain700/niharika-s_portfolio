@@ -41,9 +41,10 @@ export default async function handler(req, res) {
     return;
   }
 
-  const leetcode = extractHandle(req.query.leetcode, 'leetcode');
-  const codeforces = extractHandle(req.query.codeforces, 'codeforces');
-  const codechef = extractHandle(req.query.codechef, 'codechef');
+  const query = req.query || (req.url ? Object.fromEntries(new URL(req.url, 'http://localhost').searchParams) : {});
+  const leetcode = extractHandle(query.leetcode, 'leetcode') || 'niharika_anyway';
+  const codeforces = extractHandle(query.codeforces, 'codeforces') || 'niharikab1806';
+  const codechef = extractHandle(query.codechef, 'codechef') || 'elect_shard_72';
 
   // Cache response at edge for 15 minutes, browser for 2 minutes
   res.setHeader('Cache-Control', 's-maxage=900, max-age=120, stale-while-revalidate=1800');

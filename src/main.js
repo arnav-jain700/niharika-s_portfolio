@@ -2045,10 +2045,14 @@ function initGlobalListeners() {
   }
   startCarouselTimer();
 
+  // Immediate live platform statistics background fetch
+  fetchLiveCodingProfiles().then(() => {
+    renderAllUI();
+  });
+
   // Sync with cloud on startup
   syncWithCloud().then(() => {
     renderAllUI();
-    // Non-blocking background fetch of live platform statistics
     fetchLiveCodingProfiles().then(() => {
       renderAllUI();
     });
