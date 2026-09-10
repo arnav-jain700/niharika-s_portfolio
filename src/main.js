@@ -375,8 +375,10 @@ function renderCarousel(projects) {
       <h3 style="font-size: 1.15rem; margin-bottom: 6px;">${p.title}</h3>
       <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; max-height: 54px; overflow: hidden;">${p.description}</p>
       <div style="display: flex; gap: 8px; margin-top: 10px;">
-        <a href="${p.liveUrl || '#'}" class="btn btn-primary" style="padding: 6px 14px; font-size: 0.8rem;">Live Demo</a>
-        <a href="${p.githubUrl || '#'}" target="_blank" class="btn btn-secondary" style="padding: 6px 14px; font-size: 0.8rem;">Source Code</a>
+        <a href="${p.githubUrl || '#'}" target="_blank" class="btn btn-primary" style="padding: 6px 14px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;">
+          <svg class="icon" style="width: 14px; height: 14px;"><use href="/icons.svg#icon-github"></use></svg>
+          Source Code
+        </a>
       </div>
     </div>
   `).join('');
@@ -517,12 +519,13 @@ function renderProjects(projects) {
           ${(p.tags || []).map(t => `<span class="tag-badge">${t}</span>`).join('')}
         </div>
         <div class="project-footer">
-          <a href="${p.liveUrl || '#'}" class="btn btn-primary" style="flex: 1; padding: 8px; font-size: 0.85rem;">Live Demo &rarr;</a>
-          <a href="${p.githubUrl || '#'}" target="_blank" class="btn btn-secondary" style="padding: 8px 14px; font-size: 0.85rem;" title="GitHub Repo">
+          <a href="${p.githubUrl || '#'}" target="_blank" class="btn btn-primary" style="flex: 1; justify-content: center; padding: 8px; font-size: 0.85rem;" title="View Source Code">
             <svg class="icon"><use href="/icons.svg#icon-github"></use></svg>
+            <span>Source Code</span>
           </a>
-          <button class="btn btn-secondary view-project-modal-btn" data-id="${p.id}" style="padding: 8px 12px; font-size: 0.85rem;" title="Deep Dive Modal">
+          <button class="btn btn-secondary view-project-modal-btn" data-id="${p.id}" style="padding: 8px 14px; font-size: 0.85rem;" title="Project Overview">
             <svg class="icon"><use href="/icons.svg#icon-external"></use></svg>
+            <span>Overview</span>
           </button>
         </div>
       </div>
@@ -855,10 +858,9 @@ function openProjectModal(id) {
     </div>
 
     <div style="display: flex; gap: 14px;">
-      <a href="${project.liveUrl || '#'}" class="btn btn-primary">Launch Live Demo &rarr;</a>
-      <a href="${project.githubUrl || '#'}" target="_blank" class="btn btn-secondary">
+      <a href="${project.githubUrl || '#'}" target="_blank" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
         <svg class="icon"><use href="/icons.svg#icon-github"></use></svg>
-        View GitHub Repository
+        View GitHub Repository &rarr;
       </a>
     </div>
   `;
