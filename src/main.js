@@ -255,14 +255,7 @@ function renderATSResume() {
   document.getElementById('ats-summary').textContent = set.ownerBio;
 
   // Skills
-  const skillsByCategory = {};
-  data.tech_stacks.forEach(s => {
-    if (!skillsByCategory[s.category]) skillsByCategory[s.category] = [];
-    skillsByCategory[s.category].push(s.name);
-  });
-  const skillsHTML = Object.entries(skillsByCategory)
-    .map(([cat, list]) => `<div style="margin-bottom: 4px;"><strong>${cat}:</strong> ${list.join(', ')}</div>`)
-    .join('');
+  const skillsHTML = `<div style="line-height: 1.6;"><strong>Core Technologies:</strong> ${(data.tech_stacks || []).map(s => s.name).join(' &bull; ')}</div>`;
   document.getElementById('ats-skills-content').innerHTML = skillsHTML;
 
   // Projects
@@ -341,8 +334,8 @@ export function renderAllUI() {
   // 3. Journey / Timeline
   renderTimeline(data.timeline);
 
-  // 4. Technical Skills & Categories
-  renderSkills(data.tech_stacks, data.settings.categories);
+  // 4. Technical Stack
+  renderSkills(data.tech_stacks);
 
   // 5. Projects Hub
   renderProjects(data.projects);
@@ -443,43 +436,16 @@ function renderTimeline(timeline) {
   `).join('');
 }
 
-let activeSkillCategory = 'ALL';
-
-function renderSkills(skills, categories) {
-  const filterBar = document.getElementById('skills-filter-bar');
+function renderSkills(skills) {
   const grid = document.getElementById('skills-grid-container');
-  if (!filterBar || !grid) return;
+  if (!grid) return;
 
-  const cats = ['ALL', ...(categories || ['Frontend', 'Backend', 'Databases', 'DevOps', 'AI / ML', 'Tools'])];
-  filterBar.innerHTML = cats.map(cat => `
-    <button class="filter-btn ${activeSkillCategory === cat ? 'active' : ''}" data-category="${cat}">
-      ${cat === 'ALL' ? 'All Skills' : cat}
-    </button>
-  `).join('');
-
-  filterBar.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      activeSkillCategory = btn.dataset.category;
-      renderSkills(skills, categories);
-    });
-  });
-
-  const filtered = activeSkillCategory === 'ALL'
-    ? skills
-    : skills.filter(s => s.category.toLowerCase() === activeSkillCategory.toLowerCase());
-
-  grid.innerHTML = filtered.map(s => `
+  grid.innerHTML = (skills || []).map(s => `
     <div class="skill-card glass-card">
-      <div class="skill-top">
-        <span class="skill-name">
-          <svg class="icon" style="color: var(--accent-cyan); width: 16px; height: 16px;"><use href="/icons.svg#${s.icon || 'icon-code'}"></use></svg>
-          ${s.name}
-        </span>
-        <span class="skill-percent">${s.level}%</span>
+      <div class="skill-icon-wrap">
+        <svg class="icon"><use href="/icons.svg#${s.icon || 'icon-code'}"></use></svg>
       </div>
-      <div class="skill-progress-track">
-        <div class="skill-progress-fill" style="width: ${s.level}%;"></div>
-      </div>
+      <span class="skill-name">${s.name}</span>
     </div>
   `).join('');
 }
@@ -1196,59 +1162,18 @@ function populateAdminPanes() {
   }
 
   // --------------------------------------------------------------------------
-  // Pane A: Tech Stack & Categories
+  // Pane A: Tech Stack
   // --------------------------------------------------------------------------
-  const defaultCats = ['Frontend', 'Backend', 'Databases', 'DevOps', 'AI / ML', 'Tools'];
-  const userCats = (data.settings && Array.isArray(data.settings.categories) && data.settings.categories.length > 0)
-    ? data.settings.categories
-    : defaultCats;
-
-  // Category select options
-  const catSelect = document.getElementById('skill-cat-select');
-  if (catSelect) {
-    catSelect.innerHTML = userCats.map(c => `<option value="${c}">${c}</option>`).join('');
-  }
-
-  // Render standalone categories list
-  const catList = document.getElementById('admin-categories-list');
-  if (catList) {
-    catList.innerHTML = userCats.map(c => `
-      <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(0,0,0,0.25); border: 1px solid var(--glass-border); border-radius: var(--radius-sm);">
-        <span style="font-size: 0.85rem; font-weight: 500;">${c}</span>
-        <button type="button" class="action-btn delete delete-category-btn" data-cat="${c}" style="padding: 2px 6px; font-size: 0.75rem;" title="Delete Category">&times;</button>
-      </div>
-    `).join('');
-
-    catList.querySelectorAll('.delete-category-btn').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const catToDelete = btn.dataset.cat;
-        if (confirm(`Remove category "${catToDelete}"?`)) {
-          const updated = userCats.filter(cat => cat !== catToDelete);
-          await saveSettings({ categories: updated });
-          populateAdminPanes();
-          renderAllUI();
-        }
-      });
-    });
-  }
-
   // Render Tech Items List
   const skillsList = document.getElementById('admin-skills-list');
   if (skillsList) {
     skillsList.innerHTML = data.tech_stacks.map(s => `
       <div class="admin-list-item">
-        <div class="admin-list-info" style="flex: 1;">
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+        <div class="admin-list-info" style="flex: 1; display: flex; align-items: center; gap: 12px;">
+          <div class="skill-icon-wrap" style="width: 32px; height: 32px; border-radius: 6px;">
             <svg class="icon" style="color: var(--accent-cyan); width: 16px; height: 16px;"><use href="/icons.svg#${s.icon || 'icon-code'}"></use></svg>
-            <h4 style="margin: 0; font-size: 0.95rem;">${s.name}</h4>
-            <span class="gradient-badge" style="font-size: 0.7rem; padding: 2px 8px;">${s.category}</span>
           </div>
-          <div style="display: flex; align-items: center; gap: 10px; margin-top: 6px;">
-            <div style="flex: 1; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; max-width: 200px;">
-              <div style="width: ${s.level}%; height: 100%; background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));"></div>
-            </div>
-            <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-cyan);">${s.level}%</span>
-          </div>
+          <h4 style="margin: 0; font-size: 0.95rem;">${s.name}</h4>
         </div>
         <div class="admin-list-actions">
           <button class="action-btn edit-skill-btn" data-id="${s.id}">Edit</button>
@@ -1264,9 +1189,6 @@ function populateAdminPanes() {
         if (!item) return;
         document.getElementById('admin-skill-id').value = item.id;
         document.getElementById('skill-name-input').value = item.name;
-        document.getElementById('skill-cat-select').value = item.category;
-        document.getElementById('skill-level-slider').value = item.level;
-        document.getElementById('prof-label').textContent = `${item.level}%`;
         document.getElementById('admin-skill-submit-btn').textContent = 'Update Technology';
         document.getElementById('admin-skill-cancel-btn').style.display = 'inline-block';
         document.getElementById('admin-add-skill-form').scrollIntoView({ behavior: 'smooth' });
@@ -1289,7 +1211,6 @@ function populateAdminPanes() {
   document.getElementById('admin-skill-cancel-btn')?.addEventListener('click', () => {
     document.getElementById('admin-add-skill-form').reset();
     document.getElementById('admin-skill-id').value = '';
-    document.getElementById('prof-label').textContent = '85%';
     document.getElementById('admin-skill-submit-btn').textContent = 'Add Technology';
     document.getElementById('admin-skill-cancel-btn').style.display = 'none';
   });
@@ -1699,34 +1620,19 @@ function initAdminPaneHandlers() {
     e.preventDefault();
     const id = document.getElementById('admin-skill-id').value || undefined;
     const name = document.getElementById('skill-name-input').value.trim();
-    const category = document.getElementById('skill-cat-select').value;
-    const level = parseInt(document.getElementById('skill-level-slider').value);
-    const icon = 'icon-code';
+    if (!name) return;
+
+    const data = getLocalData();
+    const existing = id ? data.tech_stacks.find(s => s.id === id) : null;
+    const category = existing?.category || 'General';
+    const level = existing?.level || 100;
+    const icon = existing?.icon || 'icon-code';
 
     await saveTechStack({ id, name, category, level, icon });
     e.target.reset();
     document.getElementById('admin-skill-id').value = '';
-    document.getElementById('prof-label').textContent = '85%';
     document.getElementById('admin-skill-submit-btn').textContent = 'Add Technology';
     document.getElementById('admin-skill-cancel-btn').style.display = 'none';
-    populateAdminPanes();
-    renderAllUI();
-  });
-
-  // Add Category
-  document.getElementById('admin-add-category-form')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const input = document.getElementById('admin-category-name-input');
-    const newCat = input.value.trim();
-    if (!newCat) return;
-
-    const data = getLocalData();
-    const currentCats = (data.settings && Array.isArray(data.settings.categories)) ? data.settings.categories : ['Frontend', 'Backend', 'Databases', 'DevOps', 'AI / ML', 'Tools'];
-    if (!currentCats.includes(newCat)) {
-      currentCats.push(newCat);
-      await saveSettings({ categories: currentCats });
-    }
-    input.value = '';
     populateAdminPanes();
     renderAllUI();
   });

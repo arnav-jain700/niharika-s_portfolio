@@ -5,7 +5,7 @@ export function generateSystemPrompt() {
   const data = getLocalData();
   const { ownerName, ownerBio, email, location, linkedin, github, codolio, medium } = data.settings;
 
-  const skillsList = (data.tech_stacks || []).map(s => `${s.name} (${s.category}, ${s.level}%)`).join(', ');
+  const skillsList = (data.tech_stacks || []).map(s => s.name).join(', ');
   const projectsList = (data.projects || []).map(p => `• ${p.title} [${p.category}]: ${p.description} (Tech: ${p.tags?.join(', ')})`).join('\n');
   const journeyList = (data.timeline || []).map(t => `• ${t.title} at ${t.company} (${t.dateRange}, ${t.type}): ${t.description}`).join('\n');
   const certsList = (data.certificates || []).map(c => `• ${c.title} from ${c.issuer} (${c.date})`).join('\n');
@@ -32,7 +32,7 @@ GitHub: ${github}
 Codolio: ${codolio}
 Medium: ${medium}
 
-=== TECHNICAL SKILLS & PROFICIENCIES ===
+=== TECHNICAL STACK & TOOLS ===
 ${skillsList || 'Full-Stack Web Development, AI/ML Engineering'}
 
 === COMPETITIVE PROGRAMMING & CODING PROFILES ===
@@ -135,7 +135,7 @@ function generateOfflineChatResponse(userQuery) {
 
   if (q.includes('skill') || q.includes('stack') || q.includes('tech') || q.includes('language')) {
     const topSkills = data.tech_stacks.slice(0, 6).map(s => s.name).join(', ');
-    return `Hello! ${name} is proficient across modern full-stack and AI stacks, especially **${topSkills}**, and cloud-native architectures. You can explore interactive skill proficiency meters in the [Skills](#skills) section!`;
+    return `Hello! ${name} is skilled across modern full-stack and AI stacks, especially **${topSkills}**, and cloud-native architectures. You can explore the full tech stack in the [Skills](#skills) section!`;
   }
 
   if (q.includes('project') || q.includes('portfolio') || q.includes('work') || q.includes('app')) {

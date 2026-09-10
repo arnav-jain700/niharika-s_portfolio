@@ -140,11 +140,7 @@
         <div class="section-header">
           <span class="section-tag">Toolkit & Architecture</span>
           <h2>Technical Expertise</h2>
-          <p>Languages, frameworks, databases, and AI tooling with verified proficiencies.</p>
-        </div>
-
-        <div class="skills-filter-bar" id="skills-filter-bar">
-          <button class="filter-btn active" data-category="ALL">All Skills</button>
+          <p>Languages, frameworks, libraries, databases, and engineering tools.</p>
         </div>
 
         <div class="skills-grid" id="skills-grid-container">
@@ -354,7 +350,7 @@
 
     <div class="chat-messages" id="chat-messages-container">
       <div class="chat-msg bot">
-        Hello! I am Niharika's Virtual AI Representative. Ask me anything about her projects, skill proficiencies, achievements, architecture experience, or role suitability!
+        Hello! I am Niharika's Virtual AI Representative. Ask me anything about her projects, tech stack, achievements, architecture experience, or role suitability!
       </div>
     </div>
 
@@ -480,57 +476,26 @@
         <!-- Right Content Panes -->
         <div class="admin-content-pane">
 
-          <!-- PANE A: TECH STACK & CATEGORIES -->
+          <!-- PANE A: TECH STACK -->
           <div id="pane-skills" class="admin-pane active">
             <h3>Technical Toolkit Database</h3>
-            <p class="admin-pane-desc">Manage skills, live proficiencies, and independent category filters.</p>
+            <p class="admin-pane-desc">Manage technologies and developer tools in your tech stack.</p>
             
-            <div class="admin-tech-grid">
-              <!-- Left: Skills management -->
-              <div>
-                <h4 style="margin-bottom: 12px; color: var(--accent-cyan); font-size: 0.95rem;">Manage Technologies</h4>
-                <form id="admin-add-skill-form" style="display: flex; flex-direction: column; gap: 12px; background: var(--glass-card); padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--glass-border);">
-                  <input type="hidden" id="admin-skill-id" value="">
-                  <div class="form-row-2">
-                    <div class="form-group">
-                      <label style="font-size: 0.8rem; color: var(--text-muted);">Skill Name</label>
-                      <input type="text" id="skill-name-input" class="form-input" placeholder="e.g. Next.js, FastAPI" required>
-                    </div>
-                    <div class="form-group">
-                      <label style="font-size: 0.8rem; color: var(--text-muted);">Category</label>
-                      <select id="skill-cat-select" class="form-input" required></select>
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                      <label style="font-size: 0.8rem; color: var(--text-muted);">Proficiency Level</label>
-                      <span id="prof-label" style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent-cyan);">85%</span>
-                    </div>
-                    <input type="range" id="skill-level-slider" min="10" max="100" value="85" style="width: 100%; accent-color: var(--accent-cyan);">
-                  </div>
-                  <div style="display: flex; gap: 10px; margin-top: 4px;">
-                    <button type="submit" id="admin-skill-submit-btn" class="btn btn-primary" style="padding: 8px 18px; font-size: 0.85rem;">Add Technology</button>
-                    <button type="button" id="admin-skill-cancel-btn" class="btn btn-secondary" style="display: none; padding: 8px 14px; font-size: 0.85rem;">Cancel Edit</button>
-                  </div>
-                </form>
-
-                <div class="admin-list" id="admin-skills-list"></div>
-              </div>
-
-              <!-- Right: Standalone Categories Management -->
-              <div>
-                <div class="admin-category-mgmt">
-                  <h4 style="margin-bottom: 8px; color: var(--accent-cyan); font-size: 0.95rem;">Manage Categories</h4>
-                  <p style="color: var(--text-muted); font-size: 0.78rem; margin-bottom: 14px;">Add or delete custom skill categories independently.</p>
-                  
-                  <form id="admin-add-category-form" style="display: flex; gap: 8px; margin-bottom: 16px;">
-                    <input type="text" id="admin-category-name-input" class="form-input" placeholder="e.g. Mobile, Testing..." required style="flex: 1; padding: 8px 12px; font-size: 0.85rem;">
-                    <button type="submit" class="btn btn-primary" style="padding: 8px 14px; font-size: 0.8rem;">Add</button>
-                  </form>
-
-                  <div id="admin-categories-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 280px; overflow-y: auto;"></div>
+            <div style="max-width: 640px;">
+              <h4 style="margin-bottom: 12px; color: var(--accent-cyan); font-size: 0.95rem;">Manage Technologies</h4>
+              <form id="admin-add-skill-form" style="display: flex; flex-direction: column; gap: 12px; background: var(--glass-card); padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--glass-border); margin-bottom: 20px;">
+                <input type="hidden" id="admin-skill-id" value="">
+                <div class="form-group">
+                  <label style="font-size: 0.8rem; color: var(--text-muted);">Technology / Tool Name</label>
+                  <input type="text" id="skill-name-input" class="form-input" placeholder="e.g. Next.js, FastAPI, Docker, PostgreSQL" required>
                 </div>
-              </div>
+                <div style="display: flex; gap: 10px; margin-top: 4px;">
+                  <button type="submit" id="admin-skill-submit-btn" class="btn btn-primary" style="padding: 8px 18px; font-size: 0.85rem;">Add Technology</button>
+                  <button type="button" id="admin-skill-cancel-btn" class="btn btn-secondary" style="display: none; padding: 8px 14px; font-size: 0.85rem;">Cancel Edit</button>
+                </div>
+              </form>
+
+              <div class="admin-list" id="admin-skills-list"></div>
             </div>
           </div>
 
