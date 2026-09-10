@@ -436,7 +436,7 @@ function renderTimeline(timeline) {
   `).join('');
 }
 
-let activeSkillFilter = 'ALL';
+let activeSkillFilter = 'Technical';
 
 function renderSkills(skills) {
   const filterBar = document.getElementById('skills-filter-bar');
@@ -447,7 +447,7 @@ function renderSkills(skills) {
 
   if (filterBar) {
     filterBar.querySelectorAll('.filter-btn').forEach(btn => {
-      const filterVal = btn.dataset.filter || 'ALL';
+      const filterVal = btn.dataset.filter || 'Technical';
       btn.classList.toggle('active', activeSkillFilter === filterVal);
       btn.onclick = () => {
         activeSkillFilter = filterVal;
@@ -456,15 +456,14 @@ function renderSkills(skills) {
     });
   }
 
-  const filtered = activeSkillFilter === 'ALL'
-    ? allSkills
+  const filtered = activeSkillFilter === 'Non-Technical'
+    ? allSkills.filter(s => {
+        const cat = (s.category || 'Technical').toLowerCase();
+        return cat === 'non-technical' || cat.includes('non') || cat.includes('soft');
+      })
     : allSkills.filter(s => {
         const cat = (s.category || 'Technical').toLowerCase();
-        if (activeSkillFilter === 'Non-Technical') {
-          return cat === 'non-technical' || cat.includes('non') || cat.includes('soft');
-        } else {
-          return cat !== 'non-technical' && !cat.includes('non') && !cat.includes('soft');
-        }
+        return cat !== 'non-technical' && !cat.includes('non') && !cat.includes('soft');
       });
 
   if (filtered.length === 0) {
