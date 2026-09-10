@@ -27,8 +27,6 @@ import {
 } from './data.js';
 
 import {
-  callGroqAI,
-  generateSystemPrompt,
   suggestProjectDescription,
   draftEmailReply
 } from './ai.js';
@@ -863,76 +861,7 @@ function openProjectModal(id) {
   modal.classList.add('open');
 }
 
-// ==========================================================================
-// 5. AI Chat Drawer
-// ==========================================================================
-function initAIChatDrawer() {
-  const fab = document.getElementById('ai-fab-btn');
-  const drawer = document.getElementById('ai-chat-drawer');
-  const closeBtn = document.getElementById('close-ai-chat-btn');
-  const form = document.getElementById('chat-input-form');
-  const input = document.getElementById('chat-input-text');
-  const messagesBox = document.getElementById('chat-messages-container');
 
-  function openDrawer() {
-    drawer.classList.add('open');
-    input.focus();
-  }
-  function closeDrawer() {
-    drawer.classList.remove('open');
-  }
-
-  fab?.addEventListener('click', openDrawer);
-  closeBtn?.addEventListener('click', closeDrawer);
-
-  const chatHistory = [];
-
-  form?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const query = input.value.trim();
-    if (!query) return;
-
-    input.value = '';
-    appendMessage(query, 'user');
-
-    const typingBubble = document.createElement('div');
-    typingBubble.className = 'chat-msg bot';
-    typingBubble.textContent = 'Thinking with Groq Llama 3.3...';
-    messagesBox.appendChild(typingBubble);
-    messagesBox.scrollTop = messagesBox.scrollHeight;
-
-    chatHistory.push({ role: 'user', content: query });
-
-    try {
-      const systemPrompt = generateSystemPrompt();
-      const reply = await callGroqAI({
-        messages: chatHistory,
-        systemPrompt
-      });
-
-      typingBubble.remove();
-      appendMessage(reply, 'bot');
-      chatHistory.push({ role: 'assistant', content: reply });
-    } catch (err) {
-      typingBubble.textContent = 'Sorry, I encountered an issue generating a response.';
-    }
-  });
-
-  document.querySelectorAll('.quick-chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      input.value = chip.dataset.query;
-      form.dispatchEvent(new Event('submit'));
-    });
-  });
-
-  function appendMessage(text, sender) {
-    const msg = document.createElement('div');
-    msg.className = `chat-msg ${sender}`;
-    msg.textContent = text;
-    messagesBox.appendChild(msg);
-    messagesBox.scrollTop = messagesBox.scrollHeight;
-  }
-}
 
 // ==========================================================================
 // 6. Contact Form & Anti-Spam
@@ -2142,7 +2071,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initParticleCanvas();
   initTheme();
   renderAllUI();
-  initAIChatDrawer();
   initContactForm();
   initAdminConsole();
   initGlobalListeners();

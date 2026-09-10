@@ -335,45 +335,7 @@
 
   </div>
 
-  <!-- ================= VIRTUAL AI REPRESENTATIVE FLOATING BUTTON & DRAWER ================= -->
-  <button id="ai-fab-btn" class="ai-fab-btn" title="Open AI Representative Chat" aria-label="Open AI Representative Chat">
-    <svg class="icon"><use href="/icons.svg#icon-bot"></use></svg>
-    <span>Ask AI Co-Pilot</span>
-  </button>
 
-  <aside id="ai-chat-drawer" class="ai-chat-drawer">
-    <div class="chat-header">
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <div style="width: 10px; height: 10px; border-radius: 50%; background: var(--accent-green);"></div>
-        <div>
-          <h4 style="font-size: 0.95rem;">AI Representative</h4>
-          <span style="font-size: 0.75rem; color: var(--text-muted);">Groq Llama 3.3 70B &bull; Sub-Second</span>
-        </div>
-      </div>
-      <button id="close-ai-chat-btn" class="btn-icon" aria-label="Close Chat">&times;</button>
-    </div>
-
-    <div class="chat-messages" id="chat-messages-container">
-      <div class="chat-msg bot">
-        Hello! I am Niharika's Virtual AI Representative. Ask me anything about her projects, tech stack, achievements, architecture experience, or role suitability!
-      </div>
-    </div>
-
-    <!-- Quick prompt chips -->
-    <div style="padding: 8px 16px; display: flex; gap: 6px; overflow-x: auto; background: var(--bg-tertiary);" id="chat-quick-chips">
-      <button class="filter-btn quick-chip" data-query="What is your tech stack?">Tech Stack</button>
-      <button class="filter-btn quick-chip" data-query="Tell me about your top projects">Top Projects</button>
-      <button class="filter-btn quick-chip" data-query="What are your key achievements?">Achievements</button>
-      <button class="filter-btn quick-chip" data-query="How can I contact or hire you?">Contact</button>
-    </div>
-
-    <form id="chat-input-form" class="chat-input-row">
-      <input type="text" id="chat-input-text" class="form-input" style="flex: 1;" placeholder="Ask AI co-pilot a question..." autocomplete="off">
-      <button type="submit" class="btn btn-primary" style="padding: 10px 16px;">
-        <svg class="icon"><use href="/icons.svg#icon-send"></use></svg>
-      </button>
-    </form>
-  </aside>
 
   <!-- ================= PROJECT DETAIL MODAL ================= -->
   <div id="project-modal" class="modal-backdrop">
