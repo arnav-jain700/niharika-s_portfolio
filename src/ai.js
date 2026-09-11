@@ -43,7 +43,7 @@ ${codingSummary}
 === FEATURED PROJECTS ===
 ${projectsList || 'No projects listed.'}
 
-=== ACADEMIC & PROFESSIONAL JOURNEY ===
+=== ACADEMIC JOURNEY ===
 ${journeyList || 'No journey items listed.'}
 
 === CERTIFICATES & CREDENTIALS ===
