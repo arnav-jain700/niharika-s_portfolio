@@ -407,10 +407,6 @@
             <svg class="icon"><use href="/icons.svg#icon-book"></use></svg>
             <span>Certificates</span>
           </button>
-          <button class="admin-tab-btn" data-pane="pane-achievements">
-            <svg class="icon"><use href="/icons.svg#icon-award"></use></svg>
-            <span>Achievements</span>
-          </button>
           <button class="admin-tab-btn" data-pane="pane-coding">
             <svg class="icon"><use href="/icons.svg#icon-code"></use></svg>
             <span>Coding Profiles</span>
@@ -630,65 +626,7 @@
             <div class="admin-list" id="admin-certs-list"></div>
           </div>
 
-          <!-- PANE E: ACHIEVEMENTS -->
-          <div id="pane-achievements" class="admin-pane">
-            <h3>Key Achievements & Honors Database</h3>
-            <p class="admin-pane-desc">Manage hackathon victories, research publications, awards, and recognitions.</p>
-            
-            <form id="admin-add-ach-form" style="display: flex; flex-direction: column; gap: 12px; background: var(--glass-card); padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--glass-border);">
-              <input type="hidden" id="admin-ach-id" value="">
-              <div class="form-row-3">
-                <div class="form-group">
-                  <label style="font-size: 0.8rem; color: var(--text-muted);">Achievement Title</label>
-                  <input type="text" id="ach-title-input" class="form-input" placeholder="e.g. Smart India Hackathon Winner" required>
-                </div>
-                <div class="form-group">
-                  <label style="font-size: 0.8rem; color: var(--text-muted);">Category</label>
-                  <input type="text" id="ach-cat-input" class="form-input" placeholder="e.g. National Competition, Research" required>
-                </div>
-                <div class="form-group">
-                  <label style="font-size: 0.8rem; color: var(--text-muted);">Highlight Badge</label>
-                  <input type="text" id="ach-highlight-input" class="form-input" placeholder="e.g. 1st Place / 10,000 Teams" required>
-                </div>
-              </div>
-              <div class="form-row-3">
-                <div class="form-group">
-                  <label style="font-size: 0.8rem; color: var(--text-muted);">Organization / Host</label>
-                  <input type="text" id="ach-org-input" class="form-input" placeholder="e.g. Ministry of Education, IEEE" required>
-                </div>
-                <div class="form-group">
-                  <label style="font-size: 0.8rem; color: var(--text-muted);">Date</label>
-                  <input type="text" id="ach-date-input" class="form-input" placeholder="e.g. 2024" required>
-                </div>
-                <div class="form-group">
-                  <label style="font-size: 0.8rem; color: var(--text-muted);">Proof / Reference URL</label>
-                  <input type="url" id="ach-link-input" class="form-input" placeholder="https://github.com/... or publication">
-                </div>
-              </div>
-              <div class="form-group">
-                <label style="font-size: 0.8rem; color: var(--text-muted);">Achievement Photo / Banner (Upload File from Device or Paste URL)</label>
-                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                  <input type="file" id="ach-file-input" class="form-input" accept="image/*" style="flex: 1; min-width: 180px; padding: 6px 10px;">
-                  <span style="color: var(--text-muted); font-size: 0.8rem;">or</span>
-                  <input type="url" id="ach-img-input" class="form-input" placeholder="https://example.com/trophy.jpg" style="flex: 1; min-width: 200px;">
-                </div>
-                <div id="ach-img-preview-box" class="admin-img-preview-box" style="display: none;">
-                  <img id="ach-img-preview" src="" alt="Achievement Preview">
-                  <button type="button" id="ach-img-remove-btn" class="action-btn delete" style="padding: 4px 8px; font-size: 0.75rem;">Remove Image</button>
-                </div>
-              </div>
-              <div class="form-group">
-                <label style="font-size: 0.8rem; color: var(--text-muted);">Description</label>
-                <textarea id="ach-desc-input" class="form-textarea" rows="2" placeholder="Details of solution built, impact, and significance..." required></textarea>
-              </div>
-              <div style="display: flex; gap: 10px;">
-                <button type="submit" id="admin-ach-submit-btn" class="btn btn-primary" style="padding: 8px 18px; font-size: 0.85rem;">Save Achievement</button>
-                <button type="button" id="admin-ach-cancel-btn" class="btn btn-secondary" style="display: none; padding: 8px 14px; font-size: 0.85rem;">Cancel Edit</button>
-              </div>
-            </form>
 
-            <div class="admin-list" id="admin-achievements-list"></div>
-          </div>
 
           <!-- PANE F: VISITOR LOGS -->
           <div id="pane-messages" class="admin-pane">
@@ -995,10 +933,6 @@
       <div id="ats-certs-content"></div>
     </div>
 
-    <div class="ats-section">
-      <div class="ats-section-title">Key Achievements & Honors</div>
-      <div id="ats-achievements-content"></div>
-    </div>
   </div>
 
   <!-- Main JavaScript Bundle -->

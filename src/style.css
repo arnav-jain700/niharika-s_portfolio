@@ -956,19 +956,19 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ==========================================================================
-   Certificates & Achievements
+   Certificates
    ========================================================================== */
-.certs-grid, .achievements-grid {
+.certs-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 24px;
 }
-.cert-card, .achievement-card {
+.cert-card {
   padding: 24px;
   display: flex;
   flex-direction: column;
 }
-.cert-card img, .achievement-card img {
+.cert-card img {
   width: 100%;
   height: 170px;
   object-fit: cover;
@@ -976,19 +976,6 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 16px;
   cursor: pointer;
   transition: transform var(--transition-smooth);
-}
-.achievement-card img:hover {
-  transform: scale(1.02);
-}
-.achievement-highlight-badge {
-  background: linear-gradient(135deg, rgba(0, 242, 254, 0.2), rgba(127, 0, 255, 0.2));
-  border: 1px solid var(--accent-cyan);
-  color: var(--accent-cyan);
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
 }
 
 
@@ -1518,7 +1505,7 @@ body.print-mode .ats-resume-container {
   .stat-number {
     font-size: 1.4rem;
   }
-  .projects-grid, .certs-grid, .achievements-grid {
+  .projects-grid, .certs-grid {
     grid-template-columns: 1fr;
   }
   .skills-grid {

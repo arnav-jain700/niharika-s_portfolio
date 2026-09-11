@@ -12,8 +12,6 @@ import {
   deleteTimelineItem,
   saveCertificate,
   deleteCertificate,
-  saveAchievement,
-  deleteAchievement,
   saveMessage,
   getMessages,
   toggleMessageRead,
@@ -290,14 +288,6 @@ function renderATSResume() {
     </div>
   `).join('');
   document.getElementById('ats-certs-content').innerHTML = certsHTML;
-
-  // Achievements
-  const achHTML = (data.achievements || []).map(a => `
-    <div style="font-size: 10pt; margin-bottom: 4px;">
-      <strong>${a.title}</strong> [${a.highlight}] — ${a.organization} (${a.date}): ${a.description}
-    </div>
-  `).join('');
-  document.getElementById('ats-achievements-content').innerHTML = achHTML;
 }
 
 // ==========================================================================
@@ -328,8 +318,6 @@ export function renderAllUI() {
   if (skillsCount) skillsCount.textContent = (data.tech_stacks?.length || 0) + '+';
   const certsCount = document.getElementById('stat-certs-count');
   if (certsCount) certsCount.textContent = (data.certificates?.length || 0) + '+';
-  const awardsCount = document.getElementById('stat-awards-count');
-  if (awardsCount) awardsCount.textContent = (data.achievements?.length || 0) + '+';
 
   // 2. Featured Projects Carousel
   renderCarousel(data.projects);
@@ -349,10 +337,7 @@ export function renderAllUI() {
   // 7. Certificates
   renderCertificates(data.certificates);
 
-  // 8. Achievements
-  renderAchievements(data.achievements || []);
-
-  // 9. Contact Links
+  // 8. Contact Links
   const emailLink = document.getElementById('contact-link-email');
   if (emailLink) emailLink.href = `mailto:${data.settings.email}`;
   const emailText = document.getElementById('contact-display-email');
@@ -811,28 +796,6 @@ function renderCertificates(certs) {
   });
 }
 
-function renderAchievements(achievements) {
-  const grid = document.getElementById('achievements-grid-container');
-  if (!grid) return;
-
-  grid.innerHTML = achievements.map(a => `
-    <div class="achievement-card glass-card">
-      <img src="${a.image || 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=600&q=80'}" alt="${a.title}">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 8px;">
-        <span class="gradient-badge" style="font-size: 0.75rem;">${a.category}</span>
-        <span class="achievement-highlight-badge">${a.highlight}</span>
-      </div>
-      <h3 style="font-size: 1.2rem; margin-bottom: 6px;">${a.title}</h3>
-      <div style="font-size: 0.85rem; color: var(--accent-cyan); font-weight: 600; margin-bottom: 8px;">
-        ${a.organization} &bull; <span style="color: var(--text-dim);">${a.date}</span>
-      </div>
-      <div class="formatted-desc" style="font-size: 0.85rem; margin-bottom: 14px; flex: 1;">
-        ${formatDescription(a.description)}
-      </div>
-      ${a.link ? `<a href="${a.link}" target="_blank" class="btn btn-secondary" style="padding: 8px 12px; font-size: 0.85rem; text-align: center;">View Proof / Publication &rarr;</a>` : ''}
-    </div>
-  `).join('');
-}
 
 function openProjectModal(id) {
   const data = getLocalData();
@@ -1096,7 +1059,6 @@ function setupImageUploader({ fileInputId, urlInputId, previewBoxId, previewImgI
 
 let projImageUploader = null;
 let certImageUploader = null;
-let achImageUploader = null;
 
 function populateAdminPanes() {
   const data = getLocalData();
@@ -1118,15 +1080,6 @@ function populateAdminPanes() {
       previewBoxId: 'cert-img-preview-box',
       previewImgId: 'cert-img-preview',
       removeBtnId: 'cert-img-remove-btn'
-    });
-  }
-  if (!achImageUploader) {
-    achImageUploader = setupImageUploader({
-      fileInputId: 'ach-file-input',
-      urlInputId: 'ach-img-input',
-      previewBoxId: 'ach-img-preview-box',
-      previewImgId: 'ach-img-preview',
-      removeBtnId: 'ach-img-remove-btn'
     });
   }
 
@@ -1409,67 +1362,6 @@ function populateAdminPanes() {
     document.getElementById('admin-cert-cancel-btn').style.display = 'none';
   });
 
-  // --------------------------------------------------------------------------
-  // Pane E: Achievements
-  // --------------------------------------------------------------------------
-  const achList = document.getElementById('admin-achievements-list');
-  if (achList) {
-    achList.innerHTML = (data.achievements || []).map(a => `
-      <div class="admin-list-item">
-        <div class="admin-list-info" style="display: flex; gap: 14px; align-items: center; flex: 1;">
-          ${a.image ? `<img src="${a.image}" style="width: 48px; height: 48px; border-radius: var(--radius-sm); object-fit: cover; border: 1px solid var(--glass-border);">` : ''}
-          <div>
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-              <h4 style="margin: 0; font-size: 0.95rem;">${a.title}</h4>
-              <span class="achievement-highlight-badge">${a.highlight}</span>
-            </div>
-            <p style="margin: 0; font-size: 0.82rem; color: var(--text-muted);">${a.organization} &bull; ${a.category} &bull; <span style="color: var(--accent-cyan);">${a.date}</span></p>
-          </div>
-        </div>
-        <div class="admin-list-actions">
-          <button class="action-btn edit-ach-btn" data-id="${a.id}">Edit</button>
-          <button class="action-btn delete delete-ach-btn" data-id="${a.id}">Delete</button>
-        </div>
-      </div>
-    `).join('');
-
-    achList.querySelectorAll('.edit-ach-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const item = (data.achievements || []).find(a => a.id === btn.dataset.id);
-        if (!item) return;
-        document.getElementById('admin-ach-id').value = item.id;
-        document.getElementById('ach-title-input').value = item.title;
-        document.getElementById('ach-cat-input').value = item.category;
-        document.getElementById('ach-highlight-input').value = item.highlight;
-        document.getElementById('ach-org-input').value = item.organization;
-        document.getElementById('ach-date-input').value = item.date;
-        document.getElementById('ach-link-input').value = item.link || '';
-        document.getElementById('ach-desc-input').value = item.description;
-        achImageUploader?.setValue(item.image || '');
-        document.getElementById('admin-ach-submit-btn').textContent = 'Update Achievement';
-        document.getElementById('admin-ach-cancel-btn').style.display = 'inline-block';
-        document.getElementById('admin-add-ach-form').scrollIntoView({ behavior: 'smooth' });
-      });
-    });
-
-    achList.querySelectorAll('.delete-ach-btn').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        if (confirm('Delete this achievement?')) {
-          await deleteAchievement(btn.dataset.id);
-          populateAdminPanes();
-          renderAllUI();
-        }
-      });
-    });
-  }
-
-  document.getElementById('admin-ach-cancel-btn')?.addEventListener('click', () => {
-    document.getElementById('admin-add-ach-form').reset();
-    document.getElementById('admin-ach-id').value = '';
-    achImageUploader?.clear();
-    document.getElementById('admin-ach-submit-btn').textContent = 'Save Achievement';
-    document.getElementById('admin-ach-cancel-btn').style.display = 'none';
-  });
 
   // --------------------------------------------------------------------------
   // Pane F: Messages Inbox
@@ -1703,28 +1595,6 @@ function initAdminPaneHandlers() {
     renderAllUI();
   });
 
-  // Add/Update Achievement
-  document.getElementById('admin-add-ach-form')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const id = document.getElementById('admin-ach-id').value || undefined;
-    const title = document.getElementById('ach-title-input').value.trim();
-    const category = document.getElementById('ach-cat-input').value.trim();
-    const highlight = document.getElementById('ach-highlight-input').value.trim();
-    const organization = document.getElementById('ach-org-input').value.trim();
-    const date = document.getElementById('ach-date-input').value.trim();
-    const link = document.getElementById('ach-link-input').value.trim();
-    const description = document.getElementById('ach-desc-input').value.trim();
-    const image = achImageUploader ? achImageUploader.getValue() : document.getElementById('ach-img-input')?.value.trim();
-
-    await saveAchievement({ id, title, category, highlight, organization, date, link, image, description });
-    e.target.reset();
-    document.getElementById('admin-ach-id').value = '';
-    achImageUploader?.clear();
-    document.getElementById('admin-ach-submit-btn').textContent = 'Save Achievement';
-    document.getElementById('admin-ach-cancel-btn').style.display = 'none';
-    populateAdminPanes();
-    renderAllUI();
-  });
 
   // Save Coding Profiles Form Handler
   document.getElementById('admin-coding-form')?.addEventListener('submit', async (e) => {

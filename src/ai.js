@@ -9,7 +9,6 @@ export function generateSystemPrompt() {
   const projectsList = (data.projects || []).map(p => `• ${p.title} [${p.category}]: ${p.description} (Tech: ${p.tags?.join(', ')})`).join('\n');
   const journeyList = (data.timeline || []).map(t => `• ${t.title} at ${t.company} (${t.dateRange}, ${t.type}): ${t.description}`).join('\n');
   const certsList = (data.certificates || []).map(c => `• ${c.title} from ${c.issuer} (${c.date})`).join('\n');
-  const achievementsList = (data.achievements || []).map(a => `• ${a.title} [${a.highlight}] (${a.organization}, ${a.date}): ${a.description}`).join('\n');
 
   const cp = data.settings.codingProfiles || {};
   const codingSummary = `
@@ -47,11 +46,8 @@ ${journeyList || 'No journey items listed.'}
 === CERTIFICATES & CREDENTIALS ===
 ${certsList || 'No certificates listed.'}
 
-=== KEY ACHIEVEMENTS & HONORS ===
-${achievementsList || 'No achievements listed.'}
-
 === BEHAVIOR & GUIDELINES ===
-1. Answer questions about ${ownerName}'s background, tech stack, projects, coding profiles (LeetCode, Codeforces, CodeChef, Codolio), experience, achievements, and contact methods accurately based on the data above.
+1. Answer questions about ${ownerName}'s background, tech stack, projects, coding profiles (LeetCode, Codeforces, CodeChef, Codolio), experience, and contact methods accurately based on the data above.
 2. Maintain an articulate, confident, friendly, and highly knowledgeable tone.
 3. If asked for contact info or resume, provide ${email} or suggest using the 'Download Resume / CV' buttons or the '#contact' section.
 4. Keep answers concise (2-4 paragraphs max) unless in-depth technical elaboration is explicitly requested.
@@ -143,11 +139,6 @@ function generateOfflineChatResponse(userQuery) {
     return `${name}'s flagship project is **${topProj?.title || 'AI Portfolio'}**, which features ${topProj?.description || 'cutting-edge full-stack tech'}. Check out all projects with live demos and source code in the [Projects](#projects) hub!`;
   }
 
-  if (q.includes('achievement') || q.includes('award') || q.includes('honor') || q.includes('publication')) {
-    const topAch = data.achievements[0];
-    return `${name} has been recognized with multiple honors, including **${topAch?.title || 'National Engineering Award'}** (${topAch?.highlight || '1st Place'}). Explore the full list in the [Achievements](#achievements) section!`;
-  }
-
   if (q.includes('contact') || q.includes('hire') || q.includes('email') || q.includes('reach') || q.includes('message')) {
     return `You can connect directly with ${name} via email at **${data.settings.email}** or send a message directly using the [Contact Form](#contact). You can also download the ATS-friendly resume anytime!`;
   }
@@ -156,7 +147,7 @@ function generateOfflineChatResponse(userQuery) {
     return `You can view and export ${name}'s verified ATS-ready resume and CV using the action buttons in the hero section or by navigating to \`?print=resume\`.`;
   }
 
-  return `Greetings! I am ${name}'s Virtual AI Representative. I can walk you through ${name}'s engineering background, projects (${data.projects?.length || 0} active builds), key achievements, and technical toolkit. How can I assist your team today? *(Tip: Configure a Groq API Key in Settings to enable real-time 600+ tok/sec Groq Llama 3.3 inference!)*`;
+  return `Greetings! I am ${name}'s Virtual AI Representative. I can walk you through ${name}'s engineering background, projects (${data.projects?.length || 0} active builds), and technical toolkit. How can I assist your team today? *(Tip: Configure a Groq API Key in Settings to enable real-time 600+ tok/sec Groq Llama 3.3 inference!)*`;
 }
 
 // AI Project Description Generator
