@@ -251,6 +251,8 @@ export function renderAllUI() {
   if (brandEl) brandEl.textContent = data.settings.ownerName.toUpperCase();
   const heroNameEl = document.getElementById('hero-owner-name');
   if (heroNameEl) heroNameEl.textContent = data.settings.ownerName;
+  const heroTaglineEl = document.getElementById('hero-tagline') || document.querySelector('.hero-tagline');
+  if (heroTaglineEl) heroTaglineEl.textContent = data.settings.ownerTagline || 'Algorithmic Thinker • Data Science and Full-Stack Explorer';
   const heroBioEl = document.getElementById('hero-owner-bio');
   if (heroBioEl) heroBioEl.textContent = data.settings.ownerBio;
   const footerYear = document.getElementById('footer-year');
@@ -2886,8 +2888,6 @@ function initCounterAnimations() {
     '#summary-peak-rating',
     '#summary-contests-count',
     '#summary-global-percentile',
-    '#hero-chip-solved',
-    '#hero-chip-rating',
     '.coding-summary-val',
     '.stat-number'
   ];

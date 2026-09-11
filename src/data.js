@@ -5,6 +5,7 @@ const DEFAULT_DATA = {
   settings: {
     id: 'main_settings',
     ownerName: 'Niharika',
+    ownerTagline: 'Algorithmic Thinker • Data Science and Full-Stack Explorer',
     ownerBio: 'Full-Stack Developer & AI Systems Engineer crafting resilient web applications, distributed edge systems, and intelligent agentic workflows.',
     email: 'niharika@example.com',
     location: 'Ludhiana, Punjab, India',
@@ -468,6 +469,7 @@ function normalizeSettings(s) {
   return {
     id: 'main_settings',
     ownerName: s.ownerName ?? s.ownername ?? DEFAULT_DATA.settings.ownerName,
+    ownerTagline: s.ownerTagline ?? s.ownertagline ?? DEFAULT_DATA.settings.ownerTagline,
     ownerBio: s.ownerBio ?? s.ownerbio ?? DEFAULT_DATA.settings.ownerBio,
     email: s.email ?? DEFAULT_DATA.settings.email,
     location: s.location ?? DEFAULT_DATA.settings.location,
@@ -556,6 +558,7 @@ function serializeSettings(s) {
   return {
     id: 'main_settings',
     ownername: s.ownerName ?? s.ownername ?? '',
+    ownertagline: s.ownerTagline ?? s.ownertagline ?? DEFAULT_DATA.settings.ownerTagline,
     ownerbio: s.ownerBio ?? s.ownerbio ?? '',
     email: s.email ?? '',
     location: s.location ?? '',
