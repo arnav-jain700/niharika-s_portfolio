@@ -129,17 +129,82 @@
             </div>
           </div>
 
-          <!-- Hero Right: Organic Rounded Portrait Frame + Floating Metric Chips -->
-          <div class="hero-portrait-container">
-            <!-- Floating 3D Ambient Glass Bubble -->
+          <!-- Hero Right: Interactive Developer Terminal & Telemetry Matrix -->
+          <div class="hero-terminal-container">
+            <!-- Ambient Floating Glass Bubble -->
             <div class="ambient-glass-bubble">
               <svg class="icon"><use href="/icons.svg#icon-sparkles"></use></svg>
             </div>
 
-            <!-- Main Portrait Frame -->
-            <div class="hero-portrait-frame glass-card">
-              <div class="hero-portrait-inner">
-                <img id="hero-portrait-img" src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=800&q=80" alt="Niharika - Software Engineer" class="hero-portrait-img">
+            <!-- Interactive Terminal Console Window -->
+            <div class="hero-terminal-window glass-card">
+              <!-- Terminal Header Bar -->
+              <div class="terminal-header">
+                <div class="terminal-dots">
+                  <span class="dot-win dot-red"></span>
+                  <span class="dot-win dot-yellow"></span>
+                  <span class="dot-win dot-green"></span>
+                </div>
+                <div class="terminal-tabs">
+                  <button type="button" class="terminal-tab active" data-tab="specs">
+                    <svg class="icon" style="width: 12px; height: 12px; color: #3b82f6;"><use href="/icons.svg#icon-code"></use></svg>
+                    <span>architect.ts</span>
+                  </button>
+                  <button type="button" class="terminal-tab" data-tab="telemetry">
+                    <svg class="icon" style="width: 12px; height: 12px; color: #10b981;"><use href="/icons.svg#icon-terminal"></use></svg>
+                    <span>telemetry.sh</span>
+                  </button>
+                </div>
+                <div class="terminal-status-badge">
+                  <span class="status-live-pulse"></span>
+                  <span>Edge LPU</span>
+                </div>
+              </div>
+
+              <!-- Terminal Body Pane 1: TypeScript Specification -->
+              <div class="terminal-body active" id="term-pane-specs">
+                <div class="code-line"><span class="line-num">01</span><span class="tok-comment">// Autonomous Systems & Full-Stack Architect</span></div>
+                <div class="code-line"><span class="line-num">02</span><span class="tok-keyword">const</span> <span class="tok-def">engineer</span>: <span class="tok-type">DeveloperProfile</span> = {</div>
+                <div class="code-line"><span class="line-num">03</span>  <span class="tok-prop">identity</span>: <span class="tok-string">"Niharika"</span>,</div>
+                <div class="code-line"><span class="line-num">04</span>  <span class="tok-prop">specialization</span>: <span class="tok-string">"Full-Stack & AI Systems"</span>,</div>
+                <div class="code-line"><span class="line-num">05</span>  <span class="tok-prop">coreStack</span>: [<span class="tok-string">"TypeScript"</span>, <span class="tok-string">"React"</span>, <span class="tok-string">"Python"</span>, <span class="tok-string">"FastAPI"</span>],</div>
+                <div class="code-line"><span class="line-num">06</span>  <span class="tok-prop">database</span>: [<span class="tok-string">"PostgreSQL"</span>, <span class="tok-string">"Supabase"</span>, <span class="tok-string">"Redis"</span>],</div>
+                <div class="code-line"><span class="line-num">07</span>  <span class="tok-prop">aiInference</span>: <span class="tok-string">"Groq Llama 3.3 70B (600+ tok/s)"</span>,</div>
+                <div class="code-line"><span class="line-num">08</span>  <span class="tok-prop">algorithmicFoundations</span>: {</div>
+                <div class="code-line"><span class="line-num">09</span>    <span class="tok-prop">problemsSolved</span>: <span class="tok-num">990</span>,</div>
+                <div class="code-line"><span class="line-num">10</span>    <span class="tok-prop">contestRating</span>: <span class="tok-num">1865</span>,</div>
+                <div class="code-line"><span class="line-num">11</span>    <span class="tok-prop">globalRanking</span>: <span class="tok-string">"Top Tier Competitive"</span></div>
+                <div class="code-line"><span class="line-num">12</span>  },</div>
+                <div class="code-line"><span class="line-num">13</span>  <span class="tok-prop">status</span>: <span class="tok-string">"Ready for High-Impact Engineering"</span></div>
+                <div class="code-line"><span class="line-num">14</span>};</div>
+              </div>
+
+              <!-- Terminal Body Pane 2: Live Telemetry Shell -->
+              <div class="terminal-body" id="term-pane-telemetry">
+                <div class="code-line"><span class="line-num">01</span><span class="tok-prompt">$</span> <span class="tok-cmd">curl -s https://niharika.dev/v1/telemetry</span></div>
+                <div class="code-line"><span class="line-num">02</span><span class="tok-comment">{</span></div>
+                <div class="code-line"><span class="line-num">03</span>  <span class="tok-prop">"latency_p99"</span>: <span class="tok-string">"14.2ms"</span>,</div>
+                <div class="code-line"><span class="line-num">04</span>  <span class="tok-prop">"throughput"</span>: <span class="tok-string">"640 tokens/sec"</span>,</div>
+                <div class="code-line"><span class="line-num">05</span>  <span class="tok-prop">"cache_hit_rate"</span>: <span class="tok-num">0.998</span>,</div>
+                <div class="code-line"><span class="line-num">06</span>  <span class="tok-prop">"database"</span>: <span class="tok-string">"PostgreSQL (Synced) ✓"</span>,</div>
+                <div class="code-line"><span class="line-num">07</span>  <span class="tok-prop">"offline_persistence"</span>: <span class="tok-string">"IndexedDB Storage Active ✓"</span>,</div>
+                <div class="code-line"><span class="line-num">08</span>  <span class="tok-prop">"uptime"</span>: <span class="tok-string">"99.99%"</span>,</div>
+                <div class="code-line"><span class="line-num">09</span>  <span class="tok-prop">"verified_platforms"</span>: [<span class="tok-string">"LC"</span>, <span class="tok-string">"CF"</span>, <span class="tok-string">"CC"</span>, <span class="tok-string">"GFG"</span>, <span class="tok-string">"AtCoder"</span>]</div>
+                <div class="code-line"><span class="line-num">10</span><span class="tok-comment">}</span></div>
+                <div class="code-line"><span class="line-num">11</span><span class="tok-prompt">$</span> <span class="tok-cmd">system --health</span> <span class="tok-string">--status optimal</span></div>
+                <div class="code-line"><span class="line-num">12</span><span class="tok-success">✓ All systems operating within normal parameters.</span></div>
+              </div>
+
+              <!-- Terminal Footer Bar -->
+              <div class="terminal-footer">
+                <div class="terminal-footer-meta">
+                  <span class="meta-item"><span class="dot dot-blue"></span> TypeScript 5.4</span>
+                  <span class="meta-item">UTF-8</span>
+                </div>
+                <button type="button" id="terminal-copy-btn" class="terminal-copy-btn" title="Copy Architecture Spec">
+                  <svg class="icon" style="width: 12px; height: 12px;"><use href="/icons.svg#icon-copy"></use></svg>
+                  <span id="terminal-copy-text">Copy Spec</span>
+                </button>
               </div>
             </div>
 

@@ -3269,10 +3269,59 @@ function initNavigationTabs() {
 }
 
 // ==========================================================================
+// Hero Interactive Developer Terminal Console
+// ==========================================================================
+function initHeroTerminal() {
+  const tabs = document.querySelectorAll('.terminal-tab');
+  const paneSpecs = document.getElementById('term-pane-specs');
+  const paneTelemetry = document.getElementById('term-pane-telemetry');
+  const copyBtn = document.getElementById('terminal-copy-btn');
+  const copyText = document.getElementById('terminal-copy-text');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      const target = tab.dataset.tab;
+      if (target === 'specs') {
+        paneSpecs?.classList.add('active');
+        paneTelemetry?.classList.remove('active');
+      } else {
+        paneTelemetry?.classList.add('active');
+        paneSpecs?.classList.remove('active');
+      }
+    });
+  });
+
+  copyBtn?.addEventListener('click', () => {
+    const activePane = document.querySelector('.terminal-body.active');
+    if (!activePane) return;
+
+    const lines = Array.from(activePane.querySelectorAll('.code-line')).map(l => {
+      const clone = l.cloneNode(true);
+      clone.querySelector('.line-num')?.remove();
+      return clone.textContent;
+    });
+
+    navigator.clipboard.writeText(lines.join('\n')).then(() => {
+      if (copyText) {
+        const orig = copyText.textContent;
+        copyText.textContent = 'Copied! ✨';
+        setTimeout(() => {
+          copyText.textContent = orig;
+        }, 2000);
+      }
+    });
+  });
+}
+
+// ==========================================================================
 // 8. Global Listeners, Search & Carousel Controls
 // ==========================================================================
 function initGlobalListeners() {
   initNavigationTabs();
+  initHeroTerminal();
 
   // Mobile Nav Toggle
   const mobileBtn = document.getElementById('mobile-menu-btn');
