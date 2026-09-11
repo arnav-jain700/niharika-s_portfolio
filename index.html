@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Niharika | Full-Stack Developer & AI Systems Engineer</title>
   <meta name="description" content="Portfolio of Niharika - Full-Stack Developer & AI Systems Engineer specializing in scalable web applications, agentic AI workflows, and distributed architectures.">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <!-- Fonts -->
+  <!-- Fonts: Plus Jakarta Sans, Inter, JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/src/style.css">
 </head>
 <body>
@@ -20,6 +20,11 @@
   <!-- Cyber Grid Overlay -->
   <div class="cyber-grid-overlay"></div>
 
+  <!-- Ambient Iridescent Light Waves (Pinterest Pearlescent Aesthetic) -->
+  <div class="ambient-iridescent wave-1"></div>
+  <div class="ambient-iridescent wave-2"></div>
+  <div class="ambient-iridescent wave-3"></div>
+
   <!-- 3D Particle Canvas Background -->
   <canvas id="bg-canvas"></canvas>
   <div class="ambient-glow glow-1"></div>
@@ -27,12 +32,15 @@
 
   <div class="app-container">
 
-    <!-- Navigation Bar -->
+    <!-- Floating Capsule Navbar -->
     <header class="navbar">
       <div class="nav-container">
         <a href="#home" class="brand-logo">
-          <svg><use href="/icons.svg#icon-terminal"></use></svg>
-          <span class="gradient-text" id="nav-brand-name">NIHARIKA</span>
+          <span class="brand-avatar-badge">N</span>
+          <div class="brand-info">
+            <span class="brand-name" id="nav-brand-name">NIHARIKA</span>
+            <span class="brand-role">Full-Stack & AI Systems</span>
+          </div>
         </a>
 
         <nav>
@@ -48,6 +56,10 @@
         </nav>
 
         <div class="nav-actions">
+          <a href="#contact" class="btn-lets-talk">
+            <span>Let's Talk</span>
+            <svg class="icon arrow-diagonal"><use href="/icons.svg#icon-arrow-up"></use></svg>
+          </a>
           <button id="theme-toggle-btn" class="btn-icon" title="Toggle Theme" aria-label="Toggle Theme">
             <svg class="icon"><use href="/icons.svg#icon-moon"></use></svg>
           </button>
@@ -73,57 +85,128 @@
               </span>
             </div>
 
-            <h1 class="hero-title"><span class="hero-greeting"><span class="gradient-text" id="hero-owner-name">Niharika</span></span><span class="hero-tagline">Solving Complex Problems. Engineering Scalable Web Systems.</span></h1>
+            <h1 class="hero-title">
+              <span id="hero-owner-name">Niharika</span>
+              <span class="hero-tagline gradient-subtitle">Full-Stack Developer & AI Systems Engineer</span>
+            </h1>
             <p class="hero-bio" id="hero-owner-bio">
-              Full-Stack Developer & AI Systems Engineer crafting resilient web applications, distributed edge systems, and intelligent agentic workflows.
+              Crafting resilient web applications, distributed edge systems, and intelligent multi-agent AI workflows with rigorous algorithmic foundations.
             </p>
 
             <div class="hero-cta-group">
-              <a href="#projects" class="btn btn-primary">
+              <a href="#projects" class="btn btn-dark-pill">
                 <svg class="icon"><use href="/icons.svg#icon-code"></use></svg>
-                Explore Projects
+                <span>Explore Projects</span>
+                <svg class="icon arrow-diagonal"><use href="/icons.svg#icon-arrow-up"></use></svg>
               </a>
-              <a id="hero-cv-btn" href="?print=cv" target="_blank" class="btn btn-secondary">
+              <a id="hero-cv-btn" href="?print=cv" target="_blank" class="btn btn-frosted-pill">
                 <svg class="icon"><use href="/icons.svg#icon-download"></use></svg>
-                <span id="hero-cv-btn-text">CV (PDF)</span>
+                <span id="hero-cv-btn-text">Download CV (PDF)</span>
               </a>
             </div>
 
-            <div class="stats-grid">
-              <div class="stat-card">
+            <!-- Verified Profiles Strip -->
+            <div class="hero-verified-strip">
+              <span class="verified-label">Verified Profiles</span>
+              <div class="verified-tags">
+                <span class="verified-tag"><span class="dot dot-amber"></span> LeetCode</span>
+                <span class="verified-tag"><span class="dot dot-blue"></span> Codeforces</span>
+                <span class="verified-tag"><span class="dot dot-brown"></span> CodeChef</span>
+                <span class="verified-tag"><span class="dot dot-dark"></span> GitHub</span>
+                <span class="verified-tag"><span class="dot dot-green"></span> GeeksforGeeks</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hero Right: Organic Rounded Portrait Frame + Floating Metric Chips -->
+          <div class="hero-portrait-container">
+            <!-- Floating 3D Ambient Glass Bubble -->
+            <div class="ambient-glass-bubble">
+              <svg class="icon"><use href="/icons.svg#icon-sparkles"></use></svg>
+            </div>
+
+            <!-- Main Portrait Frame -->
+            <div class="hero-portrait-frame glass-card">
+              <div class="hero-portrait-inner">
+                <img id="hero-portrait-img" src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=800&q=80" alt="Niharika - Software Engineer" class="hero-portrait-img">
+              </div>
+            </div>
+
+            <!-- Top-Right Floating Metric Chip -->
+            <div class="floating-metric-chip chip-top-right float-1">
+              <div class="chip-val" id="hero-chip-solved">990+</div>
+              <div class="chip-lbl">Problems Solved</div>
+            </div>
+
+            <!-- Bottom-Right Floating Metric Chip with Sparkline -->
+            <div class="floating-metric-chip chip-bottom-right float-2">
+              <div class="chip-header">
+                <span class="chip-lbl">Peak Rating</span>
+                <span class="chip-accent" id="hero-chip-rating">1865</span>
+              </div>
+              <div class="chip-sub">Contest Tier</div>
+              <svg class="mini-sparkline" viewBox="0 0 100 24">
+                <defs>
+                  <linearGradient id="chartGrad" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stop-color="#6366f1" />
+                    <stop offset="100%" stop-color="#a855f7" />
+                  </linearGradient>
+                </defs>
+                <path class="sparkline-path" d="M2,18 Q20,16 35,10 T65,12 T98,3" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= ABOUT ME OVERVIEW BANNER ================= -->
+      <div class="section-wrapper" style="padding-top: 0; padding-bottom: 40px;" data-reveal="true">
+        <div class="about-overview-card glass-card">
+          <div class="about-overview-content">
+            <div class="about-overview-text">
+              <span class="section-tag">About Me</span>
+              <h2 class="about-overview-title">Designing with Empathy, Building with Purpose</h2>
+              <p class="about-overview-bio">
+                I'm a full-stack developer and competitive programmer with a passion for architecting resilient distributed systems, elegant web user interfaces, and automated AI workflows.
+              </p>
+            </div>
+            <a href="#journey" class="btn btn-frosted-pill" style="padding: 10px 20px; font-size: 0.85rem;">
+              <span>More About Me</span>
+              <svg class="icon arrow-diagonal"><use href="/icons.svg#icon-arrow-up"></use></svg>
+            </a>
+          </div>
+
+          <div class="stats-pills-row">
+            <div class="stat-pill-box">
+              <div class="stat-pill-icon" style="color: #f59e0b; background: rgba(245, 158, 11, 0.12);">
+                <svg class="icon"><use href="/icons.svg#icon-code"></use></svg>
+              </div>
+              <div>
                 <div class="stat-number" id="stat-projects-count">5+</div>
                 <div class="stat-label">Projects Built</div>
               </div>
-              <div class="stat-card">
+            </div>
+            <div class="stat-pill-box">
+              <div class="stat-pill-icon" style="color: #6366f1; background: rgba(99, 102, 241, 0.12);">
+                <svg class="icon"><use href="/icons.svg#icon-cpu"></use></svg>
+              </div>
+              <div>
                 <div class="stat-number" id="stat-skills-count">12+</div>
                 <div class="stat-label">Core Technologies</div>
               </div>
-              <div class="stat-card">
+            </div>
+            <div class="stat-pill-box">
+              <div class="stat-pill-icon" style="color: #a855f7; background: rgba(168, 85, 247, 0.12);">
+                <svg class="icon"><use href="/icons.svg#icon-award"></use></svg>
+              </div>
+              <div>
                 <div class="stat-number" id="stat-certs-count">4+</div>
                 <div class="stat-label">Certifications</div>
               </div>
             </div>
           </div>
-
-          <!-- Hero 3D Featured Showcase Carousel -->
-          <div class="hero-showcase">
-            <div class="carousel-wrapper glass-card">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                <span class="gradient-badge">Featured Showcase</span>
-                <span id="carousel-counter" style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">1 / 5</span>
-              </div>
-              <div class="carousel-track" id="hero-carousel-track">
-                <!-- Injected via main.js -->
-              </div>
-              <div class="carousel-controls">
-                <button id="carousel-prev" class="btn-icon" aria-label="Previous Project">&larr;</button>
-                <div class="carousel-dots" id="carousel-dots"></div>
-                <button id="carousel-next" class="btn-icon" aria-label="Next Project">&rarr;</button>
-              </div>
-            </div>
-          </div>
         </div>
-      </section>
+      </div>
 
       <!-- ================= JOURNEY / TIMELINE VIEW ================= -->
       <section id="journey" class="section-wrapper" data-reveal="true">
@@ -141,8 +224,80 @@
       <section id="skills" class="section-wrapper" data-reveal="true">
         <div class="section-header" data-reveal="true">
           <span class="section-tag">Core Capabilities</span>
-          <h2>Skillset</h2>
-          <p>Technical engineering proficiencies, system architectures, and professional non-technical skills.</p>
+          <h2>Skillset & Architecture</h2>
+          <p>Technical engineering proficiencies, system architectures, and professional non-technical capabilities.</p>
+        </div>
+
+        <!-- 4 Core Capability Cards (Pinterest Reference Style) -->
+        <div class="capabilities-grid" data-reveal="true">
+          <div class="capability-card glass-card">
+            <div>
+              <div class="capability-icon-box" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">
+                💻
+              </div>
+              <h3>Frontend Architecture</h3>
+              <p>Designing modular, fluid component trees in React & Next.js with high performance and accessibility.</p>
+            </div>
+            <div class="capability-corner-arrow">
+              <svg class="icon arrow-diagonal"><use href="/icons.svg#icon-arrow-up"></use></svg>
+            </div>
+          </div>
+
+          <div class="capability-card glass-card">
+            <div>
+              <div class="capability-icon-box" style="background: rgba(124, 58, 237, 0.12); color: #7c3aed;">
+                ☁️
+              </div>
+              <h3>Backend & Cloud</h3>
+              <p>Distributed RESTful APIs, Node.js microservices, and resilient serverless architectures.</p>
+            </div>
+            <div class="capability-corner-arrow">
+              <svg class="icon arrow-diagonal"><use href="/icons.svg#icon-arrow-up"></use></svg>
+            </div>
+          </div>
+
+          <div class="capability-card glass-card">
+            <div>
+              <div class="capability-icon-box" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6;">
+                🤖
+              </div>
+              <h3>AI Systems & Agents</h3>
+              <p>Integrating LLM agent pipelines, automated web scrapers, and intelligent orchestration workflows.</p>
+            </div>
+            <div class="capability-corner-arrow">
+              <svg class="icon arrow-diagonal"><use href="/icons.svg#icon-arrow-up"></use></svg>
+            </div>
+          </div>
+
+          <div class="capability-card glass-card">
+            <div>
+              <div class="capability-icon-box" style="background: rgba(6, 182, 212, 0.12); color: #06b6d4;">
+                🏆
+              </div>
+              <h3>Competitive Programming</h3>
+              <p>Algorithmic problem solving, dynamic programming, graphs, and low-latency C++ solutions.</p>
+            </div>
+            <div class="capability-corner-arrow">
+              <svg class="icon arrow-diagonal"><use href="/icons.svg#icon-arrow-up"></use></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Horizontal Tech Shelf -->
+        <div class="tech-shelf-container" data-reveal="true">
+          <div class="tech-shelf glass-card">
+            <div class="tech-tile"><span style="color: #06b6d4;">⚛</span><span>React</span></div>
+            <div class="tech-tile"><span style="color: #000;">▲</span><span>Next.js</span></div>
+            <div class="tech-tile"><span style="color: #10b981;">🟢</span><span>Node.js</span></div>
+            <div class="tech-tile"><span style="color: #3b82f6;">TS</span><span>TypeScript</span></div>
+            <div class="tech-tile"><span style="color: #f59e0b;">🐍</span><span>Python</span></div>
+            <div class="tech-tile"><span style="color: #2563eb;">C++</span><span>C++</span></div>
+            <div class="tech-tile"><span style="color: #0ea5e9;">🐳</span><span>Docker</span></div>
+            <div class="tech-tile"><span style="color: #10b981;">🍃</span><span>MongoDB</span></div>
+            <div class="tech-tile"><span style="color: #3b82f6;">🐘</span><span>PostgreSQL</span></div>
+            <div class="tech-tile"><span style="color: #06b6d4;">🌊</span><span>Tailwind</span></div>
+            <div class="tech-tile"><span style="color: #f43f5e;">📦</span><span>Git</span></div>
+          </div>
         </div>
 
         <div class="skills-filter-bar" id="skills-filter-bar">
@@ -161,6 +316,24 @@
           <span class="section-tag">Engineered Solutions</span>
           <h2>Featured Projects</h2>
           <p>Production systems, open-source architectures, and interactive AI applications.</p>
+        </div>
+
+        <!-- Featured Showcase Carousel -->
+        <div class="hero-showcase" style="margin-bottom: 36px;">
+          <div class="carousel-wrapper glass-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <span class="gradient-badge">Featured Showcase</span>
+              <span id="carousel-counter" style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">1 / 5</span>
+            </div>
+            <div class="carousel-track" id="hero-carousel-track">
+              <!-- Injected via main.js -->
+            </div>
+            <div class="carousel-controls">
+              <button id="carousel-prev" class="btn-icon" aria-label="Previous Project">&larr;</button>
+              <div class="carousel-dots" id="carousel-dots"></div>
+              <button id="carousel-next" class="btn-icon" aria-label="Next Project">&rarr;</button>
+            </div>
+          </div>
         </div>
 
         <div style="display: flex; gap: 16px; margin-bottom: 32px; flex-wrap: wrap; justify-content: center;">

@@ -209,7 +209,7 @@ function initParticleCanvas() {
 // ==========================================================================
 function initTheme() {
   const toggleBtn = document.getElementById('theme-toggle-btn');
-  const savedTheme = localStorage.getItem('portfolio_theme') || 'dark';
+  const savedTheme = localStorage.getItem('portfolio_theme') || 'light';
   document.documentElement.setAttribute('data-theme', savedTheme);
   updateThemeIcon(savedTheme);
 
@@ -2858,6 +2858,8 @@ function initCounterAnimations() {
     '#summary-peak-rating',
     '#summary-contests-count',
     '#summary-global-percentile',
+    '#hero-chip-solved',
+    '#hero-chip-rating',
     '.coding-summary-val',
     '.stat-number'
   ];
