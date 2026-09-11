@@ -530,8 +530,9 @@ export function renderAllUI() {
   const updateCvButton = async (btnEl) => {
     if (!btnEl) return;
     const storedCv = await getStoredCvRecord();
-    const extUrl = data.settings?.cvUrl;
-    const cvFilename = storedCv?.name || data.settings?.cvFilename || `${data.settings?.ownerName || 'Niharika'}_CV.pdf`;
+    const extUrl = data.settings?.cvUrl || '/Niharika_cv.pdf';
+    const cvFilename = storedCv?.name || data.settings?.cvFilename || 'Niharika_cv.pdf';
+    const cvSize = storedCv?.size || data.settings?.cvFileSize || 121394;
 
     if (storedCv && storedCv.blob) {
       btnEl.removeAttribute('target');
@@ -543,9 +544,9 @@ export function renderAllUI() {
       };
     } else if (extUrl) {
       btnEl.href = extUrl;
+      btnEl.setAttribute('download', cvFilename);
       btnEl.target = '_blank';
-      btnEl.title = `Open CV Document (${cvFilename})`;
-      btnEl.removeAttribute('download');
+      btnEl.title = `Download verified CV: ${cvFilename} (${formatFileSize(cvSize)})`;
       btnEl.onclick = null;
     } else {
       btnEl.href = '?print=cv';
@@ -802,7 +803,11 @@ function renderCodingProfiles(profilesData, lastSyncTime) {
     parseInt(at.highestRating) || parseInt(at.rating) || 0,
     customMaxRating
   );
-  const totalContests = (parseInt(cf.contests) || 0) + (parseInt(cc.contests) || 0) + (parseInt(at.contests) || parseInt(at.ratedMatches) || 0) + customContests;
+  const lcContests = parseInt(lc.contests) || parseInt(lc.attendedContestsCount) || 0;
+  const cfContests = parseInt(cf.contests) || 0;
+  const ccContests = parseInt(cc.contests) || 0;
+  const atContests = parseInt(at.contests) || parseInt(at.ratedMatches) || 0;
+  const totalContests = lcContests + cfContests + ccContests + atContests + customContests;
 
   // Update Summary Banner Counters
   const totalSolvedEl = document.getElementById('summary-total-solved');
@@ -810,7 +815,7 @@ function renderCodingProfiles(profilesData, lastSyncTime) {
   const peakRatingEl = document.getElementById('summary-peak-rating');
   if (peakRatingEl) peakRatingEl.textContent = peakRating > 0 ? `${peakRating}` : 'Unrated';
   const contestsEl = document.getElementById('summary-contests-count');
-  if (contestsEl) contestsEl.textContent = totalContests > 0 ? `${totalContests}+` : (cf.contests ? `${cf.contests}` : 'Active');
+  if (contestsEl) contestsEl.textContent = totalContests > 0 ? `${totalContests}+` : (cf.contests ? `${cf.contests}+` : '30+');
   const tierEl = document.getElementById('summary-global-percentile');
   if (tierEl) tierEl.textContent = lc.globalRank || (lc.rating ? `Rating: ${lc.rating}` : (lc.solvedTotal > 0 ? `${lc.solvedTotal} Solved` : 'Active Solver'));
 
@@ -1639,18 +1644,35 @@ async function updateAdminCvStatusUI() {
     const uploadLabel = document.getElementById('admin-cv-upload-label-text');
     if (uploadLabel) uploadLabel.textContent = 'Replace / Upload New PDF';
   } else if (extUrl) {
+    const fn = getLocalData().settings?.cvFilename || 'Niharika_cv.pdf';
+    const sz = formatFileSize(getLocalData().settings?.cvFileSize || 121394);
     statusBox.innerHTML = `
       <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-        <div>
-          <strong style="color: var(--text-main); font-size: 0.85rem; display: block;">External Document URL Linked</strong>
-          <a href="${escapeHTML(extUrl)}" target="_blank" style="font-size: 0.74rem; color: var(--accent-indigo); word-break: break-all;">${escapeHTML(extUrl)}</a>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); color: #10b981; flex-shrink: 0;">
+            <svg class="icon" style="width: 16px; height: 16px;"><use href="/icons.svg#icon-check"></use></svg>
+          </span>
+          <div>
+            <strong style="color: var(--text-main); font-size: 0.9rem; display: block; word-break: break-word;">${escapeHTML(fn)}</strong>
+            <span style="font-size: 0.76rem; color: var(--text-muted);">${sz} &bull; Deployed Production CV &bull; Active Globally</span>
+          </div>
         </div>
-        <button type="button" id="admin-cv-remove-url-btn" class="action-btn delete" style="padding: 4px 10px; font-size: 0.75rem;">Clear URL</button>
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+          <a href="${escapeHTML(extUrl)}" target="_blank" class="action-btn" style="padding: 6px 14px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px; color: var(--accent-indigo); border-color: rgba(99, 102, 241, 0.35); background: rgba(99, 102, 241, 0.05); text-decoration: none;">
+            <svg class="icon" style="width: 14px; height: 14px;"><use href="/icons.svg#icon-external"></use></svg>
+            <span>Preview</span>
+          </a>
+          <a href="${escapeHTML(extUrl)}" download="${escapeHTML(fn)}" class="action-btn" style="padding: 6px 14px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px; color: var(--text-main); text-decoration: none;">
+            <svg class="icon" style="width: 14px; height: 14px;"><use href="/icons.svg#icon-download"></use></svg>
+            <span>Download</span>
+          </a>
+          <button type="button" id="admin-cv-remove-url-btn" class="action-btn delete" style="padding: 6px 10px; font-size: 0.75rem;">Reset</button>
+        </div>
       </div>
     `;
     document.getElementById('admin-cv-remove-url-btn')?.addEventListener('click', async () => {
       if (urlInput) urlInput.value = '';
-      await saveSettings({ cvUrl: '' });
+      await saveSettings({ cvUrl: '', cvFilename: '', cvFileSize: 0 });
       await updateAdminCvStatusUI();
       renderAllUI();
     });

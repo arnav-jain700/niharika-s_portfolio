@@ -14,8 +14,9 @@ const DEFAULT_DATA = {
     medium: 'https://medium.com/',
     groqKey: '',
     geminiKey: '',
-    cvUrl: '',
-    cvFilename: '',
+    cvUrl: '/Niharika_cv.pdf',
+    cvFilename: 'Niharika_cv.pdf',
+    cvFileSize: 121394,
     categories: ['Frontend', 'Backend', 'Databases', 'DevOps', 'AI / ML', 'Tools'],
     codingProfiles: {
       leetcode: {
@@ -27,7 +28,9 @@ const DEFAULT_DATA = {
         solvedHard: 22,
         acceptanceRate: '68%',
         globalRank: '#164,835',
-        rating: 1631
+        rating: 1631,
+        contests: 22,
+        attendedContestsCount: 22
       },
       codeforces: {
         handle: 'niharikab1806',
@@ -47,7 +50,8 @@ const DEFAULT_DATA = {
         highestRating: 1390,
         globalRank: '#46,965',
         countryRank: '#44,479',
-        solvedTotal: 245
+        solvedTotal: 245,
+        contests: 12
       },
       codolio: {
         handle: 'niharika_18',
@@ -71,7 +75,8 @@ const DEFAULT_DATA = {
         highestRating: 129,
         rank: '#59,023',
         percentile: 'Top 46.33%',
-        contests: 6
+        contests: 6,
+        ratedMatches: 6
       },
       customProfiles: []
     }
