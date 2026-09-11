@@ -94,7 +94,7 @@ function initParticleCanvas() {
   }
 
   function drawCyberGrid() {
-    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     const gridColor = isDark ? 'rgba(0, 242, 254, 0.035)' : 'rgba(2, 132, 199, 0.03)';
     const horizonColor = isDark ? 'rgba(127, 0, 255, 0.06)' : 'rgba(124, 58, 237, 0.04)';
     const gridSize = 64;
@@ -130,7 +130,7 @@ function initParticleCanvas() {
   }
 
   function drawAndConnectParticles() {
-    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     const maxDist = 135;
 
     // Update & draw particles
@@ -205,27 +205,43 @@ function initParticleCanvas() {
 }
 
 // ==========================================================================
-// 2. Theme Management (Dark / Light)
+// 2. Theme Management (Light by Default, Dark as Optional)
 // ==========================================================================
 function initTheme() {
   const toggleBtn = document.getElementById('theme-toggle-btn');
-  const savedTheme = localStorage.getItem('portfolio_theme') || 'light';
+  // Clear legacy theme override so every visitor gets light mode by default
+  try {
+    if (localStorage.getItem('portfolio_theme')) {
+      localStorage.removeItem('portfolio_theme');
+    }
+  } catch (e) {}
+
+  // Default is 'light'; 'dark' is an optional user preference
+  const savedTheme = localStorage.getItem('portfolio_theme_mode') || 'light';
   document.documentElement.setAttribute('data-theme', savedTheme);
   updateThemeIcon(savedTheme);
 
   toggleBtn?.addEventListener('click', () => {
-    const current = document.documentElement.getAttribute('data-theme') || 'dark';
+    const current = document.documentElement.getAttribute('data-theme') || 'light';
     const next = current === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('portfolio_theme', next);
+    localStorage.setItem('portfolio_theme_mode', next);
     updateThemeIcon(next);
   });
 }
 
 function updateThemeIcon(theme) {
   const icon = document.querySelector('#theme-toggle-btn use');
+  const btn = document.getElementById('theme-toggle-btn');
   if (icon) {
-    icon.setAttribute('href', theme === 'dark' ? '/icons.svg#icon-moon' : '/icons.svg#icon-sun');
+    // In light mode: show Moon icon to switch to dark
+    // In dark mode: show Sun icon to switch to light
+    icon.setAttribute('href', theme === 'dark' ? '/icons.svg#icon-sun' : '/icons.svg#icon-moon');
+  }
+  if (btn) {
+    const label = theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme';
+    btn.setAttribute('title', label);
+    btn.setAttribute('aria-label', label);
   }
 }
 
