@@ -14,6 +14,8 @@ const DEFAULT_DATA = {
     medium: 'https://medium.com/',
     groqKey: '',
     geminiKey: '',
+    cvUrl: '',
+    cvFilename: '',
     categories: ['Frontend', 'Backend', 'Databases', 'DevOps', 'AI / ML', 'Tools'],
     codingProfiles: {
       leetcode: {
@@ -398,6 +400,8 @@ function normalizeSettings(s) {
     medium: s.medium ?? DEFAULT_DATA.settings.medium,
     groqKey: s.groqKey ?? s.groqkey ?? '',
     geminiKey: s.geminiKey ?? s.geminikey ?? '',
+    cvUrl: s.cvUrl ?? s.cvurl ?? '',
+    cvFilename: s.cvFilename ?? s.cvfilename ?? '',
     categories: Array.isArray(s.categories) ? s.categories : (typeof s.categories === 'string' ? JSON.parse(s.categories || '[]') : DEFAULT_DATA.settings.categories),
     codingProfiles: mergedProfiles,
     lastStatsSync: s.lastStatsSync ?? s.laststatssync ?? (memoryStore?.settings?.lastStatsSync || null)
@@ -483,6 +487,8 @@ function serializeSettings(s) {
     codolio: s.codolio ?? '',
     medium: s.medium ?? '',
     groqkey: s.groqKey ?? s.groqkey ?? '',
+    cvurl: s.cvUrl ?? s.cvurl ?? '',
+    cvfilename: s.cvFilename ?? s.cvfilename ?? '',
     categories: s.categories || [],
     codingprofiles: s.codingProfiles || DEFAULT_DATA.settings.codingProfiles,
     laststatssync: s.lastStatsSync || new Date().toISOString()

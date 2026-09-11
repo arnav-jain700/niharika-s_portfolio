@@ -49,7 +49,7 @@ ${certsList || 'No certificates listed.'}
 === BEHAVIOR & GUIDELINES ===
 1. Answer questions about ${ownerName}'s background, tech stack, projects, coding profiles (LeetCode, Codeforces, CodeChef, Codolio), experience, and contact methods accurately based on the data above.
 2. Maintain an articulate, confident, friendly, and highly knowledgeable tone.
-3. If asked for contact info or resume, provide ${email} or suggest using the 'Download Resume / CV' buttons or the '#contact' section.
+3. If asked for contact info, CV, or resume, provide ${email} or suggest using the 'CV (PDF)' button in the hero section or the '#contact' section.
 4. Keep answers concise (2-4 paragraphs max) unless in-depth technical elaboration is explicitly requested.
 5. Format code snippets or project highlights cleanly with markdown.`;
 }
@@ -140,11 +140,11 @@ function generateOfflineChatResponse(userQuery) {
   }
 
   if (q.includes('contact') || q.includes('hire') || q.includes('email') || q.includes('reach') || q.includes('message')) {
-    return `You can connect directly with ${name} via email at **${data.settings.email}** or send a message directly using the [Contact Form](#contact). You can also download the ATS-friendly resume anytime!`;
+    return `You can connect directly with ${name} via email at **${data.settings.email}** or send a message directly using the [Contact Form](#contact). You can also download the verified CV directly from the hero section!`;
   }
 
   if (q.includes('resume') || q.includes('cv')) {
-    return `You can view and export ${name}'s verified ATS-ready resume and CV using the action buttons in the hero section or by navigating to \`?print=resume\`.`;
+    return `You can download ${name}'s verified Curriculum Vitae (CV) directly using the 'CV (PDF)' button in the hero section.`;
   }
 
   return `Greetings! I am ${name}'s Virtual AI Representative. I can walk you through ${name}'s engineering background, projects (${data.projects?.length || 0} active builds), and technical toolkit. How can I assist your team today? *(Tip: Configure a Groq API Key in Settings to enable real-time 600+ tok/sec Groq Llama 3.3 inference!)*`;

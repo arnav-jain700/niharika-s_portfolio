@@ -346,6 +346,28 @@ export function renderAllUI() {
   if (linkedinLink) linkedinLink.href = data.settings.linkedin;
   const githubLink = document.getElementById('contact-link-github');
   if (githubLink) githubLink.href = data.settings.github;
+
+  // 9. Official CV Document Download Actions
+  const updateCvButton = (btnEl) => {
+    if (!btnEl) return;
+    const cvUrl = data.settings?.cvUrl;
+    const cvFilename = data.settings?.cvFilename || `${data.settings?.ownerName || 'Niharika'}_CV.pdf`;
+    if (cvUrl) {
+      btnEl.href = cvUrl;
+      btnEl.target = '_blank';
+      if (cvUrl.startsWith('data:')) {
+        btnEl.setAttribute('download', cvFilename);
+      } else {
+        btnEl.removeAttribute('download');
+      }
+    } else {
+      btnEl.href = '?print=cv';
+      btnEl.target = '_blank';
+      btnEl.removeAttribute('download');
+    }
+  };
+  updateCvButton(document.getElementById('hero-cv-btn'));
+  updateCvButton(document.getElementById('footer-cv-btn'));
 }
 
 function renderCarousel(projects) {
@@ -1059,6 +1081,37 @@ function setupImageUploader({ fileInputId, urlInputId, previewBoxId, previewImgI
 
 let projImageUploader = null;
 let certImageUploader = null;
+let currentCvDataUrl = '';
+let currentCvFilename = '';
+
+function updateAdminCvStatusUI() {
+  const statusBox = document.getElementById('admin-cv-status-box');
+  if (!statusBox) return;
+
+  if (currentCvDataUrl) {
+    const isData = currentCvDataUrl.startsWith('data:');
+    const displayName = currentCvFilename || (isData ? 'Uploaded Custom CV Document (PDF)' : currentCvDataUrl);
+    statusBox.innerHTML = `
+      <span class="gradient-badge" style="font-size: 0.78rem; display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px;">
+        <svg class="icon" style="width: 12px; height: 12px;"><use href="/icons.svg#icon-check"></use></svg>
+        ${escapeHTML(displayName)}
+      </span>
+      <a href="${currentCvDataUrl}" target="_blank" ${isData ? `download="${currentCvFilename || 'CV.pdf'}"` : ''} class="action-btn" style="padding: 4px 10px; font-size: 0.76rem; text-decoration: none; color: var(--accent-cyan); border-color: rgba(0,242,254,0.3);">Preview / Test</a>
+      <button type="button" id="admin-cv-remove-btn" class="action-btn delete" style="padding: 4px 10px; font-size: 0.76rem;">Remove</button>
+    `;
+    document.getElementById('admin-cv-remove-btn')?.addEventListener('click', () => {
+      currentCvDataUrl = '';
+      currentCvFilename = '';
+      const urlInput = document.getElementById('admin-cv-url-input');
+      if (urlInput) urlInput.value = '';
+      const fileIn = document.getElementById('admin-cv-file-input');
+      if (fileIn) fileIn.value = '';
+      updateAdminCvStatusUI();
+    });
+  } else {
+    statusBox.innerHTML = `<span style="color: var(--text-dim); font-size: 0.8rem;">No custom CV uploaded yet (using default generated CV)</span>`;
+  }
+}
 
 function populateAdminPanes() {
   const data = getLocalData();
@@ -1463,6 +1516,15 @@ function populateAdminPanes() {
   setEl('setting-medium', set.medium);
   setEl('setting-groq-key', set.groqKey);
 
+  // Populate CV Document state
+  currentCvDataUrl = set.cvUrl || '';
+  currentCvFilename = set.cvFilename || '';
+  const cvUrlInput = document.getElementById('admin-cv-url-input');
+  if (cvUrlInput) {
+    cvUrlInput.value = currentCvDataUrl.startsWith('data:') ? '' : currentCvDataUrl;
+  }
+  updateAdminCvStatusUI();
+
   // --------------------------------------------------------------------------
   // Pane H: Cloud Sync & Supabase Database Configuration
   // --------------------------------------------------------------------------
@@ -1725,6 +1787,43 @@ function initAdminPaneHandlers() {
     }
   });
 
+  // Handle CV file upload
+  document.getElementById('admin-cv-file-input')?.addEventListener('change', (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 4.5 * 1024 * 1024) {
+      alert('The selected file exceeds 4.5MB. For large documents, please host on Google Drive or Dropbox and paste the direct link.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      currentCvDataUrl = reader.result;
+      currentCvFilename = file.name;
+      const urlInput = document.getElementById('admin-cv-url-input');
+      if (urlInput) urlInput.value = '';
+      updateAdminCvStatusUI();
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Handle direct CV URL input
+  document.getElementById('admin-cv-url-input')?.addEventListener('input', (e) => {
+    const val = e.target.value.trim();
+    if (val) {
+      currentCvDataUrl = val;
+      currentCvFilename = val.split('/').pop().split('?')[0] || 'Official_CV.pdf';
+      const fileIn = document.getElementById('admin-cv-file-input');
+      if (fileIn) fileIn.value = '';
+      updateAdminCvStatusUI();
+    } else if (!currentCvDataUrl.startsWith('data:')) {
+      currentCvDataUrl = '';
+      currentCvFilename = '';
+      updateAdminCvStatusUI();
+    }
+  });
+
   // Save Settings
   document.getElementById('admin-settings-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -1737,9 +1836,14 @@ function initAdminPaneHandlers() {
     const codolio = document.getElementById('setting-codolio').value.trim();
     const medium = document.getElementById('setting-medium').value.trim();
     const groqKey = document.getElementById('setting-groq-key').value.trim();
+    const cvUrl = currentCvDataUrl || document.getElementById('admin-cv-url-input')?.value.trim() || '';
+    const cvFilename = currentCvFilename || '';
 
-    await saveSettings({ ownerName, email, ownerBio, location, linkedin, github, codolio, medium, groqKey });
-    alert('Settings & Groq API Key saved successfully!');
+    await saveSettings({
+      ownerName, email, ownerBio, location, linkedin, github, codolio, medium, groqKey,
+      cvUrl, cvFilename
+    });
+    alert('Settings & CV saved successfully!');
     populateAdminPanes();
     renderAllUI();
   });

@@ -76,13 +76,9 @@
                 <svg class="icon"><use href="/icons.svg#icon-code"></use></svg>
                 Explore Projects
               </a>
-              <a href="?print=resume" target="_blank" class="btn btn-secondary">
+              <a id="hero-cv-btn" href="?print=cv" target="_blank" class="btn btn-secondary">
                 <svg class="icon"><use href="/icons.svg#icon-download"></use></svg>
-                Resume (PDF)
-              </a>
-              <a href="?print=cv" target="_blank" class="btn btn-secondary">
-                <svg class="icon"><use href="/icons.svg#icon-download"></use></svg>
-                CV (PDF)
+                <span id="hero-cv-btn-text">CV (PDF)</span>
               </a>
             </div>
 
@@ -317,7 +313,7 @@
         <div>&copy; <span id="footer-year">2026</span> <span id="footer-owner-name">Niharika</span>. Powered by Vite + Groq Llama 3.3 + Supabase.</div>
         <div style="display: flex; gap: 16px;">
           <a href="#home" style="color: var(--text-muted); text-decoration: none;">Top &uarr;</a>
-          <a href="?print=resume" target="_blank" style="color: var(--text-muted); text-decoration: none;">ATS Resume</a>
+          <a id="footer-cv-btn" href="?print=cv" target="_blank" style="color: var(--text-muted); text-decoration: none;">Curriculum Vitae (CV)</a>
         </div>
       </div>
     </footer>
@@ -776,6 +772,41 @@
                 </div>
                 <input type="password" id="setting-groq-key" class="form-input" placeholder="gsk_...">
                 <span style="font-size: 0.76rem; color: var(--text-dim); margin-top: 6px; display: block;">Key is stored securely in browser localStorage and used directly for sub-second inference.</span>
+              </div>
+
+              <!-- CV Document Upload & Download Link Card -->
+              <div class="form-group" style="padding: 18px; background: rgba(0, 242, 254, 0.04); border: 1px solid rgba(0, 242, 254, 0.25); border-radius: var(--radius-md);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <label style="font-weight: 700; color: var(--accent-cyan); font-size: 0.92rem; display: flex; align-items: center; gap: 8px;">
+                    <svg class="icon" style="width: 16px; height: 16px;"><use href="/icons.svg#icon-file-text"></use></svg>
+                    Official Curriculum Vitae (CV) Document
+                  </label>
+                  <span style="font-size: 0.75rem; color: var(--text-dim);">PDF / DOC / DOCX</span>
+                </div>
+                <p style="font-size: 0.78rem; color: var(--text-dim); margin-bottom: 12px; line-height: 1.4;">
+                  Upload your customized CV file. When visitors click the <strong>CV (PDF)</strong> button on your portfolio, this document will be downloaded or opened directly.
+                </p>
+
+                <!-- File Input & Status Area -->
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                  <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                    <label for="admin-cv-file-input" class="btn btn-secondary" style="cursor: pointer; padding: 7px 14px; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px;">
+                      <svg class="icon" style="width: 14px; height: 14px;"><use href="/icons.svg#icon-upload"></use></svg>
+                      <span>Upload CV File</span>
+                    </label>
+                    <input type="file" id="admin-cv-file-input" accept=".pdf,.doc,.docx" style="display: none;">
+
+                    <div id="admin-cv-status-box" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; flex-wrap: wrap;">
+                      <span id="admin-cv-filename" style="color: var(--text-muted);">No custom file uploaded yet</span>
+                    </div>
+                  </div>
+
+                  <!-- Direct CV URL fallback -->
+                  <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
+                    <label style="font-size: 0.75rem; color: var(--text-dim);">Or provide a direct CV Document URL (e.g. Google Drive public link, GitHub raw URL, Dropbox):</label>
+                    <input type="url" id="admin-cv-url-input" class="form-input" placeholder="https://..." style="font-size: 0.82rem;">
+                  </div>
+                </div>
               </div>
 
               <div class="form-row-2">
