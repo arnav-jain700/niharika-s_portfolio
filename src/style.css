@@ -194,6 +194,16 @@ body {
   opacity: 0.9;
 }
 
+/* Click Spark Canvas Overlay (React Bits Effect) */
+#click-spark-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 99998;
+}
+
 /* Ambient Cyber Glow Blobs */
 .ambient-glow {
   position: fixed;
@@ -1076,115 +1086,6 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-muted);
   font-weight: 600;
   margin-top: 4px;
-}
-
-/* ==========================================================================
-   Capabilities Cards & Horizontal Tech Shelf
-   ========================================================================== */
-.capabilities-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  margin-bottom: 32px;
-}
-
-@media (max-width: 1024px) {
-  .capabilities-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-@media (max-width: 600px) {
-  .capabilities-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.capability-card {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  min-height: 220px;
-  padding: 24px;
-  border-radius: var(--radius-lg);
-  cursor: default;
-}
-
-.capability-icon-box {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 16px;
-  font-size: 1.4rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-.capability-card h3 {
-  font-size: 1.15rem;
-  font-weight: 700;
-  margin-bottom: 6px;
-  color: var(--text-main);
-}
-
-.capability-card p {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  line-height: 1.5;
-}
-
-.capability-corner-arrow {
-  align-self: flex-end;
-  color: var(--text-dim);
-  transition: all var(--transition-fast);
-}
-
-.capability-card:hover .capability-corner-arrow {
-  color: var(--accent-indigo);
-  transform: translate(2px, -2px);
-}
-
-/* Horizontal Tech Shelf */
-.tech-shelf-container {
-  margin-bottom: 36px;
-}
-
-.tech-shelf {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 18px 24px;
-  border-radius: var(--radius-lg);
-}
-
-.tech-tile {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
-  border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 8px rgba(120, 135, 170, 0.06);
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--text-main);
-  transition: all var(--transition-fast);
-  cursor: default;
-}
-
-.tech-tile:hover {
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 6px 16px rgba(120, 135, 170, 0.12);
-  border-color: #ffffff;
-}
-
-[data-theme="dark"] .tech-tile {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* Hero 3D Featured Showcase Carousel */

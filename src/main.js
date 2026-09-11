@@ -3132,10 +3132,135 @@ function initGlobalListeners() {
 }
 
 // ==========================================================================
+// React Bits: Click Spark Interactive Animation
+// ==========================================================================
+function initClickSpark() {
+  const canvas = document.getElementById('click-spark-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let width, height, dpr;
+  let sparks = [];
+  let animId = null;
+
+  // Configuration matching React Bits ClickSpark specification
+  const config = {
+    sparkCount: 10,      // Number of sparks per burst
+    sparkSize: 14,       // Initial length of each spark segment
+    sparkRadius: 28,     // Outward propagation distance
+    duration: 440,       // Duration in milliseconds
+    extraScale: 1.15,    // Scale multiplier
+    lineWidth: 2.2       // Stroke thickness
+  };
+
+  // Harmonious portfolio palette colors
+  // Light: Electric Iris, Royal Amethyst, Sunset Rose, Horizon Cyan, Golden Amber
+  const lightColors = ['#4f46e5', '#7c3aed', '#ec4899', '#0284c7', '#f59e0b'];
+  // Dark: Luminous neon variants matching dark mode accents
+  const darkColors = ['#818cf8', '#c084fc', '#f472b6', '#38bdf8', '#fbbf24'];
+
+  function resize() {
+    dpr = window.devicePixelRatio || 1;
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(dpr, dpr);
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+
+  function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
+
+  function triggerSpark(x, y) {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const colorPalette = isDark ? darkColors : lightColors;
+    const now = performance.now();
+
+    for (let i = 0; i < config.sparkCount; i++) {
+      // Symmetrical radial distribution with subtle organic perturbation
+      const baseAngle = (i * 2 * Math.PI) / config.sparkCount;
+      const angle = baseAngle + (Math.random() - 0.5) * 0.16;
+      const speedMod = 0.85 + Math.random() * 0.3;
+      const color = colorPalette[i % colorPalette.length];
+
+      sparks.push({
+        x,
+        y,
+        angle,
+        startTime: now,
+        duration: config.duration * speedMod,
+        color,
+        size: config.sparkSize * (0.85 + Math.random() * 0.3),
+        radius: config.sparkRadius * (0.85 + Math.random() * 0.3)
+      });
+    }
+
+    if (!animId) {
+      animId = requestAnimationFrame(animate);
+    }
+  }
+
+  // Listen for clicks across the window (buttons, cards, links, background)
+  window.addEventListener('pointerdown', (e) => {
+    // Only trigger on primary click (left click or touch)
+    if (e.button !== 0 && e.button !== undefined) return;
+    triggerSpark(e.clientX, e.clientY);
+  });
+
+  function animate(currentTime) {
+    ctx.clearRect(0, 0, width, height);
+
+    sparks = sparks.filter(spark => {
+      const elapsed = currentTime - spark.startTime;
+      if (elapsed >= spark.duration) return false;
+
+      const progress = elapsed / spark.duration;
+      const easedProgress = easeOutCubic(progress);
+
+      const distance = easedProgress * spark.radius * config.extraScale;
+      const currentLength = spark.size * (1 - easedProgress);
+
+      const x1 = spark.x + distance * Math.cos(spark.angle);
+      const y1 = spark.y + distance * Math.sin(spark.angle);
+      const x2 = spark.x + (distance + currentLength) * Math.cos(spark.angle);
+      const y2 = spark.y + (distance + currentLength) * Math.sin(spark.angle);
+
+      ctx.save();
+      ctx.strokeStyle = spark.color;
+      ctx.lineWidth = config.lineWidth;
+      ctx.lineCap = 'round';
+      ctx.globalAlpha = 1 - progress;
+
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      ctx.restore();
+
+      return true;
+    });
+
+    if (sparks.length > 0) {
+      animId = requestAnimationFrame(animate);
+    } else {
+      ctx.clearRect(0, 0, width, height);
+      animId = null;
+    }
+  }
+}
+
+// ==========================================================================
 // Initialization Entrypoint
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
   initParticleCanvas();
+  initClickSpark();
   initTheme();
   renderAllUI();
   initScrollProgressAndBackToTop();
