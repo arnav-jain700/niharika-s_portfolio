@@ -14,6 +14,12 @@
 </head>
 <body>
 
+  <!-- Scroll Progress Bar -->
+  <div id="scroll-progress-bar" class="scroll-progress-bar"></div>
+
+  <!-- Cyber Grid Overlay -->
+  <div class="cyber-grid-overlay"></div>
+
   <!-- 3D Particle Canvas Background -->
   <canvas id="bg-canvas"></canvas>
   <div class="ambient-glow glow-1"></div>
@@ -56,11 +62,12 @@
     <main id="main-content">
 
       <!-- ================= HERO / HOME VIEW ================= -->
-      <section id="home" class="hero-section">
+      <section id="home" class="hero-section" data-reveal="true">
         <div class="hero-grid">
           <div class="hero-content">
             <div class="hero-badge-row">
               <span class="gradient-badge">
+                <span class="live-status-dot"></span>
                 <svg class="icon" style="width: 14px; height: 14px;"><use href="/icons.svg#icon-sparkles"></use></svg>
                 Open to Opportunities
               </span>
@@ -119,8 +126,8 @@
       </section>
 
       <!-- ================= JOURNEY / TIMELINE VIEW ================= -->
-      <section id="journey" class="section-wrapper">
-        <div class="section-header">
+      <section id="journey" class="section-wrapper" data-reveal="true">
+        <div class="section-header" data-reveal="true">
           <span class="section-tag">Education & Milestones</span>
           <h2>Academic Journey</h2>
           <p>A chronological record of academic milestones, educational pursuits, and key achievements.</p>
@@ -131,8 +138,8 @@
       </section>
 
       <!-- ================= SKILLSET VIEW ================= -->
-      <section id="skills" class="section-wrapper">
-        <div class="section-header">
+      <section id="skills" class="section-wrapper" data-reveal="true">
+        <div class="section-header" data-reveal="true">
           <span class="section-tag">Core Capabilities</span>
           <h2>Skillset</h2>
           <p>Technical engineering proficiencies, system architectures, and professional non-technical skills.</p>
@@ -149,8 +156,8 @@
       </section>
 
       <!-- ================= PROJECTS VIEW ================= -->
-      <section id="projects" class="section-wrapper">
-        <div class="section-header">
+      <section id="projects" class="section-wrapper" data-reveal="true">
+        <div class="section-header" data-reveal="true">
           <span class="section-tag">Engineered Solutions</span>
           <h2>Featured Projects</h2>
           <p>Production systems, open-source architectures, and interactive AI applications.</p>
@@ -169,8 +176,8 @@
       </section>
 
       <!-- ================= CODING PROFILES & ALGORITHMS VIEW ================= -->
-      <section id="coding" class="section-wrapper">
-        <div class="section-header">
+      <section id="coding" class="section-wrapper" data-reveal="true">
+        <div class="section-header" data-reveal="true">
           <span class="section-tag">Competitive Programming & DSA</span>
           <h2>Coding Profiles & Metrics</h2>
           <p>Live verified algorithmic ratings, problem-solving distributions, and contest rankings across major platforms.</p>
@@ -236,8 +243,8 @@
       </section>
 
       <!-- ================= CERTIFICATES VIEW ================= -->
-      <section id="certificates" class="section-wrapper">
-        <div class="section-header">
+      <section id="certificates" class="section-wrapper" data-reveal="true">
+        <div class="section-header" data-reveal="true">
           <span class="section-tag">Verified Credentials</span>
           <h2>Certifications</h2>
           <p>Industry-standard certifications validating cloud, AI, and software engineering competencies.</p>
@@ -250,8 +257,8 @@
 
 
       <!-- ================= CONTACT VIEW ================= -->
-      <section id="contact" class="section-wrapper">
-        <div class="section-header">
+      <section id="contact" class="section-wrapper" data-reveal="true">
+        <div class="section-header" data-reveal="true">
           <span class="section-tag">Get in Touch</span>
           <h2>Direct Inquiries</h2>
           <p>Have a project in mind, an engineering role, or a technical inquiry? Send a direct message.</p>
@@ -1249,6 +1256,15 @@
     </div>
 
   </div>
+
+  <!-- Floating Back-to-Top Button with Scroll Progress Ring -->
+  <button id="floating-back-to-top" class="floating-back-to-top" aria-label="Back to top" title="Back to top">
+    <svg class="progress-ring" width="46" height="46" viewBox="0 0 46 46">
+      <circle class="progress-ring-bg" cx="23" cy="23" r="20"></circle>
+      <circle class="progress-ring-circle" cx="23" cy="23" r="20"></circle>
+    </svg>
+    <svg class="icon arrow-icon"><use href="/icons.svg#icon-arrow-up"></use></svg>
+  </button>
 
   <!-- Main JavaScript Bundle -->
   <script type="module" src="/src/main.js"></script>

@@ -80,6 +80,45 @@ body {
   position: relative;
 }
 
+/* Pinned Neon Scroll Progress Bar */
+.scroll-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 3.5px;
+  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue), var(--accent-purple), var(--accent-magenta));
+  z-index: 99999;
+  box-shadow: 0 0 12px var(--accent-cyan), 0 0 24px rgba(127, 0, 255, 0.6);
+  transition: width 0.08s ease-out;
+  pointer-events: none;
+}
+
+/* Subtle Cyber Grid Perspective Overlay */
+.cyber-grid-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.12;
+  background-image: 
+    linear-gradient(to right, rgba(0, 242, 254, 0.15) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 242, 254, 0.15) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 75% 75% at 50% 50%, black 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 75% 75% at 50% 50%, black 40%, transparent 100%);
+}
+
+[data-theme="light"] .cyber-grid-overlay {
+  opacity: 0.07;
+  background-image: 
+    linear-gradient(to right, rgba(2, 132, 199, 0.25) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(2, 132, 199, 0.25) 1px, transparent 1px);
+}
+
 /* 3D WebGL / Canvas Background */
 #bg-canvas {
   position: fixed;
@@ -144,6 +183,32 @@ h1, h2, h3, h4, h5, h6 {
   gap: 6px;
 }
 
+.live-status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--accent-green);
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: pulse-beacon 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  margin-right: 4px;
+}
+
+@keyframes pulse-beacon {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
 .section-wrapper {
   max-width: 1200px;
   margin: 0 auto;
@@ -175,19 +240,86 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 1.05rem;
 }
 
-/* Glassmorphism Card Style */
+/* Glassmorphism Card Style with Dynamic Linear/Vercel Spotlight & 3D Tilt */
 .glass-card {
+  position: relative;
   background: var(--glass-card);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--glass-shadow);
-  transition: transform var(--transition-smooth), border-color var(--transition-smooth), box-shadow var(--transition-smooth);
+  overflow: hidden;
+  transition: transform 0.25s cubic-bezier(0.2, 0, 0.2, 1), 
+              border-color 0.25s ease, 
+              box-shadow 0.25s ease;
+  transform-style: preserve-3d;
+  will-change: transform;
 }
+
+/* Internal radial spotlight */
+.glass-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    600px circle at var(--mouse-x, -999px) var(--mouse-y, -999px),
+    rgba(0, 242, 254, 0.12),
+    transparent 45%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Glowing spotlight border edge */
+.glass-card::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(
+    380px circle at var(--mouse-x, -999px) var(--mouse-y, -999px),
+    rgba(0, 242, 254, 0.45),
+    rgba(127, 0, 255, 0.25) 30%,
+    transparent 65%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.glass-card:hover::before,
+.glass-card:hover::after {
+  opacity: 1;
+}
+
+[data-theme="light"] .glass-card::before {
+  background: radial-gradient(
+    600px circle at var(--mouse-x, -999px) var(--mouse-y, -999px),
+    rgba(2, 132, 199, 0.08),
+    transparent 45%
+  );
+}
+
+[data-theme="light"] .glass-card::after {
+  background: radial-gradient(
+    380px circle at var(--mouse-x, -999px) var(--mouse-y, -999px),
+    rgba(2, 132, 199, 0.4),
+    rgba(124, 58, 237, 0.15) 30%,
+    transparent 65%
+  );
+}
+
 .glass-card:hover {
   border-color: var(--glass-border-hover);
-  transform: translateY(-4px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35), var(--accent-glow);
 }
 
@@ -1915,5 +2047,144 @@ body.print-mode .ats-resume-container {
 .custom-prof-item:hover {
   border-color: rgba(0, 242, 254, 0.3);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* ==========================================================================
+   VISUAL UPGRADE: Floating Back-to-Top with Circular Progress Indicator
+   ========================================================================== */
+.floating-back-to-top {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--glass-card);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 900;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(18px) scale(0.9);
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), 
+              transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), 
+              visibility 0.35s, 
+              border-color 0.2s, 
+              box-shadow 0.2s;
+  color: var(--text-main);
+  padding: 0;
+  outline: none;
+}
+
+.floating-back-to-top.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+.floating-back-to-top:hover {
+  border-color: var(--accent-cyan);
+  transform: translateY(-4px) scale(1.06);
+  box-shadow: 0 12px 30px rgba(0, 242, 254, 0.35);
+  color: var(--accent-cyan);
+}
+
+.floating-back-to-top .progress-ring {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  transform: rotate(-90deg);
+  pointer-events: none;
+}
+
+.floating-back-to-top .progress-ring-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 2.5;
+}
+
+[data-theme="light"] .floating-back-to-top .progress-ring-bg {
+  stroke: rgba(0, 0, 0, 0.08);
+}
+
+.floating-back-to-top .progress-ring-circle {
+  fill: none;
+  stroke: var(--accent-cyan);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 125.66;
+  stroke-dashoffset: 125.66;
+  transition: stroke-dashoffset 0.1s linear;
+}
+
+.floating-back-to-top .arrow-icon {
+  position: relative;
+  z-index: 2;
+  width: 18px;
+  height: 18px;
+  transition: transform 0.2s ease;
+}
+
+.floating-back-to-top:hover .arrow-icon {
+  transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   VISUAL UPGRADE: Smooth Scroll-Reveal Entrance Animations & Cascades
+   ========================================================================== */
+[data-reveal="true"] {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+[data-reveal="true"].is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger delays for child items */
+.reveal-stagger > *:nth-child(1) { transition-delay: 0.06s; }
+.reveal-stagger > *:nth-child(2) { transition-delay: 0.12s; }
+.reveal-stagger > *:nth-child(3) { transition-delay: 0.18s; }
+.reveal-stagger > *:nth-child(4) { transition-delay: 0.24s; }
+.reveal-stagger > *:nth-child(5) { transition-delay: 0.30s; }
+.reveal-stagger > *:nth-child(6) { transition-delay: 0.36s; }
+.reveal-stagger > *:nth-child(7) { transition-delay: 0.42s; }
+.reveal-stagger > *:nth-child(8) { transition-delay: 0.48s; }
+
+/* ==========================================================================
+   VISUAL UPGRADE: Magnetic Button Hover Attraction Transitions
+   ========================================================================== */
+.btn-magnetic {
+  transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.2s ease;
+  will-change: transform;
+}
+
+/* ==========================================================================
+   VISUAL UPGRADE: Accessibility & Reduced Motion Preferences
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  [data-reveal="true"] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .glass-card {
+    transform: none !important;
+  }
 }
 

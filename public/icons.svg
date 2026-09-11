@@ -143,4 +143,8 @@
   <symbol id="icon-atcoder" viewBox="0 0 24 24" fill="currentColor">
     <path d="M12 2L1 21h4.62l2.31-4.2h8.14L18.38 21H23L12 2zm0 6.6l2.67 4.86H9.33L12 8.6z"/>
   </symbol>
+  <symbol id="icon-arrow-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="12" y1="19" x2="12" y2="5"></line>
+    <polyline points="5 12 12 5 19 12"></polyline>
+  </symbol>
 </svg>

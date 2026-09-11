@@ -38,91 +38,150 @@ import {
 } from './supabase.js';
 
 // ==========================================================================
-// 1. 3D HTML5 / WebGL Particle Canvas System with Mouse-Gravity Physics
+// 1. Cyber Grid & Particle Constellation Canvas System with Mouse Physics
 // ==========================================================================
 function initParticleCanvas() {
   const canvas = document.getElementById('bg-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  let width, height;
+  let width, height, dpr;
   let particles = [];
-  const mouse = { x: null, y: null, radius: 150 };
+  const mouse = { x: null, y: null, radius: 180 };
+  let gridOffset = 0;
+  let animId = null;
 
   function resize() {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
+    dpr = window.devicePixelRatio || 1;
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(dpr, dpr);
+    initParticles();
   }
+
   window.addEventListener('resize', resize);
-  resize();
 
   window.addEventListener('mousemove', (e) => {
-    mouse.x = e.x;
-    mouse.y = e.y;
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
   });
   window.addEventListener('mouseleave', () => {
     mouse.x = null;
     mouse.y = null;
   });
 
-  const particleCount = Math.min(100, Math.floor((width * height) / 12000));
-
-  class Particle {
-    constructor() {
-      this.x = Math.random() * width;
-      this.y = Math.random() * height;
-      this.size = Math.random() * 2 + 1;
-      this.baseX = this.x;
-      this.baseY = this.y;
-      this.vx = (Math.random() - 0.5) * 0.8;
-      this.vy = (Math.random() - 0.5) * 0.8;
-      this.color = Math.random() > 0.5 ? '#00f2fe' : '#7f00ff';
+  function initParticles() {
+    const isMobile = window.innerWidth < 768;
+    const particleCount = isMobile ? 32 : Math.min(80, Math.floor((width * height) / 14000));
+    particles = [];
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        baseX: 0,
+        baseY: 0,
+        size: Math.random() * 2 + 1,
+        vx: (Math.random() - 0.5) * 0.7,
+        vy: (Math.random() - 0.5) * 0.7,
+        hue: Math.random() > 0.5 ? 184 : 270,
+        pulse: Math.random() * Math.PI * 2
+      });
     }
+  }
 
-    draw() {
+  function drawCyberGrid() {
+    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    const gridColor = isDark ? 'rgba(0, 242, 254, 0.035)' : 'rgba(2, 132, 199, 0.03)';
+    const horizonColor = isDark ? 'rgba(127, 0, 255, 0.06)' : 'rgba(124, 58, 237, 0.04)';
+    const gridSize = 64;
+
+    ctx.save();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = gridColor;
+
+    // Moving horizontal grid lines with perspective drift
+    const offsetY = gridOffset % gridSize;
+    ctx.beginPath();
+    for (let y = offsetY; y < height; y += gridSize) {
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+    }
+    for (let x = 0; x < width; x += gridSize) {
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+    }
+    ctx.stroke();
+
+    // Mouse grid warp / glow ripple
+    if (mouse.x !== null && mouse.y !== null) {
+      const grad = ctx.createRadialGradient(mouse.x, mouse.y, 10, mouse.x, mouse.y, mouse.radius);
+      grad.addColorStop(0, horizonColor);
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
       ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-      ctx.fillStyle = this.color;
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = this.color;
+      ctx.arc(mouse.x, mouse.y, mouse.radius, 0, Math.PI * 2);
       ctx.fill();
     }
+    ctx.restore();
+  }
 
-    update() {
-      this.x += this.vx;
-      this.y += this.vy;
+  function drawAndConnectParticles() {
+    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    const maxDist = 135;
 
-      if (this.x < 0 || this.x > width) this.vx *= -1;
-      if (this.y < 0 || this.y > height) this.vy *= -1;
+    // Update & draw particles
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.pulse += 0.02;
 
-      // Mouse-gravity / repulsion physics
+      if (p.x < 0 || p.x > width) p.vx *= -1;
+      if (p.y < 0 || p.y > height) p.vy *= -1;
+
+      // Mouse-gravity & repulsion physics
       if (mouse.x !== null && mouse.y !== null) {
-        const dx = mouse.x - this.x;
-        const dy = mouse.y - this.y;
+        const dx = mouse.x - p.x;
+        const dy = mouse.y - p.y;
         const dist = Math.hypot(dx, dy);
         if (dist < mouse.radius) {
           const force = (mouse.radius - dist) / mouse.radius;
           const angle = Math.atan2(dy, dx);
-          this.x -= Math.cos(angle) * force * 4;
-          this.y -= Math.sin(angle) * force * 4;
+          p.x -= Math.cos(angle) * force * 3.5;
+          p.y -= Math.sin(angle) * force * 3.5;
         }
       }
+
+      // Render node
+      const currentAlpha = 0.5 + Math.sin(p.pulse) * 0.25;
+      const color = p.hue === 184
+        ? `hsla(184, 100%, 50%, ${currentAlpha})`
+        : `hsla(270, 100%, 65%, ${currentAlpha})`;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.shadowBlur = isDark ? 8 : 0;
+      ctx.shadowColor = color;
+      ctx.fill();
+      ctx.shadowBlur = 0;
     }
-  }
 
-  particles = Array.from({ length: particleCount }, () => new Particle());
-
-  function connectParticles() {
-    const maxDist = 130;
+    // Connect close particles with neural cyber lines
     for (let a = 0; a < particles.length; a++) {
       for (let b = a + 1; b < particles.length; b++) {
         const dx = particles[a].x - particles[b].x;
         const dy = particles[a].y - particles[b].y;
         const dist = Math.hypot(dx, dy);
         if (dist < maxDist) {
-          const opacity = (1 - dist / maxDist) * 0.35;
+          const opacity = (1 - dist / maxDist) * (isDark ? 0.32 : 0.22);
           ctx.beginPath();
           ctx.strokeStyle = `rgba(0, 242, 254, ${opacity})`;
-          ctx.lineWidth = 1;
+          ctx.lineWidth = 0.8;
           ctx.moveTo(particles[a].x, particles[a].y);
           ctx.lineTo(particles[b].x, particles[b].y);
           ctx.stroke();
@@ -132,14 +191,16 @@ function initParticleCanvas() {
   }
 
   function animate() {
-    ctx.clearRect(0, 0, width, height);
-    for (let i = 0; i < particles.length; i++) {
-      particles[i].draw();
-      particles[i].update();
+    if (!document.hidden) {
+      ctx.clearRect(0, 0, width, height);
+      gridOffset += 0.15;
+      drawCyberGrid();
+      drawAndConnectParticles();
     }
-    connectParticles();
-    requestAnimationFrame(animate);
+    animId = requestAnimationFrame(animate);
   }
+
+  resize();
   animate();
 }
 
@@ -371,6 +432,12 @@ export function renderAllUI() {
   };
   updateCvButton(document.getElementById('hero-cv-btn'));
   updateCvButton(document.getElementById('footer-cv-btn'));
+
+  // Trigger Visual Enhancements on dynamically rendered cards & metrics
+  initCardSpotlightAndTilt();
+  initCounterAnimations();
+  initScrollReveal();
+  initMagneticButtons();
 }
 
 function renderCarousel(projects) {
@@ -2651,6 +2718,238 @@ function initAdminPaneHandlers() {
 }
 
 // ==========================================================================
+// VISUAL UPGRADE: 3D Perspective Tilt & Linear/Vercel Spotlight Handler
+// ==========================================================================
+function initCardSpotlightAndTilt() {
+  const isTouch = window.matchMedia('(pointer: coarse)').matches;
+  const cards = document.querySelectorAll(
+    '.glass-card, .stat-card, .coding-summary-card, .coding-platform-card, .project-card, .skill-card, .cert-card'
+  );
+
+  cards.forEach(card => {
+    if (card.dataset.tiltInitialized === 'true') return;
+    card.dataset.tiltInitialized = 'true';
+
+    // Spotlight cursor tracking
+    card.addEventListener('mousemove', (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      card.style.setProperty('--mouse-x', `${x}px`);
+      card.style.setProperty('--mouse-y', `${y}px`);
+
+      // 3D Tilt calculation (desktop mouse only, keep touch scroll fluid)
+      if (!isTouch) {
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = -((y - centerY) / centerY) * 5.5;
+        const rotateY = ((x - centerX) / centerX) * 5.5;
+        card.style.transform = `perspective(900px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) translateY(-4px) scale3d(1.012, 1.012, 1.012)`;
+      }
+    });
+
+    card.addEventListener('mouseleave', () => {
+      card.style.setProperty('--mouse-x', '-999px');
+      card.style.setProperty('--mouse-y', '-999px');
+      if (!isTouch) {
+        card.style.transform = '';
+      }
+    });
+  });
+}
+
+// ==========================================================================
+// VISUAL UPGRADE: Pinned Neon Scroll Progress Bar & Floating Back-to-Top Dock
+// ==========================================================================
+function initScrollProgressAndBackToTop() {
+  const progressBar = document.getElementById('scroll-progress-bar');
+  const backToTopBtn = document.getElementById('floating-back-to-top');
+  const progressCircle = backToTopBtn?.querySelector('.progress-ring-circle');
+  const circumference = 2 * Math.PI * 20; // ~125.66
+
+  if (progressCircle) {
+    progressCircle.style.strokeDasharray = `${circumference}`;
+    progressCircle.style.strokeDashoffset = `${circumference}`;
+  }
+
+  let ticking = false;
+
+  function updateScroll() {
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    const scrollPct = docHeight > 0 ? Math.min(Math.max((scrollTop / docHeight) * 100, 0), 100) : 0;
+
+    // Progress Bar
+    if (progressBar) {
+      progressBar.style.width = `${scrollPct}%`;
+    }
+
+    // Back to top visibility & ring progress
+    if (backToTopBtn) {
+      if (scrollTop > 260) {
+        backToTopBtn.classList.add('visible');
+      } else {
+        backToTopBtn.classList.remove('visible');
+      }
+
+      if (progressCircle) {
+        const offset = circumference - (scrollPct / 100) * circumference;
+        progressCircle.style.strokeDashoffset = `${offset}`;
+      }
+    }
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      window.requestAnimationFrame(updateScroll);
+      ticking = true;
+    }
+  }, { passive: true });
+
+  updateScroll();
+
+  backToTopBtn?.addEventListener('click', () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  });
+}
+
+// ==========================================================================
+// VISUAL UPGRADE: Smooth Scroll-Reveal Entrance Animations
+// ==========================================================================
+function initScrollReveal() {
+  const revealElements = document.querySelectorAll('[data-reveal="true"]');
+  if (!('IntersectionObserver' in window)) {
+    revealElements.forEach(el => el.classList.add('is-revealed'));
+    return;
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-revealed');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, {
+    threshold: 0.08,
+    rootMargin: '0px 0px -30px 0px'
+  });
+
+  revealElements.forEach(el => {
+    if (!el.classList.contains('is-revealed')) {
+      observer.observe(el);
+    }
+  });
+}
+
+// ==========================================================================
+// VISUAL UPGRADE: Interactive Rolling Numbers Counter (Roll-Up)
+// ==========================================================================
+function initCounterAnimations() {
+  const counterSelectors = [
+    '#stat-projects-count',
+    '#stat-skills-count',
+    '#stat-certs-count',
+    '#summary-total-solved',
+    '#summary-peak-rating',
+    '#summary-contests-count',
+    '#summary-global-percentile',
+    '.coding-summary-val',
+    '.stat-number'
+  ];
+
+  const elements = document.querySelectorAll(counterSelectors.join(', '));
+
+  function parseMetric(str) {
+    const raw = (str || '').trim();
+    const match = raw.match(/^([^\d.]*)(\d+(?:\.\d+)?)(.*)$/);
+    if (!match) return null;
+    return {
+      prefix: match[1],
+      targetNum: parseFloat(match[2]),
+      suffix: match[3],
+      isFloat: match[2].includes('.')
+    };
+  }
+
+  function animateRollUp(el, parsed) {
+    const { prefix, targetNum, suffix, isFloat } = parsed;
+    const duration = 1400; // ms
+    const startTime = performance.now();
+
+    function update(currentTime) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease out quartic
+      const ease = 1 - Math.pow(1 - progress, 4);
+      const current = targetNum * ease;
+      el.textContent = `${prefix}${isFloat ? current.toFixed(1) : Math.round(current)}${suffix}`;
+
+      if (progress < 1) {
+        requestAnimationFrame(update);
+      } else {
+        el.textContent = `${prefix}${isFloat ? targetNum.toFixed(1) : targetNum}${suffix}`;
+      }
+    }
+    requestAnimationFrame(update);
+  }
+
+  if (!('IntersectionObserver' in window)) return;
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        if (el.dataset.hasCounted === 'true') return;
+        const parsed = parseMetric(el.textContent);
+        if (parsed && !isNaN(parsed.targetNum) && parsed.targetNum > 0) {
+          el.dataset.hasCounted = 'true';
+          animateRollUp(el, parsed);
+        }
+        observer.unobserve(el);
+      }
+    });
+  }, {
+    threshold: 0.2
+  });
+
+  elements.forEach(el => {
+    if (el.dataset.hasCounted !== 'true') {
+      observer.observe(el);
+    }
+  });
+}
+
+// ==========================================================================
+// VISUAL UPGRADE: Magnetic Button Micro-Interactions
+// ==========================================================================
+function initMagneticButtons() {
+  if (window.matchMedia('(pointer: coarse)').matches) return;
+
+  const buttons = document.querySelectorAll('.btn-primary, .hero-cta-group .btn, .brand-logo');
+  buttons.forEach(btn => {
+    if (btn.dataset.magneticInit === 'true') return;
+    btn.dataset.magneticInit = 'true';
+    btn.classList.add('btn-magnetic');
+
+    btn.addEventListener('mousemove', (e) => {
+      const rect = btn.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+      btn.style.transform = `translate(${x * 0.22}px, ${y * 0.22}px)`;
+    });
+
+    btn.addEventListener('mouseleave', () => {
+      btn.style.transform = '';
+    });
+  });
+}
+
+// ==========================================================================
 // 8. Global Listeners, Search & Carousel Controls
 // ==========================================================================
 function initGlobalListeners() {
@@ -2731,6 +3030,11 @@ document.addEventListener('DOMContentLoaded', () => {
   initParticleCanvas();
   initTheme();
   renderAllUI();
+  initScrollProgressAndBackToTop();
+  initScrollReveal();
+  initCardSpotlightAndTilt();
+  initCounterAnimations();
+  initMagneticButtons();
   initContactForm();
   initAdminConsole();
   initGlobalListeners();
