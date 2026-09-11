@@ -37,6 +37,15 @@ import {
   isSupabaseConnected
 } from './supabase.js';
 
+import {
+  storeCvBlob,
+  getStoredCvRecord,
+  deleteStoredCvRecord,
+  previewStoredCv,
+  downloadStoredCv,
+  formatFileSize
+} from './cvStore.js';
+
 // ==========================================================================
 // 1. Interactive Chromatic Ambient Canvas (Fluid Aurora Orbs & Luminous Stardust)
 // ==========================================================================
@@ -507,22 +516,32 @@ export function renderAllUI() {
   if (githubLink) githubLink.href = data.settings.github;
 
   // 9. Official CV Document Download Actions
-  const updateCvButton = (btnEl) => {
+  const updateCvButton = async (btnEl) => {
     if (!btnEl) return;
-    const cvUrl = data.settings?.cvUrl;
-    const cvFilename = data.settings?.cvFilename || `${data.settings?.ownerName || 'Niharika'}_CV.pdf`;
-    if (cvUrl) {
-      btnEl.href = cvUrl;
+    const storedCv = await getStoredCvRecord();
+    const extUrl = data.settings?.cvUrl;
+    const cvFilename = storedCv?.name || data.settings?.cvFilename || `${data.settings?.ownerName || 'Niharika'}_CV.pdf`;
+
+    if (storedCv && storedCv.blob) {
+      btnEl.removeAttribute('target');
+      btnEl.href = '#';
+      btnEl.title = `Download verified CV: ${cvFilename} (${formatFileSize(storedCv.size)})`;
+      btnEl.onclick = async (e) => {
+        e.preventDefault();
+        await downloadStoredCv();
+      };
+    } else if (extUrl) {
+      btnEl.href = extUrl;
       btnEl.target = '_blank';
-      if (cvUrl.startsWith('data:')) {
-        btnEl.setAttribute('download', cvFilename);
-      } else {
-        btnEl.removeAttribute('download');
-      }
+      btnEl.title = `Open CV Document (${cvFilename})`;
+      btnEl.removeAttribute('download');
+      btnEl.onclick = null;
     } else {
       btnEl.href = '?print=cv';
       btnEl.target = '_blank';
+      btnEl.title = 'View / Print ATS-Friendly CV';
       btnEl.removeAttribute('download');
+      btnEl.onclick = null;
     }
   };
   updateCvButton(document.getElementById('hero-cv-btn'));
@@ -1519,35 +1538,113 @@ function setupImageUploader({ fileInputId, urlInputId, previewBoxId, previewImgI
 
 let projImageUploader = null;
 let certImageUploader = null;
-let currentCvDataUrl = '';
-let currentCvFilename = '';
-
-function updateAdminCvStatusUI() {
+async function updateAdminCvStatusUI() {
   const statusBox = document.getElementById('admin-cv-status-box');
   if (!statusBox) return;
 
-  if (currentCvDataUrl) {
-    const isData = currentCvDataUrl.startsWith('data:');
-    const displayName = currentCvFilename || (isData ? 'Uploaded Custom CV Document (PDF)' : currentCvDataUrl);
+  const storedRecord = await getStoredCvRecord();
+  const urlInput = document.getElementById('admin-cv-url-input');
+  const extUrl = urlInput?.value.trim() || getLocalData().settings?.cvUrl || '';
+  const testLink = document.getElementById('admin-cv-url-test-link');
+
+  if (testLink) {
+    if (extUrl) {
+      testLink.style.display = 'inline';
+      testLink.href = extUrl;
+    } else {
+      testLink.style.display = 'none';
+    }
+  }
+
+  if (storedRecord && storedRecord.blob) {
+    const formattedSize = formatFileSize(storedRecord.size);
+    const dateStr = storedRecord.updatedAt ? new Date(storedRecord.updatedAt).toLocaleDateString(undefined, {
+      month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    }) : 'Recently';
+
     statusBox.innerHTML = `
-      <span class="gradient-badge" style="font-size: 0.78rem; display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px;">
-        <svg class="icon" style="width: 12px; height: 12px;"><use href="/icons.svg#icon-check"></use></svg>
-        ${escapeHTML(displayName)}
-      </span>
-      <a href="${currentCvDataUrl}" target="_blank" ${isData ? `download="${currentCvFilename || 'CV.pdf'}"` : ''} class="action-btn" style="padding: 4px 10px; font-size: 0.76rem; text-decoration: none; color: var(--accent-cyan); border-color: rgba(0,242,254,0.3);">Preview / Test</a>
-      <button type="button" id="admin-cv-remove-btn" class="action-btn delete" style="padding: 4px 10px; font-size: 0.76rem;">Remove</button>
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); color: #10b981; flex-shrink: 0;">
+            <svg class="icon" style="width: 16px; height: 16px;"><use href="/icons.svg#icon-check"></use></svg>
+          </span>
+          <div>
+            <strong style="color: var(--text-main); font-size: 0.9rem; display: block; word-break: break-word;">${escapeHTML(storedRecord.name)}</strong>
+            <span style="font-size: 0.76rem; color: var(--text-muted);">${formattedSize} &bull; Stored in Browser Storage &bull; ${escapeHTML(dateStr)}</span>
+          </div>
+        </div>
+        <span class="gradient-badge" style="font-size: 0.72rem; color: #10b981; border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.08); padding: 3px 10px;">
+          ✓ Uploaded & Active
+        </span>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; align-items: center;">
+        <button type="button" id="admin-cv-preview-btn" class="action-btn" style="padding: 6px 14px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px; color: var(--accent-indigo); border-color: rgba(99, 102, 241, 0.35); background: rgba(99, 102, 241, 0.05);">
+          <svg class="icon" style="width: 14px; height: 14px;"><use href="/icons.svg#icon-eye"></use></svg>
+          <span>Preview in Browser</span>
+        </button>
+        <button type="button" id="admin-cv-download-btn" class="action-btn" style="padding: 6px 14px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px; color: var(--text-main);">
+          <svg class="icon" style="width: 14px; height: 14px;"><use href="/icons.svg#icon-download"></use></svg>
+          <span>Test Download</span>
+        </button>
+        <button type="button" id="admin-cv-remove-btn" class="action-btn delete" style="padding: 6px 14px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;">
+          <svg class="icon" style="width: 14px; height: 14px;"><use href="/icons.svg#icon-trash"></use></svg>
+          <span>Remove Custom CV</span>
+        </button>
+      </div>
     `;
-    document.getElementById('admin-cv-remove-btn')?.addEventListener('click', () => {
-      currentCvDataUrl = '';
-      currentCvFilename = '';
-      const urlInput = document.getElementById('admin-cv-url-input');
-      if (urlInput) urlInput.value = '';
-      const fileIn = document.getElementById('admin-cv-file-input');
-      if (fileIn) fileIn.value = '';
-      updateAdminCvStatusUI();
+
+    document.getElementById('admin-cv-preview-btn')?.addEventListener('click', async () => {
+      await previewStoredCv();
     });
+    document.getElementById('admin-cv-download-btn')?.addEventListener('click', async () => {
+      await downloadStoredCv();
+    });
+    document.getElementById('admin-cv-remove-btn')?.addEventListener('click', async () => {
+      if (confirm('Remove this custom CV document and revert back to the default auto-generated ATS resume?')) {
+        await deleteStoredCvRecord();
+        await saveSettings({ cvFilename: '', cvFileSize: 0, cvUploadedAt: '' });
+        const fileIn = document.getElementById('admin-cv-file-input');
+        if (fileIn) fileIn.value = '';
+        await updateAdminCvStatusUI();
+        renderAllUI();
+      }
+    });
+
+    const uploadLabel = document.getElementById('admin-cv-upload-label-text');
+    if (uploadLabel) uploadLabel.textContent = 'Replace / Upload New PDF';
+  } else if (extUrl) {
+    statusBox.innerHTML = `
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+        <div>
+          <strong style="color: var(--text-main); font-size: 0.85rem; display: block;">External Document URL Linked</strong>
+          <a href="${escapeHTML(extUrl)}" target="_blank" style="font-size: 0.74rem; color: var(--accent-indigo); word-break: break-all;">${escapeHTML(extUrl)}</a>
+        </div>
+        <button type="button" id="admin-cv-remove-url-btn" class="action-btn delete" style="padding: 4px 10px; font-size: 0.75rem;">Clear URL</button>
+      </div>
+    `;
+    document.getElementById('admin-cv-remove-url-btn')?.addEventListener('click', async () => {
+      if (urlInput) urlInput.value = '';
+      await saveSettings({ cvUrl: '' });
+      await updateAdminCvStatusUI();
+      renderAllUI();
+    });
+    const uploadLabel = document.getElementById('admin-cv-upload-label-text');
+    if (uploadLabel) uploadLabel.textContent = 'Upload Custom CV (PDF)';
   } else {
-    statusBox.innerHTML = `<span style="color: var(--text-dim); font-size: 0.8rem;">No custom CV uploaded yet (using default generated CV)</span>`;
+    statusBox.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: rgba(0, 0, 0, 0.05); color: var(--text-dim); flex-shrink: 0;">
+          <svg class="icon" style="width: 15px; height: 15px;"><use href="/icons.svg#icon-file-text"></use></svg>
+        </span>
+        <div>
+          <span style="color: var(--text-main); font-size: 0.84rem; font-weight: 600;">Default Auto-Generated ATS Resume Active</span>
+          <span style="color: var(--text-dim); font-size: 0.75rem; display: block; line-height: 1.35;">Visitors receive your clean printable resume. Upload your PDF above to deliver your custom document instead.</span>
+        </div>
+      </div>
+    `;
+    const uploadLabel = document.getElementById('admin-cv-upload-label-text');
+    if (uploadLabel) uploadLabel.textContent = 'Upload Custom CV (PDF)';
   }
 }
 
@@ -2143,11 +2240,9 @@ function populateAdminPanes() {
   setEl('setting-groq-key', set.groqKey);
 
   // Populate CV Document state
-  currentCvDataUrl = set.cvUrl || '';
-  currentCvFilename = set.cvFilename || '';
   const cvUrlInput = document.getElementById('admin-cv-url-input');
   if (cvUrlInput) {
-    cvUrlInput.value = currentCvDataUrl.startsWith('data:') ? '' : currentCvDataUrl;
+    cvUrlInput.value = set.cvUrl || '';
   }
   updateAdminCvStatusUI();
 
@@ -2625,40 +2720,53 @@ function initAdminPaneHandlers() {
   });
 
   // Handle CV file upload
-  document.getElementById('admin-cv-file-input')?.addEventListener('change', (e) => {
+  document.getElementById('admin-cv-file-input')?.addEventListener('change', async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 4.5 * 1024 * 1024) {
-      alert('The selected file exceeds 4.5MB. For large documents, please host on Google Drive or Dropbox and paste the direct link.');
+    if (file.size > 25 * 1024 * 1024) {
+      alert('The selected file exceeds 25MB. For very large documents, please host on Google Drive or Dropbox and paste the direct link.');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      currentCvDataUrl = reader.result;
-      currentCvFilename = file.name;
-      const urlInput = document.getElementById('admin-cv-url-input');
-      if (urlInput) urlInput.value = '';
-      updateAdminCvStatusUI();
-    };
-    reader.readAsDataURL(file);
+    const toast = document.getElementById('admin-cv-quick-toast');
+    if (toast) {
+      toast.style.display = 'inline-block';
+      toast.style.color = 'var(--accent-indigo)';
+      toast.textContent = 'Saving & verifying document in storage...';
+    }
+
+    try {
+      const record = await storeCvBlob(file);
+      await saveSettings({
+        cvFilename: record.name,
+        cvFileSize: record.size,
+        cvUploadedAt: record.updatedAt
+      });
+
+      if (toast) {
+        toast.style.color = '#10b981';
+        toast.textContent = `✓ "${record.name}" (${formatFileSize(record.size)}) uploaded & verified!`;
+        setTimeout(() => { toast.style.display = 'none'; }, 4000);
+      }
+
+      await updateAdminCvStatusUI();
+      renderAllUI();
+    } catch (err) {
+      console.error('CV upload error:', err);
+      if (toast) {
+        toast.style.color = '#ef4444';
+        toast.textContent = `Upload failed: ${err.message}`;
+      }
+    }
   });
 
   // Handle direct CV URL input
-  document.getElementById('admin-cv-url-input')?.addEventListener('input', (e) => {
+  document.getElementById('admin-cv-url-input')?.addEventListener('input', async (e) => {
     const val = e.target.value.trim();
-    if (val) {
-      currentCvDataUrl = val;
-      currentCvFilename = val.split('/').pop().split('?')[0] || 'Official_CV.pdf';
-      const fileIn = document.getElementById('admin-cv-file-input');
-      if (fileIn) fileIn.value = '';
-      updateAdminCvStatusUI();
-    } else if (!currentCvDataUrl.startsWith('data:')) {
-      currentCvDataUrl = '';
-      currentCvFilename = '';
-      updateAdminCvStatusUI();
-    }
+    await saveSettings({ cvUrl: val });
+    await updateAdminCvStatusUI();
+    renderAllUI();
   });
 
   // Save Settings
@@ -2673,14 +2781,13 @@ function initAdminPaneHandlers() {
     const codolio = document.getElementById('setting-codolio').value.trim();
     const medium = document.getElementById('setting-medium').value.trim();
     const groqKey = document.getElementById('setting-groq-key').value.trim();
-    const cvUrl = currentCvDataUrl || document.getElementById('admin-cv-url-input')?.value.trim() || '';
-    const cvFilename = currentCvFilename || '';
+    const cvUrl = document.getElementById('admin-cv-url-input')?.value.trim() || '';
 
     await saveSettings({
       ownerName, email, ownerBio, location, linkedin, github, codolio, medium, groqKey,
-      cvUrl, cvFilename
+      cvUrl
     });
-    alert('Settings & CV saved successfully!');
+    alert('Settings saved successfully!');
     populateAdminPanes();
     renderAllUI();
   });
@@ -3058,9 +3165,104 @@ function initMagneticButtons() {
 }
 
 // ==========================================================================
+// Navigation Bar Active Tab & Scroll-Spy Engine
+// ==========================================================================
+function initNavigationTabs() {
+  const navList = document.getElementById('nav-links-list');
+  if (!navList) return;
+
+  const links = Array.from(navList.querySelectorAll('.nav-link'));
+  let isManualClick = false;
+  let manualTimer = null;
+
+  function setActive(targetHref) {
+    if (!targetHref) return;
+    links.forEach(l => {
+      if (l.getAttribute('href') === targetHref) {
+        l.classList.add('active');
+      } else {
+        l.classList.remove('active');
+      }
+    });
+  }
+
+  // Click on nav tab (Home, Journey, Skillset, Projects, Profiles, Certificates)
+  links.forEach(link => {
+    link.addEventListener('click', (e) => {
+      const href = link.getAttribute('href');
+      if (!href || !href.startsWith('#')) return;
+
+      // Immediately switch active pill background to this tab
+      setActive(href);
+
+      // Lock scroll-spy briefly so smooth scrolling does not overwrite active tab
+      isManualClick = true;
+      clearTimeout(manualTimer);
+      manualTimer = setTimeout(() => {
+        isManualClick = false;
+      }, 900);
+
+      // Close mobile menu if open
+      navList.classList.remove('mobile-open');
+    });
+  });
+
+  // Click on brand logo -> activates Home
+  document.querySelector('.brand-logo')?.addEventListener('click', () => {
+    setActive('#home');
+  });
+
+  // Click on "Let's Talk" -> clear nav tab active pills since it navigates to #contact
+  document.querySelector('.btn-lets-talk')?.addEventListener('click', () => {
+    links.forEach(l => l.classList.remove('active'));
+    isManualClick = true;
+    clearTimeout(manualTimer);
+    manualTimer = setTimeout(() => {
+      isManualClick = false;
+    }, 900);
+  });
+
+  // Scroll Spy for sections
+  const sectionIds = links.map(l => l.getAttribute('href')?.replace(/^#/, '')).filter(Boolean);
+  const sectionEls = sectionIds.map(id => document.getElementById(id)).filter(Boolean);
+
+  function handleScroll() {
+    if (isManualClick) return;
+
+    const scrollY = window.scrollY || window.pageYOffset;
+    if (scrollY < 120) {
+      setActive('#home');
+      return;
+    }
+
+    let currentId = null;
+    const viewCenter = scrollY + window.innerHeight * 0.35;
+
+    for (let i = sectionEls.length - 1; i >= 0; i--) {
+      const sec = sectionEls[i];
+      const top = sec.offsetTop;
+      const height = sec.offsetHeight;
+      if (viewCenter >= top && viewCenter <= top + height + 100) {
+        currentId = sec.id;
+        break;
+      }
+    }
+
+    if (currentId) {
+      setActive(`#${currentId}`);
+    }
+  }
+
+  window.addEventListener('scroll', handleScroll, { passive: true });
+  setTimeout(handleScroll, 150);
+}
+
+// ==========================================================================
 // 8. Global Listeners, Search & Carousel Controls
 // ==========================================================================
 function initGlobalListeners() {
+  initNavigationTabs();
+
   // Mobile Nav Toggle
   const mobileBtn = document.getElementById('mobile-menu-btn');
   const navLinks = document.getElementById('nav-links-list');
