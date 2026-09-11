@@ -748,6 +748,76 @@
                 </div>
               </div>
 
+              <!-- GeeksforGeeks Group -->
+              <div class="glass-card" style="padding: 18px; border-left: 3px solid #2f855a;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <svg class="icon" style="width: 20px; height: 20px; color: #38a169;"><use href="/icons.svg#icon-geeksforgeeks"></use></svg>
+                    <h4 style="font-size: 1rem; margin: 0;">GeeksforGeeks Configuration</h4>
+                  </div>
+                  <span style="font-size: 0.75rem; color: var(--text-dim); font-family: var(--font-mono);">geeksforgeeks.org/profile/handle</span>
+                </div>
+                <div class="form-row-3">
+                  <div class="form-group">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">GFG Handle or URL</label>
+                    <input type="text" id="admin-gfg-handle" class="form-input" placeholder="e.g. niharik8bqf or full URL">
+                  </div>
+                  <div class="form-group">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Problems Solved</label>
+                    <input type="number" id="admin-gfg-solved" class="form-input" placeholder="e.g. 98">
+                  </div>
+                  <div class="form-group">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Coding Score</label>
+                    <input type="number" id="admin-gfg-score" class="form-input" placeholder="e.g. 250">
+                  </div>
+                </div>
+                <div class="form-row-2" style="margin-top: 10px;">
+                  <div class="form-group">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Institute Rank</label>
+                    <input type="text" id="admin-gfg-rank" class="form-input" placeholder="e.g. #6,885">
+                  </div>
+                  <div class="form-group">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Longest Streak</label>
+                    <input type="number" id="admin-gfg-streak" class="form-input" placeholder="e.g. 2">
+                  </div>
+                </div>
+              </div>
+
+              <!-- AtCoder Group -->
+              <div class="glass-card" style="padding: 18px; border-left: 3px solid #64748b;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <svg class="icon" style="width: 20px; height: 20px; color: #94a3b8;"><use href="/icons.svg#icon-atcoder"></use></svg>
+                    <h4 style="font-size: 1rem; margin: 0;">AtCoder Configuration</h4>
+                  </div>
+                  <span style="font-size: 0.75rem; color: var(--text-dim); font-family: var(--font-mono);">atcoder.jp/users/handle</span>
+                </div>
+                <div class="form-row-3">
+                  <div class="form-group">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">AtCoder Handle or URL</label>
+                    <input type="text" id="admin-at-handle" class="form-input" placeholder="e.g. niharikab1806 or full URL">
+                  </div>
+                  <div class="form-group">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Current Rating</label>
+                    <input type="number" id="admin-at-rating" class="form-input" placeholder="e.g. 129">
+                  </div>
+                  <div class="form-group">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Peak Rating</label>
+                    <input type="number" id="admin-at-peak" class="form-input" placeholder="e.g. 129">
+                  </div>
+                </div>
+                <div class="form-row-2" style="margin-top: 10px;">
+                  <div class="form-group">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Global Rank / Percentile</label>
+                    <input type="text" id="admin-at-rank" class="form-input" placeholder="e.g. #59,023 (Top 46.3%)">
+                  </div>
+                  <div class="form-group">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Rated Matches / Contests</label>
+                    <input type="number" id="admin-at-contests" class="form-input" placeholder="e.g. 6">
+                  </div>
+                </div>
+              </div>
+
               <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
                 <button type="submit" id="admin-save-coding-btn" class="btn btn-primary" style="padding: 10px 20px;">Save Coding Settings</button>
                 <button type="button" id="admin-fetch-live-stats-btn" class="btn btn-secondary" style="padding: 10px 16px;">

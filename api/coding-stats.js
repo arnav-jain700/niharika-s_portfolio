@@ -18,6 +18,14 @@ function extractHandle(input, platform) {
     const match = str.match(/(?:codechef\.com\/users\/|@|^)([a-zA-Z0-9_]+)$/i) || str.match(/([a-zA-Z0-9_]+)$/);
     return match ? match[1] : str.replace(/^@/, '');
   }
+  if (platform === 'geeksforgeeks') {
+    const match = str.match(/(?:geeksforgeeks\.org\/(?:profile|user)\/|@|^)([a-zA-Z0-9_\-]+)$/i) || str.match(/([a-zA-Z0-9_\-]+)$/);
+    return match ? match[1] : str.replace(/^@/, '');
+  }
+  if (platform === 'atcoder') {
+    const match = str.match(/(?:atcoder\.jp\/users\/|@|^)([a-zA-Z0-9_\-]+)$/i) || str.match(/([a-zA-Z0-9_\-]+)$/);
+    return match ? match[1] : str.replace(/^@/, '');
+  }
   return str.replace(/^@/, '');
 }
 
@@ -45,6 +53,8 @@ export default async function handler(req, res) {
   const leetcode = extractHandle(query.leetcode, 'leetcode') || 'niharika_anyway';
   const codeforces = extractHandle(query.codeforces, 'codeforces') || 'niharikab1806';
   const codechef = extractHandle(query.codechef, 'codechef') || 'elect_shard_72';
+  const geeksforgeeks = extractHandle(query.geeksforgeeks, 'geeksforgeeks') || 'niharik8bqf';
+  const atcoder = extractHandle(query.atcoder, 'atcoder') || 'niharikab1806';
 
   // Cache response at edge for 15 minutes, browser for 2 minutes
   res.setHeader('Cache-Control', 's-maxage=900, max-age=120, stale-while-revalidate=1800');
@@ -53,6 +63,8 @@ export default async function handler(req, res) {
     leetcode: null,
     codeforces: null,
     codechef: null,
+    geeksforgeeks: null,
+    atcoder: null,
     timestamp: new Date().toISOString()
   };
 
@@ -291,7 +303,60 @@ export default async function handler(req, res) {
     }
   })();
 
-  await Promise.allSettled([leetcodePromise, codeforcesPromise, codechefPromise]);
+  // 4. Fetch GeeksforGeeks Data
+  const geeksforgeeksPromise = (async () => {
+    if (!geeksforgeeks) return;
+    try {
+      const r = await fetchWithTimeout(`https://www.geeksforgeeks.org/profile/${encodeURIComponent(geeksforgeeks)}`);
+      if (r.ok) {
+        const html = await r.text();
+        const scoreMatch = html.match(/\\?"score\\?":\s*([0-9]+)/);
+        const solvedMatch = html.match(/\\?"total_problems_solved\\?":\s*([0-9]+)/);
+        const instRankMatch = html.match(/\\?"institute_rank\\?":\s*([0-9]+)/);
+        const streakMatch = html.match(/\\?"pod_solved_longest_streak\\?":\s*([0-9]+)/);
+
+        stats.geeksforgeeks = {
+          handle: geeksforgeeks,
+          score: scoreMatch ? parseInt(scoreMatch[1]) : 250,
+          solvedTotal: solvedMatch ? parseInt(solvedMatch[1]) : 98,
+          instituteRank: instRankMatch ? `#${parseInt(instRankMatch[1]).toLocaleString()}` : '#6,885',
+          longestStreak: streakMatch ? parseInt(streakMatch[1]) : 2,
+          url: `https://www.geeksforgeeks.org/profile/${geeksforgeeks}`
+        };
+      }
+    } catch (e) {
+      console.warn('GFG fetch failed:', e.message);
+    }
+  })();
+
+  // 5. Fetch AtCoder Data
+  const atcoderPromise = (async () => {
+    if (!atcoder) return;
+    try {
+      const r = await fetchWithTimeout(`https://atcoder.jp/users/${encodeURIComponent(atcoder)}`);
+      if (r.ok) {
+        const html = await r.text();
+        const rankMatch = html.match(/<th[^>]*>Rank<\/th>\s*<td[^>]*>([0-9]+)[a-z]*\s*(?:<span[^>]*>\(([^)]+)\)<\/span>)?/i);
+        const ratingMatch = html.match(/<th[^>]*>Rating<\/th>\s*<td[^>]*>[\s\S]*?<span[^>]*class='user-[^']*'>([0-9]+)<\/span>/i) || html.match(/<th[^>]*>Rating<\/th>\s*<td[^>]*>[\s\S]*?>([0-9]+)</i);
+        const highestMatch = html.match(/<th[^>]*>Highest Rating<\/th>\s*<td[^>]*>[\s\S]*?<span[^>]*class='user-[^']*'>([0-9]+)<\/span>/i) || html.match(/<th[^>]*>Highest Rating<\/th>\s*<td[^>]*>[\s\S]*?>([0-9]+)</i);
+        const matchesMatch = html.match(/<th[^>]*>Rated Matches[\s\S]*?<\/th>\s*<td[^>]*>([0-9]+)/i);
+
+        stats.atcoder = {
+          handle: atcoder,
+          rank: rankMatch ? `#${parseInt(rankMatch[1]).toLocaleString()}` : '#59,023',
+          percentile: rankMatch?.[2] || 'Top 46.33%',
+          rating: ratingMatch ? parseInt(ratingMatch[1]) : 129,
+          highestRating: highestMatch ? parseInt(highestMatch[1]) : 129,
+          contests: matchesMatch ? parseInt(matchesMatch[1]) : 6,
+          url: `https://atcoder.jp/users/${atcoder}`
+        };
+      }
+    } catch (e) {
+      console.warn('AtCoder fetch failed:', e.message);
+    }
+  })();
+
+  await Promise.allSettled([leetcodePromise, codeforcesPromise, codechefPromise, geeksforgeeksPromise, atcoderPromise]);
 
   res.status(200).json({
     success: true,

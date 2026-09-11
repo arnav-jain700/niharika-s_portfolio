@@ -556,15 +556,18 @@ function renderCodingProfiles(profilesData, lastSyncTime) {
   const cf = profiles.codeforces || {};
   const cc = profiles.codechef || {};
   const cd = profiles.codolio || {};
+  const gfg = profiles.geeksforgeeks || {};
+  const at = profiles.atcoder || {};
 
-  // Calculate aggregate metrics accurately without falsy default replacements
-  const totalSolved = (parseInt(lc.solvedTotal) || 0) + (parseInt(cf.solvedTotal) || 0) + (parseInt(cc.solvedTotal) || 0);
+  // Calculate aggregate metrics accurately across all platforms
+  const totalSolved = (parseInt(lc.solvedTotal) || 0) + (parseInt(cf.solvedTotal) || 0) + (parseInt(cc.solvedTotal) || 0) + (parseInt(gfg.solvedTotal) || 0);
   const peakRating = Math.max(
     parseInt(lc.rating) || 0,
     parseInt(cf.maxRating) || parseInt(cf.rating) || 0,
-    parseInt(cc.highestRating) || parseInt(cc.rating) || 0
+    parseInt(cc.highestRating) || parseInt(cc.rating) || 0,
+    parseInt(at.highestRating) || parseInt(at.rating) || 0
   );
-  const totalContests = (parseInt(cf.contests) || 0) + (parseInt(cc.contests) || 0);
+  const totalContests = (parseInt(cf.contests) || 0) + (parseInt(cc.contests) || 0) + (parseInt(at.contests) || parseInt(at.ratedMatches) || 0);
 
   // Update Summary Banner Counters
   const totalSolvedEl = document.getElementById('summary-total-solved');
@@ -784,6 +787,100 @@ function renderCodingProfiles(profilesData, lastSyncTime) {
       <div class="platform-card-footer">
         <a href="${cd.url || 'https://codolio.com/'}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width: 100%; justify-content: center; font-size: 0.85rem;">
           View Unified Codolio Card &rarr;
+        </a>
+      </div>
+    </div>
+
+    <!-- 5. GEEKSFORGEEKS CARD -->
+    <div class="platform-card glass-card" style="--card-accent: #2f855a;">
+      <div class="platform-header">
+        <div class="platform-brand">
+          <div class="platform-logo-box" style="color: #38a169;">
+            <svg class="icon"><use href="/icons.svg#icon-geeksforgeeks"></use></svg>
+          </div>
+          <div>
+            <h3 class="platform-title">GeeksforGeeks</h3>
+            <span class="platform-handle">@${gfg.handle || 'niharik8bqf'}</span>
+          </div>
+        </div>
+        <span class="platform-badge badge-geeksforgeeks">
+          ${gfg.score ? `Score: ${gfg.score}` : 'Active Solver'}
+        </span>
+      </div>
+
+      <div class="platform-metrics-grid">
+        <div class="metric-box">
+          <span class="metric-val" style="color: #38a169;">${gfg.solvedTotal !== undefined && gfg.solvedTotal !== null ? gfg.solvedTotal : 98}</span>
+          <span class="metric-label">Problems Solved</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-val" style="color: var(--accent-cyan);">${gfg.score || 250}</span>
+          <span class="metric-label">Coding Score</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-val">${gfg.instituteRank || '#6,885'}</span>
+          <span class="metric-label">Institute Rank</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-val" style="color: var(--accent-purple);">${gfg.longestStreak ? `${gfg.longestStreak} Days` : 'Active'}</span>
+          <span class="metric-label">Longest Streak</span>
+        </div>
+      </div>
+
+      <div style="font-size: 0.83rem; color: var(--text-muted); line-height: 1.5; margin: 12px 0 16px;">
+        Campus Ranking at Lovely Professional University (LPU Jalandhar) &bull; DSA & Problem Solving
+      </div>
+
+      <div class="platform-card-footer">
+        <a href="${gfg.url || (gfg.handle ? `https://www.geeksforgeeks.org/profile/${gfg.handle}` : 'https://www.geeksforgeeks.org/')}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="width: 100%; justify-content: center; font-size: 0.85rem;">
+          View GeeksforGeeks Profile &rarr;
+        </a>
+      </div>
+    </div>
+
+    <!-- 6. ATCODER CARD -->
+    <div class="platform-card glass-card" style="--card-accent: #64748b;">
+      <div class="platform-header">
+        <div class="platform-brand">
+          <div class="platform-logo-box" style="color: #94a3b8;">
+            <svg class="icon"><use href="/icons.svg#icon-atcoder"></use></svg>
+          </div>
+          <div>
+            <h3 class="platform-title">AtCoder</h3>
+            <span class="platform-handle">@${at.handle || 'niharikab1806'}</span>
+          </div>
+        </div>
+        <span class="platform-badge badge-atcoder">
+          ${at.rating ? `Rating: ${at.rating}` : 'Active'}
+        </span>
+      </div>
+
+      <div class="platform-metrics-grid">
+        <div class="metric-box">
+          <span class="metric-val" style="color: #cbd5e1;">${at.rating || 129}</span>
+          <span class="metric-label">Current Rating</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-val" style="color: #94a3b8;">${at.highestRating || 129}</span>
+          <span class="metric-label">Peak Rating</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-val">${at.rank || '#59,023'}</span>
+          <span class="metric-label">Global Rank</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-val" style="color: var(--accent-green);">${at.contests || at.ratedMatches || 6}</span>
+          <span class="metric-label">Rated Matches</span>
+        </div>
+      </div>
+
+      <div style="font-size: 0.83rem; color: var(--text-muted); line-height: 1.5; margin: 12px 0 16px;">
+        International Competitive Programming (Japan) &bull; <strong style="color: #cbd5e1;">${at.percentile || 'Top 46.3%'}</strong>
+      </div>
+
+      <div class="platform-card-footer">
+        <a href="${at.url || (at.handle ? `https://atcoder.jp/users/${at.handle}` : 'https://atcoder.jp/')}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="width: 100%; justify-content: center; font-size: 0.85rem;">
+          View AtCoder Profile &rarr;
         </a>
       </div>
     </div>
@@ -1501,6 +1598,18 @@ function populateAdminPanes() {
   setVal('admin-cd-url', cp.codolio?.url);
   setVal('admin-cd-score', cp.codolio?.score);
 
+  setVal('admin-gfg-handle', cp.geeksforgeeks?.handle);
+  setVal('admin-gfg-solved', cp.geeksforgeeks?.solvedTotal);
+  setVal('admin-gfg-score', cp.geeksforgeeks?.score);
+  setVal('admin-gfg-rank', cp.geeksforgeeks?.instituteRank);
+  setVal('admin-gfg-streak', cp.geeksforgeeks?.longestStreak);
+
+  setVal('admin-at-handle', cp.atcoder?.handle);
+  setVal('admin-at-rating', cp.atcoder?.rating);
+  setVal('admin-at-peak', cp.atcoder?.highestRating || cp.atcoder?.rating);
+  setVal('admin-at-rank', cp.atcoder?.rank);
+  setVal('admin-at-contests', cp.atcoder?.contests || cp.atcoder?.ratedMatches);
+
   // --------------------------------------------------------------------------
   // Pane G: Settings
   // --------------------------------------------------------------------------
@@ -1668,15 +1777,19 @@ function initAdminPaneHandlers() {
       saveBtn.disabled = true;
     }
 
-    const lcRaw = document.getElementById('admin-lc-handle').value.trim();
-    const cfRaw = document.getElementById('admin-cf-handle').value.trim();
-    const ccRaw = document.getElementById('admin-cc-handle').value.trim();
-    const cdRaw = document.getElementById('admin-cd-url').value.trim();
+    const lcRaw = document.getElementById('admin-lc-handle')?.value?.trim() || '';
+    const cfRaw = document.getElementById('admin-cf-handle')?.value?.trim() || '';
+    const ccRaw = document.getElementById('admin-cc-handle')?.value?.trim() || '';
+    const cdRaw = document.getElementById('admin-cd-url')?.value?.trim() || '';
+    const gfgRaw = document.getElementById('admin-gfg-handle')?.value?.trim() || '';
+    const atRaw = document.getElementById('admin-at-handle')?.value?.trim() || '';
 
     const lcHandle = extractHandle(lcRaw, 'leetcode');
     const cfHandle = extractHandle(cfRaw, 'codeforces');
     const ccHandle = extractHandle(ccRaw, 'codechef');
     const cdUrl = extractHandle(cdRaw, 'codolio');
+    const gfgHandle = extractHandle(gfgRaw, 'geeksforgeeks');
+    const atHandle = extractHandle(atRaw, 'atcoder');
 
     const data = getLocalData();
     const existing = data.settings?.codingProfiles || {};
@@ -1719,13 +1832,32 @@ function initAdminPaneHandlers() {
         ...(existing.codolio || {}),
         url: cdUrl || (cdRaw.startsWith('http') ? cdRaw : (cdRaw ? `https://codolio.com/profile/${cdRaw.replace(/^@/,'')}` : 'https://codolio.com/')),
         score: getNum('admin-cd-score', existing.codolio?.score ?? null)
+      },
+      geeksforgeeks: {
+        ...(existing.geeksforgeeks || {}),
+        handle: gfgHandle,
+        solvedTotal: getNum('admin-gfg-solved', existing.geeksforgeeks?.solvedTotal ?? 0),
+        score: getNum('admin-gfg-score', existing.geeksforgeeks?.score ?? 0),
+        instituteRank: getStr('admin-gfg-rank', existing.geeksforgeeks?.instituteRank || ''),
+        longestStreak: getNum('admin-gfg-streak', existing.geeksforgeeks?.longestStreak ?? 0),
+        url: gfgHandle ? `https://www.geeksforgeeks.org/profile/${gfgHandle}` : ''
+      },
+      atcoder: {
+        ...(existing.atcoder || {}),
+        handle: atHandle,
+        rating: getNum('admin-at-rating', existing.atcoder?.rating ?? 0),
+        highestRating: getNum('admin-at-peak', existing.atcoder?.highestRating ?? existing.atcoder?.rating ?? 0),
+        rank: getStr('admin-at-rank', existing.atcoder?.rank || ''),
+        ratedMatches: getNum('admin-at-contests', existing.atcoder?.ratedMatches ?? existing.atcoder?.contests ?? 0),
+        contests: getNum('admin-at-contests', existing.atcoder?.contests ?? existing.atcoder?.ratedMatches ?? 0),
+        url: atHandle ? `https://atcoder.jp/users/${atHandle}` : ''
       }
     };
 
     await saveCodingProfiles(updatedProfiles);
 
     // If handles were provided, attempt live synchronization
-    if (lcHandle || cfHandle || ccHandle) {
+    if (lcHandle || cfHandle || ccHandle || gfgHandle || atHandle) {
       try {
         await fetchLiveCodingProfiles(true);
       } catch (fetchErr) {

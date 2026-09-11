@@ -11,12 +11,15 @@ export function generateSystemPrompt() {
   const certsList = (data.certificates || []).map(c => `• ${c.title} from ${c.issuer} (${c.date})`).join('\n');
 
   const cp = data.settings.codingProfiles || {};
+  const totalSolvedDSA = (Number(cp.leetcode?.solvedTotal) || 0) + (Number(cp.codeforces?.solvedTotal) || 0) + (Number(cp.codechef?.solvedTotal) || 0) + (Number(cp.geeksforgeeks?.solvedTotal) || 0);
   const codingSummary = `
 • LeetCode: ${cp.leetcode?.solvedTotal || 420}+ problems solved (Easy: ${cp.leetcode?.solvedEasy || 150}, Medium: ${cp.leetcode?.solvedMedium || 220}, Hard: ${cp.leetcode?.solvedHard || 50}), Rating: ${cp.leetcode?.rating || 1845}, Global Rank: ${cp.leetcode?.globalRank || 'Top 3.8%'}
 • Codeforces: Rating ${cp.codeforces?.rating || 1468} (Max ${cp.codeforces?.maxRating || 1540}), Title: ${cp.codeforces?.rank || 'Specialist'}, Solved: ${cp.codeforces?.solvedTotal || 310}+ problems
 • CodeChef: ${cp.codechef?.stars || '4★'} (Rating ${cp.codechef?.rating || 1820}, Max ${cp.codechef?.highestRating || 1865}), Global Rank: ${cp.codechef?.globalRank || '#11,420'}, Solved: ${cp.codechef?.solvedTotal || 260}+
 • Codolio: Unified Developer Score ${cp.codolio?.score || 875}/1000
-• Total Across Platforms: 990+ Data Structures & Algorithms problems solved.`;
+• GeeksforGeeks: ${cp.geeksforgeeks?.solvedTotal || 98}+ problems solved, Coding Score: ${cp.geeksforgeeks?.score || 250}, Institute Rank: ${cp.geeksforgeeks?.instituteRank || '#6,885'}, Longest Streak: ${cp.geeksforgeeks?.longestStreak || 2} days
+• AtCoder: Rating ${cp.atcoder?.rating || 129} (Highest ${cp.atcoder?.highestRating || cp.atcoder?.rating || 129}), Rank: ${cp.atcoder?.rank || '#59,023 (Top 46.3%)'}, Contests: ${cp.atcoder?.ratedMatches || cp.atcoder?.contests || 6}
+• Total Across Platforms: ${totalSolvedDSA > 0 ? totalSolvedDSA : 1000}+ Data Structures & Algorithms problems solved.`;
 
   return `You are the Virtual AI Representative and technical co-pilot for ${ownerName}.
 Your purpose is to professionally represent ${ownerName} to recruiters, engineering leaders, clients, and fellow developers.
@@ -47,7 +50,7 @@ ${journeyList || 'No journey items listed.'}
 ${certsList || 'No certificates listed.'}
 
 === BEHAVIOR & GUIDELINES ===
-1. Answer questions about ${ownerName}'s background, tech stack, projects, coding profiles (LeetCode, Codeforces, CodeChef, Codolio), experience, and contact methods accurately based on the data above.
+1. Answer questions about ${ownerName}'s background, tech stack, projects, coding profiles (LeetCode, Codeforces, CodeChef, Codolio, GeeksforGeeks, AtCoder), experience, and contact methods accurately based on the data above.
 2. Maintain an articulate, confident, friendly, and highly knowledgeable tone.
 3. If asked for contact info, CV, or resume, provide ${email} or suggest using the 'CV (PDF)' button in the hero section or the '#contact' section.
 4. Keep answers concise (2-4 paragraphs max) unless in-depth technical elaboration is explicitly requested.

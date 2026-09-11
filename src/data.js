@@ -55,6 +55,23 @@ const DEFAULT_DATA = {
         score: 875,
         badges: 'Verified Profile',
         summary: 'Unified cross-platform problem solving profile aggregating contest history & DSA strengths.'
+      },
+      geeksforgeeks: {
+        handle: 'niharik8bqf',
+        url: 'https://www.geeksforgeeks.org/profile/niharik8bqf',
+        score: 250,
+        solvedTotal: 98,
+        instituteRank: '#6,885',
+        longestStreak: 2
+      },
+      atcoder: {
+        handle: 'niharikab1806',
+        url: 'https://atcoder.jp/users/niharikab1806',
+        rating: 129,
+        highestRating: 129,
+        rank: '#59,023',
+        percentile: 'Top 46.33%',
+        contests: 6
       }
     }
   },
@@ -358,6 +375,14 @@ export function extractHandle(input, platform) {
     }
     return str;
   }
+  if (platform === 'geeksforgeeks') {
+    const match = str.match(/(?:geeksforgeeks\.org\/(?:profile|user)\/|@|^)([a-zA-Z0-9_\-]+)$/i) || str.match(/([a-zA-Z0-9_\-]+)$/);
+    return match ? match[1] : str.replace(/^@/, '');
+  }
+  if (platform === 'atcoder') {
+    const match = str.match(/(?:atcoder\.jp\/users\/|@|^)([a-zA-Z0-9_\-]+)$/i) || str.match(/([a-zA-Z0-9_\-]+)$/);
+    return match ? match[1] : str.replace(/^@/, '');
+  }
   return str.replace(/^@/, '');
 }
 
@@ -378,13 +403,20 @@ function normalizeSettings(s) {
   }
 
   // Merge carefully: if parsedProfiles is found, merge with currentLocalProfiles so no fields are lost
-  let mergedProfiles = currentLocalProfiles;
+  let mergedProfiles;
   if (parsedProfiles && typeof parsedProfiles === 'object') {
     mergedProfiles = {
-      leetcode: { ...(currentLocalProfiles.leetcode || {}), ...(parsedProfiles.leetcode || {}) },
-      codeforces: { ...(currentLocalProfiles.codeforces || {}), ...(parsedProfiles.codeforces || {}) },
-      codechef: { ...(currentLocalProfiles.codechef || {}), ...(parsedProfiles.codechef || {}) },
-      codolio: { ...(currentLocalProfiles.codolio || {}), ...(parsedProfiles.codolio || {}) }
+      leetcode: { ...(DEFAULT_DATA.settings.codingProfiles.leetcode || {}), ...(currentLocalProfiles.leetcode || {}), ...(parsedProfiles.leetcode || {}) },
+      codeforces: { ...(DEFAULT_DATA.settings.codingProfiles.codeforces || {}), ...(currentLocalProfiles.codeforces || {}), ...(parsedProfiles.codeforces || {}) },
+      codechef: { ...(DEFAULT_DATA.settings.codingProfiles.codechef || {}), ...(currentLocalProfiles.codechef || {}), ...(parsedProfiles.codechef || {}) },
+      codolio: { ...(DEFAULT_DATA.settings.codingProfiles.codolio || {}), ...(currentLocalProfiles.codolio || {}), ...(parsedProfiles.codolio || {}) },
+      geeksforgeeks: { ...(DEFAULT_DATA.settings.codingProfiles.geeksforgeeks || {}), ...(currentLocalProfiles.geeksforgeeks || {}), ...(parsedProfiles.geeksforgeeks || {}) },
+      atcoder: { ...(DEFAULT_DATA.settings.codingProfiles.atcoder || {}), ...(currentLocalProfiles.atcoder || {}), ...(parsedProfiles.atcoder || {}) }
+    };
+  } else {
+    mergedProfiles = {
+      ...DEFAULT_DATA.settings.codingProfiles,
+      ...(currentLocalProfiles || {})
     };
   }
 
@@ -1108,6 +1140,8 @@ export async function fetchLiveCodingProfiles(forceRefresh = false) {
   const leetcodeHandle = extractHandle(profiles.leetcode?.handle || '', 'leetcode');
   const codeforcesHandle = extractHandle(profiles.codeforces?.handle || '', 'codeforces');
   const codechefHandle = extractHandle(profiles.codechef?.handle || '', 'codechef');
+  const geeksforgeeksHandle = extractHandle(profiles.geeksforgeeks?.handle || '', 'geeksforgeeks');
+  const atcoderHandle = extractHandle(profiles.atcoder?.handle || '', 'atcoder');
 
   // Ensure cleaned handles and URLs are set
   if (leetcodeHandle) {
@@ -1122,12 +1156,22 @@ export async function fetchLiveCodingProfiles(forceRefresh = false) {
     profiles.codechef.handle = codechefHandle;
     profiles.codechef.url = `https://www.codechef.com/users/${codechefHandle}`;
   }
+  if (geeksforgeeksHandle) {
+    profiles.geeksforgeeks = profiles.geeksforgeeks || {};
+    profiles.geeksforgeeks.handle = geeksforgeeksHandle;
+    profiles.geeksforgeeks.url = `https://www.geeksforgeeks.org/profile/${geeksforgeeksHandle}`;
+  }
+  if (atcoderHandle) {
+    profiles.atcoder = profiles.atcoder || {};
+    profiles.atcoder.handle = atcoderHandle;
+    profiles.atcoder.url = `https://atcoder.jp/users/${atcoderHandle}`;
+  }
 
   let hasUpdates = false;
 
   // 1. Try Vercel Serverless Proxy / Vite Dev Middleware
   try {
-    const url = `/api/coding-stats?leetcode=${encodeURIComponent(leetcodeHandle)}&codeforces=${encodeURIComponent(codeforcesHandle)}&codechef=${encodeURIComponent(codechefHandle)}${forceRefresh ? '&t=' + Date.now() : ''}`;
+    const url = `/api/coding-stats?leetcode=${encodeURIComponent(leetcodeHandle)}&codeforces=${encodeURIComponent(codeforcesHandle)}&codechef=${encodeURIComponent(codechefHandle)}&geeksforgeeks=${encodeURIComponent(geeksforgeeksHandle)}&atcoder=${encodeURIComponent(atcoderHandle)}${forceRefresh ? '&t=' + Date.now() : ''}`;
     const res = await fetch(url);
     if (res.ok) {
       const json = await res.json();
@@ -1142,6 +1186,14 @@ export async function fetchLiveCodingProfiles(forceRefresh = false) {
         }
         if (json.data.codechef && (json.data.codechef.rating !== undefined || json.data.codechef.stars || json.data.codechef.handle)) {
           profiles.codechef = { ...profiles.codechef, ...json.data.codechef };
+          hasUpdates = true;
+        }
+        if (json.data.geeksforgeeks && (json.data.geeksforgeeks.score !== undefined || json.data.geeksforgeeks.solvedTotal !== undefined || json.data.geeksforgeeks.handle)) {
+          profiles.geeksforgeeks = { ...profiles.geeksforgeeks, ...json.data.geeksforgeeks };
+          hasUpdates = true;
+        }
+        if (json.data.atcoder && (json.data.atcoder.rating !== undefined || json.data.atcoder.rank || json.data.atcoder.handle)) {
+          profiles.atcoder = { ...profiles.atcoder, ...json.data.atcoder };
           hasUpdates = true;
         }
       }
