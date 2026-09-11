@@ -45,251 +45,19 @@ import {
   downloadStoredCv,
   formatFileSize
 } from './cvStore.js';
+import { initAurora } from './aurora.js';
 
 // ==========================================================================
-// 1. Interactive Chromatic Ambient Canvas (Fluid Aurora Orbs & Luminous Stardust)
+// 1. Aurora WebGL Background Component (React Bits: https://reactbits.dev/backgrounds/aurora)
 // ==========================================================================
-function initParticleCanvas() {
-  const canvas = document.getElementById('bg-canvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  let width, height, dpr;
-  let animId = null;
-  const mouse = { x: null, y: null, targetX: null, targetY: null, radius: 240 };
-
-  // Chromatic Ambient Light Spheres (Soft breathing fluid colors)
-  let orbs = [];
-  // Floating Luminous Micro-Pearls / Stardust (Pure floating motes, NO webs/lines)
-  let motes = [];
-
-  function resize() {
-    dpr = window.devicePixelRatio || 1;
-    width = window.innerWidth;
-    height = window.innerHeight;
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-    canvas.style.width = width + 'px';
-    canvas.style.height = height + 'px';
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.scale(dpr, dpr);
-    initOrbsAndMotes();
-  }
-
-  window.addEventListener('resize', resize);
-
-  window.addEventListener('mousemove', (e) => {
-    mouse.targetX = e.clientX;
-    mouse.targetY = e.clientY;
-    if (mouse.x === null) {
-      mouse.x = e.clientX;
-      mouse.y = e.clientY;
-    }
+let auroraInstance = null;
+function initAuroraBackground() {
+  auroraInstance = initAurora('aurora-container', {
+    colorStops: ['#5227FF', '#7cff67', '#5227FF'],
+    amplitude: 1.0,
+    blend: 0.5,
+    speed: 0.65
   });
-
-  window.addEventListener('mouseleave', () => {
-    mouse.targetX = null;
-    mouse.targetY = null;
-  });
-
-  function initOrbsAndMotes() {
-    const isMobile = width < 768;
-    
-    // 5 Organic Floating Chromatic Orbs with harmonic speeds and Lissajous motion
-    orbs = [
-      {
-        baseX: width * 0.18,
-        baseY: height * 0.25,
-        radius: isMobile ? 180 : 320,
-        colorLight: ['rgba(79, 70, 229, 0.12)', 'rgba(124, 58, 237, 0.06)', 'transparent'],
-        colorDark: ['rgba(0, 242, 254, 0.08)', 'rgba(79, 70, 229, 0.04)', 'transparent'],
-        freqX: 0.0006,
-        freqY: 0.0008,
-        ampX: 120,
-        ampY: 80,
-        phase: 0,
-        currentX: width * 0.18,
-        currentY: height * 0.25
-      },
-      {
-        baseX: width * 0.82,
-        baseY: height * 0.35,
-        radius: isMobile ? 200 : 360,
-        colorLight: ['rgba(244, 63, 94, 0.11)', 'rgba(251, 146, 60, 0.05)', 'transparent'],
-        colorDark: ['rgba(236, 72, 153, 0.07)', 'rgba(168, 85, 247, 0.04)', 'transparent'],
-        freqX: 0.0007,
-        freqY: 0.0005,
-        ampX: 140,
-        ampY: 100,
-        phase: Math.PI / 3,
-        currentX: width * 0.82,
-        currentY: height * 0.35
-      },
-      {
-        baseX: width * 0.48,
-        baseY: height * 0.72,
-        radius: isMobile ? 220 : 380,
-        colorLight: ['rgba(14, 165, 233, 0.10)', 'rgba(99, 102, 241, 0.05)', 'transparent'],
-        colorDark: ['rgba(127, 0, 255, 0.08)', 'rgba(56, 189, 248, 0.04)', 'transparent'],
-        freqX: 0.0005,
-        freqY: 0.0007,
-        ampX: 100,
-        ampY: 90,
-        phase: Math.PI / 1.5,
-        currentX: width * 0.48,
-        currentY: height * 0.72
-      },
-      {
-        baseX: width * 0.15,
-        baseY: height * 0.82,
-        radius: isMobile ? 160 : 280,
-        colorLight: ['rgba(245, 158, 11, 0.09)', 'rgba(244, 63, 94, 0.04)', 'transparent'],
-        colorDark: ['rgba(245, 158, 11, 0.05)', 'rgba(236, 72, 153, 0.03)', 'transparent'],
-        freqX: 0.0008,
-        freqY: 0.0006,
-        ampX: 80,
-        ampY: 110,
-        phase: Math.PI,
-        currentX: width * 0.15,
-        currentY: height * 0.82
-      },
-      {
-        baseX: width * 0.76,
-        baseY: height * 0.85,
-        radius: isMobile ? 180 : 300,
-        colorLight: ['rgba(16, 185, 129, 0.08)', 'rgba(14, 165, 233, 0.04)', 'transparent'],
-        colorDark: ['rgba(16, 185, 129, 0.06)', 'rgba(0, 242, 254, 0.03)', 'transparent'],
-        freqX: 0.0006,
-        freqY: 0.0008,
-        ampX: 110,
-        ampY: 70,
-        phase: Math.PI * 1.4,
-        currentX: width * 0.76,
-        currentY: height * 0.85
-      }
-    ];
-
-    // Floating Stardust Motes (Gentle luminous drifting motes, NO lines, NO web structures)
-    const moteCount = isMobile ? 16 : 32;
-    motes = [];
-    for (let i = 0; i < moteCount; i++) {
-      motes.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        baseRadius: Math.random() * 2 + 1.2,
-        speedY: Math.random() * 0.35 + 0.15,
-        wobbleSpeed: Math.random() * 0.015 + 0.008,
-        wobbleAmp: Math.random() * 18 + 8,
-        phase: Math.random() * Math.PI * 2,
-        pulseSpeed: Math.random() * 0.02 + 0.01,
-        pulsePhase: Math.random() * Math.PI * 2,
-        hue: Math.random() > 0.4 ? 245 : (Math.random() > 0.5 ? 345 : 198)
-      });
-    }
-  }
-
-  function drawScene(time) {
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-
-    // Smooth mouse interpolation
-    if (mouse.targetX !== null && mouse.targetY !== null) {
-      mouse.x += (mouse.targetX - mouse.x) * 0.06;
-      mouse.y += (mouse.targetY - mouse.y) * 0.06;
-    } else {
-      mouse.x = null;
-      mouse.y = null;
-    }
-
-    // 1. Draw Floating Chromatic Ambient Orbs
-    for (let i = 0; i < orbs.length; i++) {
-      const orb = orbs[i];
-      let targetX = orb.baseX + Math.sin(time * orb.freqX + orb.phase) * orb.ampX;
-      let targetY = orb.baseY + Math.cos(time * orb.freqY + orb.phase) * orb.ampY;
-
-      // Gentle fluid response to mouse position
-      if (mouse.x !== null && mouse.y !== null) {
-        const dx = mouse.x - targetX;
-        const dy = mouse.y - targetY;
-        const dist = Math.hypot(dx, dy);
-        if (dist < 500) {
-          const force = (1 - dist / 500) * 45;
-          targetX += (dx / dist) * force;
-          targetY += (dy / dist) * force;
-        }
-      }
-
-      orb.currentX += (targetX - orb.currentX) * 0.04;
-      orb.currentY += (targetY - orb.currentY) * 0.04;
-
-      const colors = isDark ? orb.colorDark : orb.colorLight;
-      const grad = ctx.createRadialGradient(
-        orb.currentX, orb.currentY, 0,
-        orb.currentX, orb.currentY, orb.radius
-      );
-      grad.addColorStop(0, colors[0]);
-      grad.addColorStop(0.55, colors[1]);
-      grad.addColorStop(1, colors[2]);
-
-      ctx.save();
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(orb.currentX, orb.currentY, orb.radius, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    }
-
-    // 2. Draw Floating Luminous Stardust Motes (NO connecting lines)
-    for (let i = 0; i < motes.length; i++) {
-      const m = motes[i];
-      m.y -= m.speedY;
-      m.phase += m.wobbleSpeed;
-      m.pulsePhase += m.pulseSpeed;
-
-      // Wrap around screen top to bottom
-      if (m.y < -10) {
-        m.y = height + 10;
-        m.x = Math.random() * width;
-      }
-
-      let drawX = m.x + Math.sin(m.phase) * m.wobbleAmp;
-      let drawY = m.y;
-
-      // Gentle fluid repulsion from mouse
-      if (mouse.x !== null && mouse.y !== null) {
-        const dx = drawX - mouse.x;
-        const dy = drawY - mouse.y;
-        const dist = Math.hypot(dx, dy);
-        if (dist < mouse.radius) {
-          const push = (mouse.radius - dist) / mouse.radius;
-          drawX += (dx / dist) * push * 25;
-          drawY += (dy / dist) * push * 25;
-        }
-      }
-
-      const alpha = 0.25 + Math.sin(m.pulsePhase) * 0.18;
-      const lightness = isDark ? 75 : 62;
-      const color = `hsla(${m.hue}, 85%, ${lightness}%, ${alpha.toFixed(3)})`;
-
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(drawX, drawY, m.baseRadius, 0, Math.PI * 2);
-      ctx.fillStyle = color;
-      ctx.shadowBlur = isDark ? 8 : 4;
-      ctx.shadowColor = color;
-      ctx.fill();
-      ctx.restore();
-    }
-  }
-
-  function animate(timestamp) {
-    if (!document.hidden) {
-      ctx.clearRect(0, 0, width, height);
-      drawScene(timestamp || 0);
-    }
-    animId = requestAnimationFrame(animate);
-  }
-
-  resize();
-  animate(0);
 }
 
 // ==========================================================================
@@ -3557,7 +3325,7 @@ function initClickSpark() {
 // Initialization Entrypoint
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
-  initParticleCanvas();
+  initAuroraBackground();
   initClickSpark();
   initTheme();
   renderAllUI();

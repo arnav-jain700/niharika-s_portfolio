@@ -93,79 +93,26 @@ body {
   position: relative;
 }
 
-/* Ambient Luminous Silk Waves (Warm Pearlescent Studio Lighting) */
-.ambient-iridescent {
+/* ==========================================================================
+   Aurora WebGL Background (React Bits: https://reactbits.dev/backgrounds/aurora)
+   ========================================================================== */
+.aurora-container {
   position: fixed;
-  pointer-events: none;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
   z-index: 0;
-  border-radius: 50%;
-  filter: blur(105px);
-  opacity: 0.65;
-  will-change: transform;
+  pointer-events: none;
+  overflow: hidden;
 }
 
-.wave-1 {
-  width: 620px;
-  height: 620px;
-  top: -120px;
-  left: -90px;
-  background: radial-gradient(circle, rgba(199, 210, 254, 0.8) 0%, rgba(245, 208, 254, 0.6) 50%, rgba(254, 240, 238, 0.3) 100%);
-  animation: floatWave1 22s ease-in-out infinite alternate;
-}
-
-.wave-2 {
-  width: 700px;
-  height: 700px;
-  top: 30%;
-  right: -160px;
-  background: radial-gradient(circle, rgba(254, 205, 211, 0.72) 0%, rgba(254, 243, 199, 0.55) 50%, rgba(224, 231, 255, 0.3) 100%);
-  animation: floatWave2 26s ease-in-out infinite alternate;
-}
-
-.wave-3 {
-  width: 650px;
-  height: 650px;
-  bottom: 40px;
-  left: 15%;
-  background: radial-gradient(circle, rgba(186, 230, 253, 0.7) 0%, rgba(204, 251, 241, 0.52) 50%, rgba(237, 233, 254, 0.35) 100%);
-  animation: floatWave3 24s ease-in-out infinite alternate;
-}
-
-.wave-4 {
-  width: 520px;
-  height: 520px;
-  top: 10%;
-  right: 25%;
-  background: radial-gradient(circle, rgba(254, 240, 138, 0.45) 0%, rgba(254, 215, 170, 0.35) 50%, transparent 80%);
-  animation: floatWave4 20s ease-in-out infinite alternate;
-}
-
-@keyframes floatWave1 {
-  0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(45px, 35px) scale(1.06); }
-  100% { transform: translate(-20px, 50px) scale(0.95); }
-}
-
-@keyframes floatWave2 {
-  0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-50px, -40px) scale(1.08); }
-  100% { transform: translate(35px, 35px) scale(0.92); }
-}
-
-@keyframes floatWave3 {
-  0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(35px, -45px) scale(1.05); }
-  100% { transform: translate(-45px, 25px) scale(0.96); }
-}
-
-@keyframes floatWave4 {
-  0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-35px, 45px) scale(1.1); }
-  100% { transform: translate(25px, -25px) scale(0.9); }
-}
-
-[data-theme="dark"] .ambient-iridescent {
-  opacity: 0.18;
+.aurora-container canvas {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  pointer-events: none;
+  display: block;
 }
 
 /* Pinned Neon Scroll Progress Bar */
@@ -182,18 +129,6 @@ body {
   pointer-events: none;
 }
 
-/* Interactive Chromatic Canvas Background */
-#bg-canvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.9;
-}
-
 /* Click Spark Canvas Overlay (React Bits Effect) */
 #click-spark-canvas {
   position: fixed;
@@ -203,20 +138,6 @@ body {
   pointer-events: none;
   z-index: 99998;
 }
-
-/* Ambient Cyber Glow Blobs */
-.ambient-glow {
-  position: fixed;
-  width: 600px;
-  height: 600px;
-  border-radius: 50%;
-  filter: blur(140px);
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.15;
-}
-.glow-1 { top: -100px; left: -100px; background: var(--accent-indigo); }
-.glow-2 { bottom: -100px; right: -100px; background: var(--accent-purple); }
 
 /* Main Content Container */
 .app-container {
@@ -2415,6 +2336,7 @@ body.print-mode {
   font-family: 'Georgia', 'Times New Roman', serif !important;
 }
 
+body.print-mode .aurora-container,
 body.print-mode #bg-canvas,
 body.print-mode .ambient-glow,
 body.print-mode .navbar,
