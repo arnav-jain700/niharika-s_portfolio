@@ -571,10 +571,10 @@ function renderCodingProfiles(profilesData, lastSyncTime) {
     parseInt(at.highestRating) || parseInt(at.rating) || 0,
     customMaxRating
   );
-  const lcContests = parseInt(lc.contests) || parseInt(lc.attendedContestsCount) || 0;
-  const cfContests = parseInt(cf.contests) || 0;
-  const ccContests = parseInt(cc.contests) || 0;
-  const atContests = parseInt(at.contests) || parseInt(at.ratedMatches) || 0;
+  const lcContests = Math.max(parseInt(lc.contests) || 0, parseInt(lc.attendedContestsCount) || 0, 22);
+  const cfContests = Math.max(parseInt(cf.contests) || 0, 4);
+  const ccContests = Math.max(parseInt(cc.contests) || 0, 12);
+  const atContests = Math.max(parseInt(at.contests) || 0, parseInt(at.ratedMatches) || 0, 6);
   const totalContests = lcContests + cfContests + ccContests + atContests + customContests;
 
   // Update Summary Banner Counters
@@ -583,7 +583,7 @@ function renderCodingProfiles(profilesData, lastSyncTime) {
   const peakRatingEl = document.getElementById('summary-peak-rating');
   if (peakRatingEl) peakRatingEl.textContent = peakRating > 0 ? `${peakRating}` : 'Unrated';
   const contestsEl = document.getElementById('summary-contests-count');
-  if (contestsEl) contestsEl.textContent = totalContests > 0 ? `${totalContests}+` : (cf.contests ? `${cf.contests}+` : '30+');
+  if (contestsEl) contestsEl.textContent = `${totalContests}`;
   const tierEl = document.getElementById('summary-global-percentile');
   if (tierEl) tierEl.textContent = lc.globalRank || (lc.rating ? `Rating: ${lc.rating}` : (lc.solvedTotal > 0 ? `${lc.solvedTotal} Solved` : 'Active Solver'));
 
@@ -844,7 +844,7 @@ function renderCodingProfiles(profilesData, lastSyncTime) {
           <span class="metric-label">Problems Solved</span>
         </div>
         <div class="metric-box">
-          <span class="metric-val" style="color: var(--accent-green);">${cf.contests > 0 ? `${cf.contests}+` : (cf.rating > 0 ? 'Rated' : 'Active')}</span>
+          <span class="metric-val" style="color: var(--accent-green);">${cf.contests || 4}</span>
           <span class="metric-label">Contests</span>
         </div>
       </div>

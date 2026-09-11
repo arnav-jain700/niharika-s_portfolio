@@ -323,10 +323,26 @@ export function getLocalData() {
 
     if (saved) {
       memoryStore = JSON.parse(saved);
-      // Ensure coding profiles are not placeholder handles
-      if (!memoryStore.settings?.codingProfiles?.leetcode?.handle || memoryStore.settings?.codingProfiles?.leetcode?.handle === 'niharika18') {
-        if (!memoryStore.settings) memoryStore.settings = {};
+      if (!memoryStore.settings) memoryStore.settings = {};
+      if (!memoryStore.settings.codingProfiles || !memoryStore.settings.codingProfiles.leetcode?.handle || memoryStore.settings.codingProfiles.leetcode?.handle === 'niharika18') {
         memoryStore.settings.codingProfiles = JSON.parse(JSON.stringify(DEFAULT_DATA.settings.codingProfiles));
+      } else {
+        const defCP = DEFAULT_DATA.settings.codingProfiles;
+        const curCP = memoryStore.settings.codingProfiles;
+        for (const p of ['leetcode', 'codeforces', 'codechef', 'codolio', 'geeksforgeeks', 'atcoder']) {
+          curCP[p] = { ...(defCP[p] || {}), ...(curCP[p] || {}) };
+          if (defCP[p]?.contests) {
+            curCP[p].contests = Math.max(parseInt(curCP[p].contests) || 0, defCP[p].contests);
+          }
+          if (defCP[p]?.attendedContestsCount) {
+            curCP[p].attendedContestsCount = Math.max(parseInt(curCP[p].attendedContestsCount) || 0, defCP[p].attendedContestsCount);
+          }
+        }
+      }
+      for (const sk of ['cvUrl', 'cvFilename', 'cvFileSize']) {
+        if (!memoryStore.settings[sk] && DEFAULT_DATA.settings[sk]) {
+          memoryStore.settings[sk] = DEFAULT_DATA.settings[sk];
+        }
       }
       // Merge in any missing top-level arrays/objects
       for (const key of Object.keys(DEFAULT_DATA)) {
@@ -435,6 +451,18 @@ function normalizeSettings(s) {
       ...(currentLocalProfiles || {}),
       customProfiles: customList
     };
+  }
+
+  // Ensure verified baselines are never overwritten with lower or missing contest counts
+  for (const p of ['leetcode', 'codeforces', 'codechef', 'atcoder']) {
+    const defVal = DEFAULT_DATA.settings.codingProfiles[p]?.contests;
+    if (defVal && mergedProfiles[p]) {
+      mergedProfiles[p].contests = Math.max(parseInt(mergedProfiles[p].contests) || 0, defVal);
+    }
+    const defAtt = DEFAULT_DATA.settings.codingProfiles[p]?.attendedContestsCount;
+    if (defAtt && mergedProfiles[p]) {
+      mergedProfiles[p].attendedContestsCount = Math.max(parseInt(mergedProfiles[p].attendedContestsCount) || 0, defAtt);
+    }
   }
 
   return {
@@ -1199,15 +1227,34 @@ export async function fetchLiveCodingProfiles(forceRefresh = false) {
       const json = await res.json();
       if (json.success && json.data) {
         if (json.data.leetcode && json.data.leetcode.solvedTotal !== undefined) {
-          profiles.leetcode = { ...profiles.leetcode, ...json.data.leetcode };
+          const liveContests = parseInt(json.data.leetcode.contests) || parseInt(json.data.leetcode.attendedContestsCount) || 0;
+          const prevContests = parseInt(profiles.leetcode.contests) || parseInt(profiles.leetcode.attendedContestsCount) || 22;
+          profiles.leetcode = { 
+            ...profiles.leetcode, 
+            ...json.data.leetcode,
+            contests: Math.max(liveContests, prevContests, 22),
+            attendedContestsCount: Math.max(liveContests, prevContests, 22)
+          };
           hasUpdates = true;
         }
         if (json.data.codeforces && (json.data.codeforces.rating !== undefined || json.data.codeforces.solvedTotal !== undefined || json.data.codeforces.handle)) {
-          profiles.codeforces = { ...profiles.codeforces, ...json.data.codeforces };
+          const liveContests = parseInt(json.data.codeforces.contests) || 0;
+          const prevContests = parseInt(profiles.codeforces.contests) || 4;
+          profiles.codeforces = { 
+            ...profiles.codeforces, 
+            ...json.data.codeforces,
+            contests: Math.max(liveContests, prevContests, 4)
+          };
           hasUpdates = true;
         }
         if (json.data.codechef && (json.data.codechef.rating !== undefined || json.data.codechef.stars || json.data.codechef.handle)) {
-          profiles.codechef = { ...profiles.codechef, ...json.data.codechef };
+          const liveContests = parseInt(json.data.codechef.contests) || 0;
+          const prevContests = parseInt(profiles.codechef.contests) || 12;
+          profiles.codechef = { 
+            ...profiles.codechef, 
+            ...json.data.codechef,
+            contests: Math.max(liveContests, prevContests, 12)
+          };
           hasUpdates = true;
         }
         if (json.data.geeksforgeeks && (json.data.geeksforgeeks.score !== undefined || json.data.geeksforgeeks.solvedTotal !== undefined || json.data.geeksforgeeks.handle)) {
@@ -1215,7 +1262,14 @@ export async function fetchLiveCodingProfiles(forceRefresh = false) {
           hasUpdates = true;
         }
         if (json.data.atcoder && (json.data.atcoder.rating !== undefined || json.data.atcoder.rank || json.data.atcoder.handle)) {
-          profiles.atcoder = { ...profiles.atcoder, ...json.data.atcoder };
+          const liveContests = parseInt(json.data.atcoder.contests) || parseInt(json.data.atcoder.ratedMatches) || 0;
+          const prevContests = parseInt(profiles.atcoder.contests) || parseInt(profiles.atcoder.ratedMatches) || 6;
+          profiles.atcoder = { 
+            ...profiles.atcoder, 
+            ...json.data.atcoder,
+            contests: Math.max(liveContests, prevContests, 6),
+            ratedMatches: Math.max(liveContests, prevContests, 6)
+          };
           hasUpdates = true;
         }
         if (json.data.custom && typeof json.data.custom === 'object') {
@@ -1343,6 +1397,22 @@ export async function fetchLiveCodingProfiles(forceRefresh = false) {
         console.warn('Direct CodeChef fetch failed:', e);
       }
     }
+  }
+
+  // Always guarantee verified contest baselines across all platforms
+  if (profiles.leetcode) {
+    profiles.leetcode.contests = Math.max(parseInt(profiles.leetcode.contests) || 0, 22);
+    profiles.leetcode.attendedContestsCount = Math.max(parseInt(profiles.leetcode.attendedContestsCount) || 0, 22);
+  }
+  if (profiles.codeforces) {
+    profiles.codeforces.contests = Math.max(parseInt(profiles.codeforces.contests) || 0, 4);
+  }
+  if (profiles.codechef) {
+    profiles.codechef.contests = Math.max(parseInt(profiles.codechef.contests) || 0, 12);
+  }
+  if (profiles.atcoder) {
+    profiles.atcoder.contests = Math.max(parseInt(profiles.atcoder.contests) || 0, 6);
+    profiles.atcoder.ratedMatches = Math.max(parseInt(profiles.atcoder.ratedMatches) || 0, 6);
   }
 
   data.settings.codingProfiles = profiles;

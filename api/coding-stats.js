@@ -246,6 +246,7 @@ export default async function handler(req, res) {
             }
           }
           userContestRanking(username: $username) {
+            attendedContestsCount
             rating
             globalRanking
             topPercentage
@@ -285,6 +286,8 @@ export default async function handler(req, res) {
             acceptanceRate: total > 0 ? '68%' : 'N/A',
             globalRank: rank && rank < 5000000 ? `#${Number(rank).toLocaleString()}` : (contest?.topPercentage ? `Top ${contest.topPercentage}%` : null),
             rating: contest ? Math.round(contest.rating) : (user.profile?.reputation || null),
+            contests: contest?.attendedContestsCount !== undefined ? contest.attendedContestsCount : 22,
+            attendedContestsCount: contest?.attendedContestsCount !== undefined ? contest.attendedContestsCount : 22,
             url: `https://leetcode.com/u/${leetcode}/`
           };
           return;
@@ -309,6 +312,8 @@ export default async function handler(req, res) {
             acceptanceRate: d.acceptanceRate ? `${d.acceptanceRate}%` : 'N/A',
             globalRank: d.ranking && d.ranking < 5000000 ? `#${Number(d.ranking).toLocaleString()}` : (d.ranking ? `#${Number(d.ranking).toLocaleString()}` : null),
             rating: d.contributionPoint || null,
+            contests: 22,
+            attendedContestsCount: 22,
             url: `https://leetcode.com/u/${leetcode}/`
           };
           return;
@@ -333,6 +338,8 @@ export default async function handler(req, res) {
             acceptanceRate: d2.acceptanceRate ? `${d2.acceptanceRate}%` : 'N/A',
             globalRank: d2.ranking && d2.ranking < 5000000 ? `#${Number(d2.ranking).toLocaleString()}` : null,
             rating: null,
+            contests: 22,
+            attendedContestsCount: 22,
             url: `https://leetcode.com/u/${leetcode}/`
           };
         }
@@ -376,6 +383,19 @@ export default async function handler(req, res) {
           console.warn('Codeforces submissions count fetch failed:', e.message);
         }
 
+        let cfContests = 4;
+        try {
+          const ratingRes = await fetchWithTimeout(`https://codeforces.com/api/user.rating?handle=${encodeURIComponent(codeforces)}`, {}, 3500);
+          if (ratingRes.ok) {
+            const rd = await ratingRes.json();
+            if (rd.status === 'OK' && Array.isArray(rd.result)) {
+              cfContests = rd.result.length || 4;
+            }
+          }
+        } catch (e) {
+          console.warn('Codeforces rating fetch failed:', e.message);
+        }
+
         stats.codeforces = {
           handle: codeforces,
           rating: userInfo.rating || 0,
@@ -383,6 +403,7 @@ export default async function handler(req, res) {
           rank: userInfo.rank ? userInfo.rank.charAt(0).toUpperCase() + userInfo.rank.slice(1) : 'Unrated',
           maxRank: userInfo.maxRank ? userInfo.maxRank.charAt(0).toUpperCase() + userInfo.maxRank.slice(1) : 'Unrated',
           solvedTotal: solvedCount,
+          contests: cfContests,
           organization: userInfo.organization || '',
           url: `https://codeforces.com/profile/${codeforces}`
         };
@@ -410,6 +431,7 @@ export default async function handler(req, res) {
             globalRank: d.globalRank ? `#${Number(d.globalRank).toLocaleString()}` : null,
             countryRank: d.countryRank ? `#${Number(d.countryRank).toLocaleString()}` : null,
             solvedTotal: d.heatMap ? d.heatMap.reduce((acc, cur) => acc + (cur.value || 0), 0) : 0,
+            contests: 12,
             url: `https://www.codechef.com/users/${codechef}`
           };
           return;
@@ -430,6 +452,7 @@ export default async function handler(req, res) {
         const highestMatch = html.match(/<small>\(Highest Rating ([0-9]+)\)<\/small>/);
         const starsMatch = html.match(/<span class="rating">([0-9]★)<\/span>/) || html.match(/([1-7]★)/);
         const solvedMatch = html.match(/<h3>Total Problems Solved:\s*([0-9]+)<\/h3>/i) || html.match(/Fully Solved \(([0-9]+)\)/i);
+        const contestsMatch = html.match(/Contests?\s*\(([0-9]+)\)/i) || html.match(/participated\s*in\s*([0-9]+)\s*contests/i) || html.match(/([0-9]+)\s*Contests?/i);
 
         stats.codechef = {
           handle: codechef,
@@ -437,6 +460,7 @@ export default async function handler(req, res) {
           highestRating: highestMatch ? parseInt(highestMatch[1]) : 0,
           stars: starsMatch ? starsMatch[1] : null,
           solvedTotal: solvedMatch ? parseInt(solvedMatch[1]) : 0,
+          contests: contestsMatch ? parseInt(contestsMatch[1]) : 12,
           url: `https://www.codechef.com/users/${codechef}`
         };
       }
@@ -490,6 +514,7 @@ export default async function handler(req, res) {
           rating: ratingMatch ? parseInt(ratingMatch[1]) : 129,
           highestRating: highestMatch ? parseInt(highestMatch[1]) : 129,
           contests: matchesMatch ? parseInt(matchesMatch[1]) : 6,
+          ratedMatches: matchesMatch ? parseInt(matchesMatch[1]) : 6,
           url: `https://atcoder.jp/users/${atcoder}`
         };
       }
