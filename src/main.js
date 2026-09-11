@@ -2743,6 +2743,17 @@ function initCardSpotlightAndTilt() {
   );
 
   cards.forEach(card => {
+    // Explicitly exclude admin panel modal and its contents from tilting
+    if (
+      card.classList.contains('admin-modal') ||
+      card.closest('.admin-modal') ||
+      card.closest('#admin-console-modal') ||
+      card.closest('#admin-auth-modal') ||
+      card.classList.contains('no-tilt')
+    ) {
+      return;
+    }
+
     if (card.dataset.tiltInitialized === 'true') return;
     card.dataset.tiltInitialized = 'true';
 

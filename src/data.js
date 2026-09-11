@@ -101,7 +101,7 @@ const DEFAULT_DATA = {
   projects: [
     {
       id: 'proj-1',
-      title: 'ALL_ME AI Portfolio & Agent Co-Pilot',
+      title: 'Portfolio Management Engine & Agent Co-Pilot',
       category: 'AI / ML',
       description: 'Ultra high-performance framework-less SPA featuring 600+ tok/sec Groq Llama 3.3 70B AI Representative, recruiter job-fit analyzer, WebGL particle physics, and Supabase cloud sync.',
       tags: ['JavaScript', 'Groq API', 'Llama 3.3', 'Supabase', 'WebGL', 'Vite'],
