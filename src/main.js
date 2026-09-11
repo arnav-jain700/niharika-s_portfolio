@@ -21,7 +21,10 @@ import {
   clearLocalCache,
   fetchLiveCodingProfiles,
   saveCodingProfiles,
-  extractHandle
+  extractHandle,
+  saveCustomCodingProfile,
+  deleteCustomCodingProfile,
+  fetchLiveCustomProfileStats
 } from './data.js';
 
 import {
@@ -558,16 +561,42 @@ function renderCodingProfiles(profilesData, lastSyncTime) {
   const cd = profiles.codolio || {};
   const gfg = profiles.geeksforgeeks || {};
   const at = profiles.atcoder || {};
+  const customProfiles = Array.isArray(profiles.customProfiles) ? profiles.customProfiles : [];
 
-  // Calculate aggregate metrics accurately across all platforms
-  const totalSolved = (parseInt(lc.solvedTotal) || 0) + (parseInt(cf.solvedTotal) || 0) + (parseInt(cc.solvedTotal) || 0) + (parseInt(gfg.solvedTotal) || 0);
+  // Calculate custom platforms aggregate additions
+  let customSolved = 0;
+  let customMaxRating = 0;
+  let customContests = 0;
+
+  customProfiles.forEach(cp => {
+    const m = cp.metrics || {};
+    const enabled = Array.isArray(cp.enabledParams) ? cp.enabledParams : [];
+    if (enabled.includes('solvedTotal') && m.solvedTotal) {
+      customSolved += (parseInt(m.solvedTotal) || 0);
+    }
+    if (enabled.includes('rating') && m.rating) {
+      const r = parseInt(m.rating) || 0;
+      if (r > customMaxRating) customMaxRating = r;
+    }
+    if (enabled.includes('highestRating') && m.highestRating) {
+      const hr = parseInt(m.highestRating) || 0;
+      if (hr > customMaxRating) customMaxRating = hr;
+    }
+    if (enabled.includes('contests') && m.contests) {
+      customContests += (parseInt(m.contests) || 0);
+    }
+  });
+
+  // Calculate aggregate metrics accurately across all platforms (standard + custom)
+  const totalSolved = (parseInt(lc.solvedTotal) || 0) + (parseInt(cf.solvedTotal) || 0) + (parseInt(cc.solvedTotal) || 0) + (parseInt(gfg.solvedTotal) || 0) + customSolved;
   const peakRating = Math.max(
     parseInt(lc.rating) || 0,
     parseInt(cf.maxRating) || parseInt(cf.rating) || 0,
     parseInt(cc.highestRating) || parseInt(cc.rating) || 0,
-    parseInt(at.highestRating) || parseInt(at.rating) || 0
+    parseInt(at.highestRating) || parseInt(at.rating) || 0,
+    customMaxRating
   );
-  const totalContests = (parseInt(cf.contests) || 0) + (parseInt(cc.contests) || 0) + (parseInt(at.contests) || parseInt(at.ratedMatches) || 0);
+  const totalContests = (parseInt(cf.contests) || 0) + (parseInt(cc.contests) || 0) + (parseInt(at.contests) || parseInt(at.ratedMatches) || 0) + customContests;
 
   // Update Summary Banner Counters
   const totalSolvedEl = document.getElementById('summary-total-solved');
@@ -598,6 +627,154 @@ function renderCodingProfiles(profilesData, lastSyncTime) {
   const lcEasyPct = ((lcEasy / lcSum) * 100).toFixed(1);
   const lcMedPct = ((lcMed / lcSum) * 100).toFixed(1);
   const lcHardPct = ((lcHard / lcSum) * 100).toFixed(1);
+
+  // Generate HTML for dynamically added custom platform profiles
+  const customCardsHTML = customProfiles.map(cp => {
+    const m = cp.metrics || {};
+    const enabled = Array.isArray(cp.enabledParams) ? cp.enabledParams : [];
+    const color = cp.color || '#00f2fe';
+    const icon = cp.icon || 'icon-code';
+
+    // Primary badge text
+    let badgeText = 'Active';
+    if (enabled.includes('rating') && m.rating) {
+      badgeText = `Rating: ${m.rating}`;
+    } else if (enabled.includes('badges') && m.badges) {
+      badgeText = m.badges;
+    } else if (enabled.includes('score') && m.score) {
+      badgeText = `Score: ${m.score}`;
+    } else if (enabled.includes('rank') && m.rank) {
+      badgeText = m.rank;
+    } else if (enabled.includes('solvedTotal') && m.solvedTotal) {
+      badgeText = `${m.solvedTotal} Solved`;
+    }
+
+    // Build metric boxes for ONLY checked parameters
+    const metricBoxes = [];
+    if (enabled.includes('solvedTotal') && (m.solvedTotal !== undefined && m.solvedTotal !== null && m.solvedTotal !== '')) {
+      metricBoxes.push(`
+        <div class="metric-box">
+          <span class="metric-val" style="color: ${color};">${m.solvedTotal}</span>
+          <span class="metric-label">Problems Solved</span>
+        </div>
+      `);
+    }
+    if (enabled.includes('rating') && (m.rating !== undefined && m.rating !== null && m.rating !== '')) {
+      metricBoxes.push(`
+        <div class="metric-box">
+          <span class="metric-val" style="color: var(--accent-cyan);">${m.rating}</span>
+          <span class="metric-label">Contest Rating</span>
+        </div>
+      `);
+    }
+    if (enabled.includes('highestRating') && (m.highestRating !== undefined && m.highestRating !== null && m.highestRating !== '')) {
+      metricBoxes.push(`
+        <div class="metric-box">
+          <span class="metric-val" style="color: var(--accent-purple);">${m.highestRating}</span>
+          <span class="metric-label">Peak Rating</span>
+        </div>
+      `);
+    }
+    if (enabled.includes('rank') && (m.rank !== undefined && m.rank !== null && m.rank !== '')) {
+      metricBoxes.push(`
+        <div class="metric-box">
+          <span class="metric-val">${m.rank}</span>
+          <span class="metric-label">Rank / Tier</span>
+        </div>
+      `);
+    }
+    if (enabled.includes('contests') && (m.contests !== undefined && m.contests !== null && m.contests !== '')) {
+      metricBoxes.push(`
+        <div class="metric-box">
+          <span class="metric-val" style="color: var(--accent-green);">${m.contests}</span>
+          <span class="metric-label">Contests</span>
+        </div>
+      `);
+    }
+    if (enabled.includes('score') && (m.score !== undefined && m.score !== null && m.score !== '')) {
+      metricBoxes.push(`
+        <div class="metric-box">
+          <span class="metric-val" style="color: var(--accent-cyan);">${m.score}</span>
+          <span class="metric-label">Score / Points</span>
+        </div>
+      `);
+    }
+    if (enabled.includes('streak') && (m.streak !== undefined && m.streak !== null && m.streak !== '')) {
+      metricBoxes.push(`
+        <div class="metric-box">
+          <span class="metric-val" style="color: #f59e0b;">${m.streak}</span>
+          <span class="metric-label">Streak</span>
+        </div>
+      `);
+    }
+    if (enabled.includes('percentile') && (m.percentile !== undefined && m.percentile !== null && m.percentile !== '')) {
+      metricBoxes.push(`
+        <div class="metric-box">
+          <span class="metric-val">${m.percentile}</span>
+          <span class="metric-label">Percentile</span>
+        </div>
+      `);
+    }
+    if (enabled.includes('badges') && (m.badges !== undefined && m.badges !== null && m.badges !== '')) {
+      metricBoxes.push(`
+        <div class="metric-box" style="grid-column: 1 / -1;">
+          <span class="metric-val" style="font-size: 0.92rem; color: var(--accent-purple);">${m.badges}</span>
+          <span class="metric-label">Badges / Title</span>
+        </div>
+      `);
+    }
+    if (enabled.includes('customMetric') && (m.customLabel && m.customValue)) {
+      metricBoxes.push(`
+        <div class="metric-box" style="grid-column: 1 / -1;">
+          <span class="metric-val" style="font-size: 0.92rem; color: ${color};">${m.customValue}</span>
+          <span class="metric-label">${m.customLabel}</span>
+        </div>
+      `);
+    }
+
+    const noteHTML = cp.note 
+      ? `<div style="font-size: 0.83rem; color: var(--text-muted); line-height: 1.5; margin: 12px 0 16px;">${cp.note}</div>` 
+      : '<div style="margin-bottom: 16px;"></div>';
+
+    const targetUrl = cp.url || (cp.handle ? `https://google.com/search?q=${encodeURIComponent(cp.name + ' ' + cp.handle)}` : '#');
+
+    return `
+      <!-- CUSTOM PLATFORM CARD: ${cp.name} -->
+      <div class="platform-card glass-card" style="--card-accent: ${color};" data-custom-id="${cp.id}">
+        <div class="platform-header">
+          <div class="platform-brand">
+            <div class="platform-logo-box" style="color: ${color};">
+              <svg class="icon"><use href="/icons.svg#${icon}"></use></svg>
+            </div>
+            <div>
+              <h3 class="platform-title">${cp.name}</h3>
+              <span class="platform-handle">@${cp.handle || 'developer'}</span>
+            </div>
+          </div>
+          <span class="platform-badge badge-custom" style="border-color: ${color}50; color: ${color};">
+            ${badgeText}
+          </span>
+        </div>
+
+        <div class="platform-metrics-grid">
+          ${metricBoxes.length > 0 ? metricBoxes.join('') : `
+            <div class="metric-box" style="grid-column: 1 / -1;">
+              <span class="metric-val" style="color: ${color};">Active</span>
+              <span class="metric-label">Profile Tracked</span>
+            </div>
+          `}
+        </div>
+
+        ${noteHTML}
+
+        <div class="platform-card-footer">
+          <a href="${targetUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="width: 100%; justify-content: center; font-size: 0.85rem;">
+            View ${cp.name} Profile &rarr;
+          </a>
+        </div>
+      </div>
+    `;
+  }).join('');
 
   container.innerHTML = `
     <!-- 1. LEETCODE CARD -->
@@ -884,6 +1061,8 @@ function renderCodingProfiles(profilesData, lastSyncTime) {
         </a>
       </div>
     </div>
+
+    ${customCardsHTML}
   `;
 }
 
@@ -1208,6 +1387,123 @@ function updateAdminCvStatusUI() {
   } else {
     statusBox.innerHTML = `<span style="color: var(--text-dim); font-size: 0.8rem;">No custom CV uploaded yet (using default generated CV)</span>`;
   }
+}
+
+function openCustomProfileEditor(id) {
+  const container = document.getElementById('custom-profile-form-container');
+  if (!container) return;
+
+  const titleEl = document.getElementById('custom-prof-form-title');
+  const idInput = document.getElementById('custom-prof-id');
+  const nameInput = document.getElementById('custom-prof-name');
+  const handleInput = document.getElementById('custom-prof-handle');
+  const urlInput = document.getElementById('custom-prof-url');
+  const noteInput = document.getElementById('custom-prof-note');
+  const colorInput = document.getElementById('custom-prof-color');
+  const iconInput = document.getElementById('custom-prof-icon');
+  const statusEl = document.getElementById('custom-autodetect-status');
+  if (statusEl) statusEl.style.display = 'none';
+
+  const data = getLocalData();
+  const customList = data.settings?.codingProfiles?.customProfiles || [];
+  const existing = id ? customList.find(p => p.id === id) : null;
+
+  if (existing) {
+    if (titleEl) titleEl.textContent = `Edit ${existing.name} Platform Profile`;
+    idInput.value = existing.id;
+    nameInput.value = existing.name || '';
+    handleInput.value = existing.handle || '';
+    urlInput.value = existing.url || '';
+    noteInput.value = existing.note || '';
+    colorInput.value = existing.color || '#00f2fe';
+    iconInput.value = existing.icon || 'icon-code';
+
+    // Highlight matching color swatch if available
+    document.querySelectorAll('#custom-prof-swatches .color-swatch').forEach(sw => {
+      sw.classList.toggle('active', sw.dataset.color.toLowerCase() === (existing.color || '').toLowerCase());
+    });
+
+    const enabled = Array.isArray(existing.enabledParams) ? existing.enabledParams : [];
+    const m = existing.metrics || {};
+
+    const setParam = (checkId, valId, paramKey, val) => {
+      const cb = document.getElementById(checkId);
+      const inp = document.getElementById(valId);
+      if (cb && inp) {
+        cb.checked = enabled.includes(paramKey);
+        inp.disabled = !cb.checked;
+        inp.value = val !== undefined && val !== null ? val : '';
+      }
+    };
+
+    setParam('check-param-solved', 'val-param-solved', 'solvedTotal', m.solvedTotal);
+    setParam('check-param-rating', 'val-param-rating', 'rating', m.rating);
+    setParam('check-param-highestRating', 'val-param-highestRating', 'highestRating', m.highestRating);
+    setParam('check-param-rank', 'val-param-rank', 'rank', m.rank);
+    setParam('check-param-contests', 'val-param-contests', 'contests', m.contests);
+    setParam('check-param-score', 'val-param-score', 'score', m.score);
+    setParam('check-param-streak', 'val-param-streak', 'streak', m.streak);
+    setParam('check-param-percentile', 'val-param-percentile', 'percentile', m.percentile);
+    setParam('check-param-badges', 'val-param-badges', 'badges', m.badges);
+
+    const customCb = document.getElementById('check-param-custom');
+    const customLabelInp = document.getElementById('val-param-custom-label');
+    const customValInp = document.getElementById('val-param-custom-value');
+    if (customCb && customLabelInp && customValInp) {
+      customCb.checked = enabled.includes('customMetric');
+      customLabelInp.disabled = !customCb.checked;
+      customValInp.disabled = !customCb.checked;
+      customLabelInp.value = m.customLabel || '';
+      customValInp.value = m.customValue || '';
+    }
+  } else {
+    if (titleEl) titleEl.textContent = '+ Add Coding Platform Profile';
+    idInput.value = '';
+    nameInput.value = '';
+    handleInput.value = '';
+    urlInput.value = '';
+    noteInput.value = '';
+    colorInput.value = '#00f2fe';
+    iconInput.value = 'icon-code';
+
+    document.querySelectorAll('#custom-prof-swatches .color-swatch').forEach(sw => {
+      sw.classList.toggle('active', sw.dataset.color === '#00f2fe');
+    });
+
+    const resetParam = (checkId, valId, defaultChecked) => {
+      const cb = document.getElementById(checkId);
+      const inp = document.getElementById(valId);
+      if (cb && inp) {
+        cb.checked = defaultChecked;
+        inp.disabled = !defaultChecked;
+        inp.value = '';
+      }
+    };
+
+    resetParam('check-param-solved', 'val-param-solved', true);
+    resetParam('check-param-rating', 'val-param-rating', true);
+    resetParam('check-param-highestRating', 'val-param-highestRating', false);
+    resetParam('check-param-rank', 'val-param-rank', false);
+    resetParam('check-param-contests', 'val-param-contests', false);
+    resetParam('check-param-score', 'val-param-score', false);
+    resetParam('check-param-streak', 'val-param-streak', false);
+    resetParam('check-param-percentile', 'val-param-percentile', false);
+    resetParam('check-param-badges', 'val-param-badges', false);
+
+    const customCb = document.getElementById('check-param-custom');
+    const customLabelInp = document.getElementById('val-param-custom-label');
+    const customValInp = document.getElementById('val-param-custom-value');
+    if (customCb && customLabelInp && customValInp) {
+      customCb.checked = false;
+      customLabelInp.disabled = true;
+      customValInp.disabled = true;
+      customLabelInp.value = '';
+      customValInp.value = '';
+    }
+  }
+
+  container.style.display = 'block';
+  container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function populateAdminPanes() {
@@ -1610,6 +1906,65 @@ function populateAdminPanes() {
   setVal('admin-at-rank', cp.atcoder?.rank);
   setVal('admin-at-contests', cp.atcoder?.contests || cp.atcoder?.ratedMatches);
 
+  // Populate Custom Coding Profiles List
+  const customListEl = document.getElementById('admin-custom-profiles-list');
+  if (customListEl) {
+    const customList = Array.isArray(cp.customProfiles) ? cp.customProfiles : [];
+    if (customList.length === 0) {
+      customListEl.innerHTML = `
+        <div style="text-align: center; color: var(--text-muted); padding: 18px; border: 1px dashed var(--glass-border); border-radius: var(--radius-md); font-size: 0.85rem;">
+          No custom platforms added yet. Click <strong>"+ Add New Coding Platform"</strong> above to add platforms like HackerRank, Kaggle, Spoj, etc.
+        </div>
+      `;
+    } else {
+      customListEl.innerHTML = customList.map(item => {
+        const enabledCount = (item.enabledParams || []).length;
+        const color = item.color || '#00f2fe';
+        const icon = item.icon || 'icon-code';
+        return `
+          <div class="custom-prof-item" style="border-left: 3px solid ${color};">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 36px; height: 36px; border-radius: 8px; background: ${color}15; display: flex; align-items: center; justify-content: center; color: ${color}; flex-shrink: 0;">
+                <svg class="icon" style="width: 18px; height: 18px;"><use href="/icons.svg#${icon}"></use></svg>
+              </div>
+              <div>
+                <strong style="font-size: 0.95rem; color: var(--text-primary);">${item.name}</strong>
+                <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: 6px;">@${item.handle || 'developer'}</span>
+                <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 2px;">
+                  ${item.url ? `<a href="${item.url}" target="_blank" rel="noopener noreferrer" style="color: var(--accent-cyan); text-decoration: underline;">${item.url}</a> &bull; ` : ''}
+                  ${enabledCount} active metrics
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="btn btn-secondary btn-edit-custom-prof" data-id="${item.id}" style="padding: 5px 12px; font-size: 0.8rem;">
+                Edit
+              </button>
+              <button type="button" class="btn action-btn delete btn-delete-custom-prof" data-id="${item.id}" style="padding: 5px 12px; font-size: 0.8rem;">
+                Delete
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      customListEl.querySelectorAll('.btn-edit-custom-prof').forEach(btn => {
+        btn.addEventListener('click', () => {
+          openCustomProfileEditor(btn.dataset.id);
+        });
+      });
+      customListEl.querySelectorAll('.btn-delete-custom-prof').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (confirm('Are you sure you want to delete this coding platform profile card?')) {
+            await deleteCustomCodingProfile(btn.dataset.id);
+            populateAdminPanes();
+            renderCodingProfiles();
+          }
+        });
+      });
+    }
+  }
+
   // --------------------------------------------------------------------------
   // Pane G: Settings
   // --------------------------------------------------------------------------
@@ -1916,6 +2271,194 @@ function initAdminPaneHandlers() {
     } finally {
       if (icon) icon.style.animation = '';
       btn.disabled = false;
+    }
+  });
+
+  // --------------------------------------------------------------------------
+  // Custom Coding Profiles Builder & Parameter Checklist Event Handlers
+  // --------------------------------------------------------------------------
+  document.getElementById('btn-open-add-custom-profile')?.addEventListener('click', () => {
+    openCustomProfileEditor('');
+  });
+
+  const closeCustomForm = () => {
+    const container = document.getElementById('custom-profile-form-container');
+    if (container) container.style.display = 'none';
+  };
+  document.getElementById('btn-close-custom-prof-form')?.addEventListener('click', closeCustomForm);
+  document.getElementById('btn-cancel-custom-prof')?.addEventListener('click', closeCustomForm);
+
+  document.querySelectorAll('#custom-prof-swatches .color-swatch').forEach(swatch => {
+    swatch.addEventListener('click', () => {
+      const color = swatch.dataset.color;
+      const colorInp = document.getElementById('custom-prof-color');
+      if (colorInp) colorInp.value = color;
+      document.querySelectorAll('#custom-prof-swatches .color-swatch').forEach(s => s.classList.remove('active'));
+      swatch.classList.add('active');
+    });
+  });
+
+  document.getElementById('custom-prof-color')?.addEventListener('input', (e) => {
+    const color = e.target.value.toLowerCase();
+    document.querySelectorAll('#custom-prof-swatches .color-swatch').forEach(s => {
+      s.classList.toggle('active', s.dataset.color.toLowerCase() === color);
+    });
+  });
+
+  document.querySelectorAll('.param-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', () => {
+      const card = checkbox.closest('.param-check-card');
+      if (!card) return;
+      const inputs = card.querySelectorAll('.param-val-input');
+      inputs.forEach(inp => {
+        inp.disabled = !checkbox.checked;
+        if (checkbox.checked) inp.focus();
+      });
+    });
+  });
+
+  document.getElementById('btn-custom-autodetect-stats')?.addEventListener('click', async () => {
+    const btn = document.getElementById('btn-custom-autodetect-stats');
+    const statusEl = document.getElementById('custom-autodetect-status');
+    const url = document.getElementById('custom-prof-url')?.value?.trim() || '';
+    const platform = document.getElementById('custom-prof-name')?.value?.trim() || '';
+    const handle = document.getElementById('custom-prof-handle')?.value?.trim() || '';
+
+    if (!url && !handle) {
+      alert('Please enter a Profile URL or Handle above to auto-detect stats.');
+      return;
+    }
+
+    const origHTML = btn.innerHTML;
+    btn.innerHTML = `<svg class="icon" style="animation: spin 1s linear infinite;"><use href="/icons.svg#icon-refresh"></use></svg> Detecting...`;
+    btn.disabled = true;
+    if (statusEl) {
+      statusEl.style.display = 'block';
+      statusEl.style.color = 'var(--accent-cyan)';
+      statusEl.textContent = 'Connecting to profile and extracting live metrics...';
+    }
+
+    try {
+      const liveData = await fetchLiveCustomProfileStats({ url, platform, handle });
+      if (liveData) {
+        const found = [];
+        const applyVal = (checkId, valId, key, val) => {
+          if (val !== null && val !== undefined && val !== '') {
+            const cb = document.getElementById(checkId);
+            const inp = document.getElementById(valId);
+            if (cb && inp) {
+              cb.checked = true;
+              inp.disabled = false;
+              inp.value = val;
+              found.push(`${key}: ${val}`);
+            }
+          }
+        };
+
+        applyVal('check-param-solved', 'val-param-solved', 'Solved', liveData.solvedTotal);
+        applyVal('check-param-rating', 'val-param-rating', 'Rating', liveData.rating);
+        applyVal('check-param-highestRating', 'val-param-highestRating', 'Peak Rating', liveData.highestRating);
+        applyVal('check-param-rank', 'val-param-rank', 'Rank', liveData.rank);
+        applyVal('check-param-contests', 'val-param-contests', 'Contests', liveData.contests);
+        applyVal('check-param-score', 'val-param-score', 'Score', liveData.score);
+        applyVal('check-param-streak', 'val-param-streak', 'Streak', liveData.streak);
+        applyVal('check-param-percentile', 'val-param-percentile', 'Percentile', liveData.percentile);
+        applyVal('check-param-badges', 'val-param-badges', 'Badges', liveData.badges);
+
+        if (statusEl) {
+          if (found.length > 0) {
+            statusEl.style.color = 'var(--accent-green)';
+            statusEl.textContent = `✓ Auto-detected ${found.length} live metrics: ${found.join(', ')}`;
+          } else {
+            statusEl.style.color = 'var(--accent-amber)';
+            statusEl.textContent = `Profile was reached, but no standard numbers could be auto-extracted. You can fill in the parameters manually below.`;
+          }
+        }
+      } else {
+        if (statusEl) {
+          statusEl.style.color = 'var(--accent-amber)';
+          statusEl.textContent = `Could not reach URL live. You can enter parameter values manually.`;
+        }
+      }
+    } catch (e) {
+      if (statusEl) {
+        statusEl.style.color = 'var(--accent-red)';
+        statusEl.textContent = `Auto-detect failed: ${e.message}. You can enter values manually.`;
+      }
+    } finally {
+      btn.innerHTML = origHTML;
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById('admin-custom-profile-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const saveBtn = document.getElementById('btn-save-custom-prof');
+    const origText = saveBtn.textContent;
+    saveBtn.textContent = 'Saving...';
+    saveBtn.disabled = true;
+
+    try {
+      const id = document.getElementById('custom-prof-id').value.trim();
+      const name = document.getElementById('custom-prof-name').value.trim();
+      const handle = document.getElementById('custom-prof-handle').value.trim();
+      const url = document.getElementById('custom-prof-url').value.trim();
+      const note = document.getElementById('custom-prof-note').value.trim();
+      const color = document.getElementById('custom-prof-color').value;
+      const icon = document.getElementById('custom-prof-icon').value;
+
+      const enabledParams = [];
+      const metrics = {};
+
+      const readParam = (checkId, valId, key, isNumber = false) => {
+        const cb = document.getElementById(checkId);
+        const inp = document.getElementById(valId);
+        if (cb && cb.checked) {
+          enabledParams.push(key);
+          const v = inp ? inp.value.trim() : '';
+          metrics[key] = isNumber ? (v !== '' && !isNaN(v) ? parseInt(v) : null) : v;
+        }
+      };
+
+      readParam('check-param-solved', 'val-param-solved', 'solvedTotal', true);
+      readParam('check-param-rating', 'val-param-rating', 'rating', true);
+      readParam('check-param-highestRating', 'val-param-highestRating', 'highestRating', true);
+      readParam('check-param-rank', 'val-param-rank', 'rank', false);
+      readParam('check-param-contests', 'val-param-contests', 'contests', true);
+      readParam('check-param-score', 'val-param-score', 'score', true);
+      readParam('check-param-streak', 'val-param-streak', 'streak', false);
+      readParam('check-param-percentile', 'val-param-percentile', 'percentile', false);
+      readParam('check-param-badges', 'val-param-badges', 'badges', false);
+
+      const customCb = document.getElementById('check-param-custom');
+      if (customCb && customCb.checked) {
+        enabledParams.push('customMetric');
+        metrics.customLabel = document.getElementById('val-param-custom-label')?.value?.trim() || 'Special Metric';
+        metrics.customValue = document.getElementById('val-param-custom-value')?.value?.trim() || '';
+      }
+
+      await saveCustomCodingProfile({
+        id,
+        name,
+        handle,
+        url,
+        note,
+        color,
+        icon,
+        enabledParams,
+        metrics
+      });
+
+      closeCustomForm();
+      populateAdminPanes();
+      renderAllUI();
+      alert(`✓ Platform "${name}" profile card saved successfully!`);
+    } catch (err) {
+      console.error('Save custom profile error:', err);
+      alert('Failed to save platform profile: ' + err.message);
+    } finally {
+      saveBtn.textContent = origText;
+      saveBtn.disabled = false;
     }
   });
 

@@ -11,7 +11,24 @@ export function generateSystemPrompt() {
   const certsList = (data.certificates || []).map(c => `• ${c.title} from ${c.issuer} (${c.date})`).join('\n');
 
   const cp = data.settings.codingProfiles || {};
-  const totalSolvedDSA = (Number(cp.leetcode?.solvedTotal) || 0) + (Number(cp.codeforces?.solvedTotal) || 0) + (Number(cp.codechef?.solvedTotal) || 0) + (Number(cp.geeksforgeeks?.solvedTotal) || 0);
+  const customList = Array.isArray(cp.customProfiles) ? cp.customProfiles : [];
+  let customSolved = 0;
+  const customSummaryLines = customList.map(c => {
+    const m = c.metrics || {};
+    const enabled = Array.isArray(c.enabledParams) ? c.enabledParams : [];
+    const parts = [];
+    if (enabled.includes('solvedTotal') && m.solvedTotal) {
+      customSolved += (Number(m.solvedTotal) || 0);
+      parts.push(`${m.solvedTotal} problems solved`);
+    }
+    if (enabled.includes('rating') && m.rating) parts.push(`Rating: ${m.rating}`);
+    if (enabled.includes('rank') && m.rank) parts.push(`Rank: ${m.rank}`);
+    if (enabled.includes('score') && m.score) parts.push(`Score: ${m.score}`);
+    if (enabled.includes('badges') && m.badges) parts.push(`Badges: ${m.badges}`);
+    return `• ${c.name} (@${c.handle || 'user'}): ${parts.join(', ') || 'Active'}`;
+  });
+
+  const totalSolvedDSA = (Number(cp.leetcode?.solvedTotal) || 0) + (Number(cp.codeforces?.solvedTotal) || 0) + (Number(cp.codechef?.solvedTotal) || 0) + (Number(cp.geeksforgeeks?.solvedTotal) || 0) + customSolved;
   const codingSummary = `
 • LeetCode: ${cp.leetcode?.solvedTotal || 420}+ problems solved (Easy: ${cp.leetcode?.solvedEasy || 150}, Medium: ${cp.leetcode?.solvedMedium || 220}, Hard: ${cp.leetcode?.solvedHard || 50}), Rating: ${cp.leetcode?.rating || 1845}, Global Rank: ${cp.leetcode?.globalRank || 'Top 3.8%'}
 • Codeforces: Rating ${cp.codeforces?.rating || 1468} (Max ${cp.codeforces?.maxRating || 1540}), Title: ${cp.codeforces?.rank || 'Specialist'}, Solved: ${cp.codeforces?.solvedTotal || 310}+ problems
@@ -19,6 +36,7 @@ export function generateSystemPrompt() {
 • Codolio: Unified Developer Score ${cp.codolio?.score || 875}/1000
 • GeeksforGeeks: ${cp.geeksforgeeks?.solvedTotal || 98}+ problems solved, Coding Score: ${cp.geeksforgeeks?.score || 250}, Institute Rank: ${cp.geeksforgeeks?.instituteRank || '#6,885'}, Longest Streak: ${cp.geeksforgeeks?.longestStreak || 2} days
 • AtCoder: Rating ${cp.atcoder?.rating || 129} (Highest ${cp.atcoder?.highestRating || cp.atcoder?.rating || 129}), Rank: ${cp.atcoder?.rank || '#59,023 (Top 46.3%)'}, Contests: ${cp.atcoder?.ratedMatches || cp.atcoder?.contests || 6}
+${customSummaryLines.join('\n')}
 • Total Across Platforms: ${totalSolvedDSA > 0 ? totalSolvedDSA : 1000}+ Data Structures & Algorithms problems solved.`;
 
   return `You are the Virtual AI Representative and technical co-pilot for ${ownerName}.

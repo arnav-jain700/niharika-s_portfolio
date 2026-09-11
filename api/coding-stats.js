@@ -34,6 +34,139 @@ const DEFAULT_HEADERS = {
   'Accept': '*/*'
 };
 
+const fetchWithTimeout = async (url, customOptions = {}, timeoutMs = 7000) => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const mergedHeaders = { ...DEFAULT_HEADERS, ...(customOptions.headers || {}) };
+    const response = await fetch(url, { ...customOptions, headers: mergedHeaders, signal: controller.signal });
+    clearTimeout(timer);
+    return response;
+  } catch (err) {
+    clearTimeout(timer);
+    throw err;
+  }
+};
+
+export async function scrapeCustomProfile({ url, platform = '', handle = '' }) {
+  const result = {
+    solvedTotal: null,
+    rating: null,
+    highestRating: null,
+    rank: null,
+    score: null,
+    streak: null,
+    contests: null,
+    badges: null,
+    percentile: null
+  };
+
+  const cleanHandle = handle ? String(handle).trim().replace(/^@/, '') : '';
+  const cleanUrl = url ? String(url).trim() : '';
+
+  // 1. HackerRank
+  if (platform.toLowerCase().includes('hacker') || cleanUrl.includes('hackerrank.com')) {
+    const hrHandle = cleanHandle || cleanUrl.match(/hackerrank\.com\/(?:profile\/)?([a-zA-Z0-9_\-]+)/i)?.[1];
+    if (hrHandle) {
+      try {
+        const [bRes, sRes] = await Promise.allSettled([
+          fetchWithTimeout(`https://www.hackerrank.com/rest/hackers/${encodeURIComponent(hrHandle)}/badges`),
+          fetchWithTimeout(`https://www.hackerrank.com/rest/hackers/${encodeURIComponent(hrHandle)}/scores_elo`)
+        ]);
+        if (bRes.status === 'fulfilled' && bRes.value.ok) {
+          const bData = await bRes.value.json();
+          const badgesList = bData.models || [];
+          const totalSolved = badgesList.reduce((acc, b) => acc + (b.solved || 0), 0);
+          const topBadges = badgesList.filter(b => b.stars > 0).map(b => `${b.stars}★ ${b.badge_name}`).join(', ');
+          if (totalSolved > 0) result.solvedTotal = totalSolved;
+          if (topBadges) result.badges = topBadges;
+        }
+        if (sRes.status === 'fulfilled' && sRes.value.ok) {
+          const sData = await sRes.value.json();
+          if (Array.isArray(sData)) {
+            const totalScore = sData.reduce((acc, t) => acc + (t.practice?.score || 0), 0);
+            if (totalScore > 0) result.score = totalScore;
+            const topRank = sData.find(t => t.practice?.rank && t.practice.rank > 0 && t.practice.rank < 100000);
+            if (topRank) result.rank = `#${topRank.practice.rank.toLocaleString()} (${topRank.name})`;
+          }
+        }
+        return result;
+      } catch (e) {
+        console.warn('HackerRank scraper error:', e.message);
+      }
+    }
+  }
+
+  // 2. GitHub
+  if (platform.toLowerCase().includes('github') || cleanUrl.includes('github.com')) {
+    const ghHandle = cleanHandle || cleanUrl.match(/github\.com\/([a-zA-Z0-9_\-]+)/i)?.[1];
+    if (ghHandle) {
+      try {
+        const ghRes = await fetchWithTimeout(`https://api.github.com/users/${encodeURIComponent(ghHandle)}`);
+        if (ghRes.ok) {
+          const ghData = await ghRes.json();
+          result.solvedTotal = ghData.public_repos || 0;
+          result.score = ghData.followers || 0;
+          result.rank = `${ghData.public_repos} Repositories`;
+          result.badges = ghData.hireable ? 'Ready to Work' : 'Active Contributor';
+          return result;
+        }
+      } catch (e) {
+        console.warn('GitHub scraper error:', e.message);
+      }
+    }
+  }
+
+  // 3. Generic Heuristic Scraper for ANY public webpage
+  if (cleanUrl && cleanUrl.startsWith('http')) {
+    try {
+      const pageRes = await fetchWithTimeout(cleanUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+        }
+      });
+      if (pageRes.ok) {
+        const html = await pageRes.text();
+        const clean = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, ' ')
+                          .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, ' ')
+                          .replace(/<[^>]+>/g, ' ')
+                          .replace(/\s+/g, ' ');
+
+        const solvedMatch = clean.match(/(?:problems?\s*solved|questions?\s*solved|total\s*solved|solved\s*problems?|tasks?\s*solved|exercises?\s*solved)\s*[:=–-]?\s*([0-9,]+)/i) ||
+                            clean.match(/([0-9,]+)\s*(?:problems?\s*solved|questions?\s*solved|solved)/i);
+        if (solvedMatch) result.solvedTotal = parseInt(solvedMatch[1].replace(/,/g, ''));
+
+        const ratingMatch = clean.match(/(?:contest\s*rating|current\s*rating|rating)\s*[:=–-]?\s*([0-9]{3,4})/i) ||
+                            clean.match(/([0-9]{3,4})\s*(?:contest\s*rating|rating)/i);
+        if (ratingMatch) result.rating = parseInt(ratingMatch[1]);
+
+        const highestMatch = clean.match(/(?:highest\s*rating|peak\s*rating|max\s*rating)\s*[:=–-]?\s*([0-9]{3,4})/i);
+        if (highestMatch) result.highestRating = parseInt(highestMatch[1]);
+
+        const rankMatch = clean.match(/(?:global\s*rank|world\s*rank|institute\s*rank|all\s*india\s*rank|rank)\s*[:=–-]?\s*#?([0-9,]+)/i);
+        if (rankMatch) result.rank = `#${rankMatch[1]}`;
+
+        const scoreMatch = clean.match(/(?:coding\s*score|total\s*score|score|developer\s*score|points)\s*[:=–-]?\s*([0-9,]+)/i);
+        if (scoreMatch) result.score = parseInt(scoreMatch[1].replace(/,/g, ''));
+
+        const streakMatch = clean.match(/(?:streak|longest\s*streak|current\s*streak|day\s*streak)\s*[:=–-]?\s*([0-9]+)/i);
+        if (streakMatch) result.streak = parseInt(streakMatch[1]);
+
+        const contestsMatch = clean.match(/(?:contests?\s*participated|contests?\s*attended|rated\s*matches|contests?)\s*[:=–-]?\s*([0-9]+)/i);
+        if (contestsMatch) result.contests = parseInt(contestsMatch[1]);
+
+        const pctMatch = clean.match(/top\s*([0-9\.]+%?)/i) || clean.match(/percentile\s*[:=–-]?\s*([0-9\.]+%?)/i);
+        if (pctMatch) result.percentile = pctMatch[1].includes('%') ? pctMatch[1] : `Top ${pctMatch[1]}%`;
+      }
+    } catch (e) {
+      console.warn('Generic URL scrape error:', e.message);
+    }
+  }
+
+  return result;
+}
+
 export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -50,11 +183,33 @@ export default async function handler(req, res) {
   }
 
   const query = req.query || (req.url ? Object.fromEntries(new URL(req.url, 'http://localhost').searchParams) : {});
+
+  // Handle single custom profile live auto-detect / scrape
+  if (query.action === 'scrapeCustom' || query.customUrl) {
+    const customUrl = query.customUrl || query.url || '';
+    const platform = query.platform || '';
+    const handle = query.handle || '';
+    const extracted = await scrapeCustomProfile({ url: customUrl, platform, handle });
+    return res.status(200).json({
+      success: true,
+      data: extracted
+    });
+  }
+
   const leetcode = extractHandle(query.leetcode, 'leetcode') || 'niharika_anyway';
   const codeforces = extractHandle(query.codeforces, 'codeforces') || 'niharikab1806';
   const codechef = extractHandle(query.codechef, 'codechef') || 'elect_shard_72';
   const geeksforgeeks = extractHandle(query.geeksforgeeks, 'geeksforgeeks') || 'niharik8bqf';
   const atcoder = extractHandle(query.atcoder, 'atcoder') || 'niharikab1806';
+
+  let customProfiles = [];
+  if (query.customProfiles) {
+    try {
+      customProfiles = typeof query.customProfiles === 'string' ? JSON.parse(query.customProfiles) : query.customProfiles;
+    } catch (e) {
+      console.warn('Failed to parse query.customProfiles:', e);
+    }
+  }
 
   // Cache response at edge for 15 minutes, browser for 2 minutes
   res.setHeader('Cache-Control', 's-maxage=900, max-age=120, stale-while-revalidate=1800');
@@ -65,21 +220,8 @@ export default async function handler(req, res) {
     codechef: null,
     geeksforgeeks: null,
     atcoder: null,
+    custom: {},
     timestamp: new Date().toISOString()
-  };
-
-  const fetchWithTimeout = async (url, customOptions = {}, timeoutMs = 7000) => {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-    try {
-      const mergedHeaders = { ...DEFAULT_HEADERS, ...(customOptions.headers || {}) };
-      const response = await fetch(url, { ...customOptions, headers: mergedHeaders, signal: controller.signal });
-      clearTimeout(timer);
-      return response;
-    } catch (err) {
-      clearTimeout(timer);
-      throw err;
-    }
   };
 
   // 1. Fetch LeetCode Data
@@ -356,10 +498,24 @@ export default async function handler(req, res) {
     }
   })();
 
-  await Promise.allSettled([leetcodePromise, codeforcesPromise, codechefPromise, geeksforgeeksPromise, atcoderPromise]);
+  // 6. Fetch Custom Profiles Data
+  const customPromises = (customProfiles || []).map(async (cp) => {
+    if (!cp || (!cp.url && !cp.handle)) return;
+    try {
+      const extracted = await scrapeCustomProfile({ url: cp.url, platform: cp.name || cp.platform || '', handle: cp.handle || '' });
+      if (extracted) {
+        stats.custom[cp.id] = extracted;
+      }
+    } catch (e) {
+      console.warn(`Custom profile ${cp.name} fetch failed:`, e.message);
+    }
+  });
+
+  await Promise.allSettled([leetcodePromise, codeforcesPromise, codechefPromise, geeksforgeeksPromise, atcoderPromise, ...customPromises]);
 
   res.status(200).json({
     success: true,
     data: stats
   });
 }
+

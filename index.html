@@ -827,6 +827,220 @@
                 <span id="admin-coding-save-status" style="font-size: 0.85rem; color: var(--accent-cyan); display: none;">✓ Profiles Saved!</span>
               </div>
             </form>
+
+            <!-- Custom & Dynamic Platforms Section -->
+            <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--glass-border);">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+                <div>
+                  <h4 style="font-size: 1.15rem; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                    <svg class="icon" style="color: var(--accent-cyan); width: 20px; height: 20px;"><use href="/icons.svg#icon-sparkles"></use></svg>
+                    Custom & Additional Coding Platforms
+                  </h4>
+                  <p style="font-size: 0.8rem; color: var(--text-muted); margin: 4px 0 0;">
+                    Add any platform (HackerRank, Kaggle, Spoj, InterviewBit, etc.), customize which parameters appear with the checklist, and auto-detect live stats.
+                  </p>
+                </div>
+                <button type="button" id="btn-open-add-custom-profile" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.85rem;">
+                  <svg class="icon"><use href="/icons.svg#icon-plus"></use></svg>
+                  + Add New Coding Platform
+                </button>
+              </div>
+
+              <!-- Custom Profile Builder Form / Modal Card (Initially Hidden) -->
+              <div id="custom-profile-form-container" class="glass-card" style="display: none; padding: 22px; margin-bottom: 20px; border: 1px solid var(--accent-cyan); background: rgba(13, 22, 38, 0.95);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--glass-border);">
+                  <h4 id="custom-prof-form-title" style="font-size: 1.05rem; margin: 0; color: var(--accent-cyan);">+ Add Coding Platform Profile</h4>
+                  <button type="button" id="btn-close-custom-prof-form" class="action-btn" style="color: var(--text-muted); font-size: 1.2rem; cursor: pointer;">&times;</button>
+                </div>
+
+                <form id="admin-custom-profile-form" style="display: flex; flex-direction: column; gap: 16px;">
+                  <input type="hidden" id="custom-prof-id" value="">
+
+                  <!-- Basic Platform Details -->
+                  <div class="form-row-2">
+                    <div class="form-group">
+                      <label style="font-size: 0.82rem; color: var(--text-muted);">Platform Name *</label>
+                      <input type="text" id="custom-prof-name" class="form-input" placeholder="e.g. HackerRank, Kaggle, Spoj" required>
+                    </div>
+                    <div class="form-group">
+                      <label style="font-size: 0.82rem; color: var(--text-muted);">Handle / Username</label>
+                      <input type="text" id="custom-prof-handle" class="form-input" placeholder="e.g. niharika18">
+                    </div>
+                  </div>
+
+                  <div class="form-row-2">
+                    <div class="form-group">
+                      <label style="font-size: 0.82rem; color: var(--text-muted);">Profile URL</label>
+                      <input type="url" id="custom-prof-url" class="form-input" placeholder="https://www.hackerrank.com/profile/niharika18">
+                    </div>
+                    <div class="form-group">
+                      <label style="font-size: 0.82rem; color: var(--text-muted);">Short Note / Tagline</label>
+                      <input type="text" id="custom-prof-note" class="form-input" placeholder="e.g. Algorithms & Data Structures">
+                    </div>
+                  </div>
+
+                  <!-- Brand Color & Icon Selection -->
+                  <div class="form-row-2">
+                    <div class="form-group">
+                      <label style="font-size: 0.82rem; color: var(--text-muted);">Brand Accent Color</label>
+                      <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="color" id="custom-prof-color" value="#00f2fe" style="width: 44px; height: 38px; border-radius: 6px; border: 1px solid var(--glass-border); cursor: pointer; background: transparent;">
+                        <div class="color-swatches" id="custom-prof-swatches">
+                          <span class="color-swatch" data-color="#2EC866" style="background: #2EC866;" title="HackerRank Green"></span>
+                          <span class="color-swatch" data-color="#00f2fe" style="background: #00f2fe;" title="Cyan"></span>
+                          <span class="color-swatch" data-color="#3b82f6" style="background: #3b82f6;" title="Blue"></span>
+                          <span class="color-swatch" data-color="#8b5cf6" style="background: #8b5cf6;" title="Purple"></span>
+                          <span class="color-swatch" data-color="#ec4899" style="background: #ec4899;" title="Pink"></span>
+                          <span class="color-swatch" data-color="#f59e0b" style="background: #f59e0b;" title="Amber"></span>
+                          <span class="color-swatch" data-color="#ef4444" style="background: #ef4444;" title="Red"></span>
+                          <span class="color-swatch" data-color="#94a3b8" style="background: #94a3b8;" title="Slate"></span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label style="font-size: 0.82rem; color: var(--text-muted);">Card Icon</label>
+                      <select id="custom-prof-icon" class="form-input">
+                        <option value="icon-code">Code (&lt;/&gt;)</option>
+                        <option value="icon-sparkles">Sparkles (✨)</option>
+                        <option value="icon-award">Award (🏅)</option>
+                        <option value="icon-terminal">Terminal (&gt;_)</option>
+                        <option value="icon-star">Star (⭐)</option>
+                        <option value="icon-external">External (↗)</option>
+                        <option value="icon-github">GitHub</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Live Auto-Detection Action -->
+                  <div style="background: rgba(0, 242, 254, 0.05); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: var(--radius-md); padding: 14px; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                      <div>
+                        <strong style="font-size: 0.85rem; color: var(--accent-cyan);">⚡ Real-Time Live Stats Auto-Detection</strong>
+                        <div style="font-size: 0.78rem; color: var(--text-muted);">Enter the Profile URL or handle above and click to automatically scrape live statistics.</div>
+                      </div>
+                      <button type="button" id="btn-custom-autodetect-stats" class="btn btn-secondary" style="padding: 6px 14px; font-size: 0.82rem;">
+                        <svg class="icon"><use href="/icons.svg#icon-refresh"></use></svg>
+                        Fetch & Auto-Detect Live Stats
+                      </button>
+                    </div>
+                    <div id="custom-autodetect-status" style="font-size: 0.8rem; display: none; margin-top: 4px;"></div>
+                  </div>
+
+                  <!-- Parameter Checklist -->
+                  <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                      <label style="font-size: 0.9rem; font-weight: 600; color: var(--text-primary);">
+                        Parameter Checklist (Check to display on the platform card):
+                      </label>
+                      <span style="font-size: 0.75rem; color: var(--text-dim);">Only checked parameters appear in card</span>
+                    </div>
+                    
+                    <div class="param-checklist-grid">
+                      <!-- 1. Solved -->
+                      <div class="param-check-card">
+                        <label class="param-label-row">
+                          <input type="checkbox" id="check-param-solved" class="param-checkbox" data-param="solvedTotal">
+                          <span class="param-name">Questions / Problems Solved</span>
+                        </label>
+                        <input type="number" id="val-param-solved" class="form-input param-val-input" placeholder="e.g. 140" disabled>
+                      </div>
+
+                      <!-- 2. Rating -->
+                      <div class="param-check-card">
+                        <label class="param-label-row">
+                          <input type="checkbox" id="check-param-rating" class="param-checkbox" data-param="rating">
+                          <span class="param-name">Current / Contest Rating</span>
+                        </label>
+                        <input type="number" id="val-param-rating" class="form-input param-val-input" placeholder="e.g. 1720" disabled>
+                      </div>
+
+                      <!-- 3. Peak Rating -->
+                      <div class="param-check-card">
+                        <label class="param-label-row">
+                          <input type="checkbox" id="check-param-highestRating" class="param-checkbox" data-param="highestRating">
+                          <span class="param-name">Peak / Highest Rating</span>
+                        </label>
+                        <input type="number" id="val-param-highestRating" class="form-input param-val-input" placeholder="e.g. 1750" disabled>
+                      </div>
+
+                      <!-- 4. Rank -->
+                      <div class="param-check-card">
+                        <label class="param-label-row">
+                          <input type="checkbox" id="check-param-rank" class="param-checkbox" data-param="rank">
+                          <span class="param-name">Global Rank / Tier</span>
+                        </label>
+                        <input type="text" id="val-param-rank" class="form-input param-val-input" placeholder="e.g. #4,200 or Gold" disabled>
+                      </div>
+
+                      <!-- 5. Contests -->
+                      <div class="param-check-card">
+                        <label class="param-label-row">
+                          <input type="checkbox" id="check-param-contests" class="param-checkbox" data-param="contests">
+                          <span class="param-name">Contests Participated</span>
+                        </label>
+                        <input type="number" id="val-param-contests" class="form-input param-val-input" placeholder="e.g. 8" disabled>
+                      </div>
+
+                      <!-- 6. Score -->
+                      <div class="param-check-card">
+                        <label class="param-label-row">
+                          <input type="checkbox" id="check-param-score" class="param-checkbox" data-param="score">
+                          <span class="param-name">Platform Score / Points</span>
+                        </label>
+                        <input type="number" id="val-param-score" class="form-input param-val-input" placeholder="e.g. 850" disabled>
+                      </div>
+
+                      <!-- 7. Streak -->
+                      <div class="param-check-card">
+                        <label class="param-label-row">
+                          <input type="checkbox" id="check-param-streak" class="param-checkbox" data-param="streak">
+                          <span class="param-name">Longest / Active Streak</span>
+                        </label>
+                        <input type="text" id="val-param-streak" class="form-input param-val-input" placeholder="e.g. 14 Days" disabled>
+                      </div>
+
+                      <!-- 8. Percentile / Acceptance Rate -->
+                      <div class="param-check-card">
+                        <label class="param-label-row">
+                          <input type="checkbox" id="check-param-percentile" class="param-checkbox" data-param="percentile">
+                          <span class="param-name">Percentile / Acceptance</span>
+                        </label>
+                        <input type="text" id="val-param-percentile" class="form-input param-val-input" placeholder="e.g. Top 8%" disabled>
+                      </div>
+
+                      <!-- 9. Badges / Stars -->
+                      <div class="param-check-card">
+                        <label class="param-label-row">
+                          <input type="checkbox" id="check-param-badges" class="param-checkbox" data-param="badges">
+                          <span class="param-name">Badges / Star Rating / Title</span>
+                        </label>
+                        <input type="text" id="val-param-badges" class="form-input param-val-input" placeholder="e.g. 5★ Problem Solving" disabled>
+                      </div>
+
+                      <!-- 10. Custom Parameter -->
+                      <div class="param-check-card" style="grid-column: 1 / -1;">
+                        <label class="param-label-row">
+                          <input type="checkbox" id="check-param-custom" class="param-checkbox" data-param="customMetric">
+                          <span class="param-name">Custom Parameter (Special Metric)</span>
+                        </label>
+                        <div style="display: flex; gap: 8px;">
+                          <input type="text" id="val-param-custom-label" class="form-input param-val-input" placeholder="Label: e.g. Kaggle Medals" style="flex: 1;" disabled>
+                          <input type="text" id="val-param-custom-value" class="form-input param-val-input" placeholder="Value: e.g. 3 Silver, 1 Bronze" style="flex: 2;" disabled>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
+                    <button type="submit" id="btn-save-custom-prof" class="btn btn-primary" style="padding: 10px 22px;">Save Platform Profile</button>
+                    <button type="button" id="btn-cancel-custom-prof" class="btn btn-secondary" style="padding: 10px 18px;">Cancel</button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- List of Configured Custom Platforms -->
+              <div id="admin-custom-profiles-list" style="display: flex; flex-direction: column; gap: 12px;"></div>
+            </div>
           </div>
 
           <!-- PANE G: SETTINGS & AI -->

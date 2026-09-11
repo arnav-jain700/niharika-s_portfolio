@@ -72,7 +72,8 @@ const DEFAULT_DATA = {
         rank: '#59,023',
         percentile: 'Top 46.33%',
         contests: 6
-      }
+      },
+      customProfiles: []
     }
   },
   tech_stacks: [
@@ -403,6 +404,15 @@ function normalizeSettings(s) {
   }
 
   // Merge carefully: if parsedProfiles is found, merge with currentLocalProfiles so no fields are lost
+  let customList = [];
+  if (Array.isArray(parsedProfiles?.customProfiles)) {
+    customList = parsedProfiles.customProfiles;
+  } else if (Array.isArray(currentLocalProfiles?.customProfiles)) {
+    customList = currentLocalProfiles.customProfiles;
+  } else if (Array.isArray(DEFAULT_DATA.settings.codingProfiles.customProfiles)) {
+    customList = DEFAULT_DATA.settings.codingProfiles.customProfiles;
+  }
+
   let mergedProfiles;
   if (parsedProfiles && typeof parsedProfiles === 'object') {
     mergedProfiles = {
@@ -411,12 +421,14 @@ function normalizeSettings(s) {
       codechef: { ...(DEFAULT_DATA.settings.codingProfiles.codechef || {}), ...(currentLocalProfiles.codechef || {}), ...(parsedProfiles.codechef || {}) },
       codolio: { ...(DEFAULT_DATA.settings.codingProfiles.codolio || {}), ...(currentLocalProfiles.codolio || {}), ...(parsedProfiles.codolio || {}) },
       geeksforgeeks: { ...(DEFAULT_DATA.settings.codingProfiles.geeksforgeeks || {}), ...(currentLocalProfiles.geeksforgeeks || {}), ...(parsedProfiles.geeksforgeeks || {}) },
-      atcoder: { ...(DEFAULT_DATA.settings.codingProfiles.atcoder || {}), ...(currentLocalProfiles.atcoder || {}), ...(parsedProfiles.atcoder || {}) }
+      atcoder: { ...(DEFAULT_DATA.settings.codingProfiles.atcoder || {}), ...(currentLocalProfiles.atcoder || {}), ...(parsedProfiles.atcoder || {}) },
+      customProfiles: customList
     };
   } else {
     mergedProfiles = {
       ...DEFAULT_DATA.settings.codingProfiles,
-      ...(currentLocalProfiles || {})
+      ...(currentLocalProfiles || {}),
+      customProfiles: customList
     };
   }
 
@@ -1169,9 +1181,14 @@ export async function fetchLiveCodingProfiles(forceRefresh = false) {
 
   let hasUpdates = false;
 
+  const customList = Array.isArray(profiles.customProfiles) ? profiles.customProfiles : [];
+  const customQueryParam = customList.length > 0 
+    ? `&customProfiles=${encodeURIComponent(JSON.stringify(customList.map(c => ({ id: c.id, name: c.name, handle: c.handle, url: c.url }))))}` 
+    : '';
+
   // 1. Try Vercel Serverless Proxy / Vite Dev Middleware
   try {
-    const url = `/api/coding-stats?leetcode=${encodeURIComponent(leetcodeHandle)}&codeforces=${encodeURIComponent(codeforcesHandle)}&codechef=${encodeURIComponent(codechefHandle)}&geeksforgeeks=${encodeURIComponent(geeksforgeeksHandle)}&atcoder=${encodeURIComponent(atcoderHandle)}${forceRefresh ? '&t=' + Date.now() : ''}`;
+    const url = `/api/coding-stats?leetcode=${encodeURIComponent(leetcodeHandle)}&codeforces=${encodeURIComponent(codeforcesHandle)}&codechef=${encodeURIComponent(codechefHandle)}&geeksforgeeks=${encodeURIComponent(geeksforgeeksHandle)}&atcoder=${encodeURIComponent(atcoderHandle)}${customQueryParam}${forceRefresh ? '&t=' + Date.now() : ''}`;
     const res = await fetch(url);
     if (res.ok) {
       const json = await res.json();
@@ -1195,6 +1212,20 @@ export async function fetchLiveCodingProfiles(forceRefresh = false) {
         if (json.data.atcoder && (json.data.atcoder.rating !== undefined || json.data.atcoder.rank || json.data.atcoder.handle)) {
           profiles.atcoder = { ...profiles.atcoder, ...json.data.atcoder };
           hasUpdates = true;
+        }
+        if (json.data.custom && typeof json.data.custom === 'object') {
+          for (const [id, stats] of Object.entries(json.data.custom)) {
+            const item = customList.find(c => c.id === id);
+            if (item && stats && typeof stats === 'object') {
+              item.metrics = { ...item.metrics };
+              for (const [k, v] of Object.entries(stats)) {
+                if (v !== null && v !== undefined && v !== '') {
+                  item.metrics[k] = v;
+                }
+              }
+              hasUpdates = true;
+            }
+          }
         }
       }
     }
@@ -1333,3 +1364,83 @@ export async function saveCodingProfiles(updatedProfiles) {
   }
   return data.settings.codingProfiles;
 }
+
+export async function fetchLiveCustomProfileStats({ url, platform = '', handle = '' }) {
+  try {
+    const apiUrl = `/api/coding-stats?action=scrapeCustom&customUrl=${encodeURIComponent(url || '')}&platform=${encodeURIComponent(platform || '')}&handle=${encodeURIComponent(handle || '')}&t=${Date.now()}`;
+    const res = await fetch(apiUrl);
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.data) {
+        return json.data;
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to fetch live stats for custom profile:', err);
+  }
+  return null;
+}
+
+export async function saveCustomCodingProfile(profileData) {
+  const data = getLocalData();
+  if (!data.settings) data.settings = {};
+  if (!data.settings.codingProfiles) data.settings.codingProfiles = {};
+  if (!Array.isArray(data.settings.codingProfiles.customProfiles)) {
+    data.settings.codingProfiles.customProfiles = [];
+  }
+
+  const list = data.settings.codingProfiles.customProfiles;
+  const existingIdx = list.findIndex(p => p.id === profileData.id);
+
+  const cleanProfile = {
+    id: profileData.id || `custom_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+    name: profileData.name || 'Custom Platform',
+    handle: profileData.handle || '',
+    url: profileData.url || '',
+    color: profileData.color || '#00f2fe',
+    icon: profileData.icon || 'icon-code',
+    note: profileData.note || '',
+    enabledParams: Array.isArray(profileData.enabledParams) && profileData.enabledParams.length > 0 
+      ? profileData.enabledParams 
+      : ['solvedTotal', 'rating'],
+    metrics: profileData.metrics || {},
+    updatedAt: new Date().toISOString()
+  };
+
+  if (existingIdx >= 0) {
+    list[existingIdx] = cleanProfile;
+  } else {
+    list.push(cleanProfile);
+  }
+
+  saveToStorage();
+
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      await upsertSettingsToSupabase(supabase, data.settings);
+    } catch (e) {
+      console.warn('Failed to sync custom profile to Supabase:', e);
+    }
+  }
+
+  return cleanProfile;
+}
+
+export async function deleteCustomCodingProfile(profileId) {
+  const data = getLocalData();
+  if (!data.settings?.codingProfiles?.customProfiles) return;
+
+  data.settings.codingProfiles.customProfiles = data.settings.codingProfiles.customProfiles.filter(p => p.id !== profileId);
+  saveToStorage();
+
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      await upsertSettingsToSupabase(supabase, data.settings);
+    } catch (e) {
+      console.warn('Failed to sync custom profile deletion to Supabase:', e);
+    }
+  }
+}
+
