@@ -653,6 +653,20 @@ function renderSkills(skills) {
   const allSkills = skills || [];
 
   if (filterBar) {
+    const techCount = allSkills.filter(s => {
+      const cat = (s.category || 'Technical').toLowerCase();
+      return cat !== 'non-technical' && !cat.includes('non') && !cat.includes('soft');
+    }).length;
+    const nonTechCount = allSkills.filter(s => {
+      const cat = (s.category || 'Technical').toLowerCase();
+      return cat === 'non-technical' || cat.includes('non') || cat.includes('soft');
+    }).length;
+
+    const countTechEl = document.getElementById('skills-count-tech');
+    const countNonTechEl = document.getElementById('skills-count-nontech');
+    if (countTechEl) countTechEl.textContent = techCount;
+    if (countNonTechEl) countNonTechEl.textContent = nonTechCount;
+
     filterBar.querySelectorAll('.filter-btn').forEach(btn => {
       const filterVal = btn.dataset.filter || 'Technical';
       btn.classList.toggle('active', activeSkillFilter === filterVal);

@@ -304,8 +304,16 @@
         </div>
 
         <div class="skills-filter-bar" id="skills-filter-bar">
-          <button class="filter-btn active" data-filter="Technical">Technical Skills</button>
-          <button class="filter-btn" data-filter="Non-Technical">Non-Technical Skills</button>
+          <button class="filter-btn active" data-filter="Technical">
+            <svg class="icon"><use href="/icons.svg#icon-code"></use></svg>
+            <span>Technical Skills</span>
+            <span class="filter-count" id="skills-count-tech">12</span>
+          </button>
+          <button class="filter-btn" data-filter="Non-Technical">
+            <svg class="icon"><use href="/icons.svg#icon-sparkles"></use></svg>
+            <span>Non-Technical Skills</span>
+            <span class="filter-count" id="skills-count-nontech">6</span>
+          </button>
         </div>
 
         <div class="skills-grid" id="skills-grid-container">
