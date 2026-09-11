@@ -38,17 +38,20 @@ import {
 } from './supabase.js';
 
 // ==========================================================================
-// 1. Cyber Grid & Particle Constellation Canvas System with Mouse Physics
+// 1. Interactive Chromatic Ambient Canvas (Fluid Aurora Orbs & Luminous Stardust)
 // ==========================================================================
 function initParticleCanvas() {
   const canvas = document.getElementById('bg-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   let width, height, dpr;
-  let particles = [];
-  const mouse = { x: null, y: null, radius: 180 };
-  let gridOffset = 0;
   let animId = null;
+  const mouse = { x: null, y: null, targetX: null, targetY: null, radius: 240 };
+
+  // Chromatic Ambient Light Spheres (Soft breathing fluid colors)
+  let orbs = [];
+  // Floating Luminous Micro-Pearls / Stardust (Pure floating motes, NO webs/lines)
+  let motes = [];
 
   function resize() {
     dpr = window.devicePixelRatio || 1;
@@ -60,148 +63,224 @@ function initParticleCanvas() {
     canvas.style.height = height + 'px';
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.scale(dpr, dpr);
-    initParticles();
+    initOrbsAndMotes();
   }
 
   window.addEventListener('resize', resize);
 
   window.addEventListener('mousemove', (e) => {
-    mouse.x = e.clientX;
-    mouse.y = e.clientY;
-  });
-  window.addEventListener('mouseleave', () => {
-    mouse.x = null;
-    mouse.y = null;
+    mouse.targetX = e.clientX;
+    mouse.targetY = e.clientY;
+    if (mouse.x === null) {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    }
   });
 
-  function initParticles() {
-    const isMobile = window.innerWidth < 768;
-    const particleCount = isMobile ? 32 : Math.min(80, Math.floor((width * height) / 14000));
-    particles = [];
-    for (let i = 0; i < particleCount; i++) {
-      particles.push({
+  window.addEventListener('mouseleave', () => {
+    mouse.targetX = null;
+    mouse.targetY = null;
+  });
+
+  function initOrbsAndMotes() {
+    const isMobile = width < 768;
+    
+    // 5 Organic Floating Chromatic Orbs with harmonic speeds and Lissajous motion
+    orbs = [
+      {
+        baseX: width * 0.18,
+        baseY: height * 0.25,
+        radius: isMobile ? 180 : 320,
+        colorLight: ['rgba(79, 70, 229, 0.12)', 'rgba(124, 58, 237, 0.06)', 'transparent'],
+        colorDark: ['rgba(0, 242, 254, 0.08)', 'rgba(79, 70, 229, 0.04)', 'transparent'],
+        freqX: 0.0006,
+        freqY: 0.0008,
+        ampX: 120,
+        ampY: 80,
+        phase: 0,
+        currentX: width * 0.18,
+        currentY: height * 0.25
+      },
+      {
+        baseX: width * 0.82,
+        baseY: height * 0.35,
+        radius: isMobile ? 200 : 360,
+        colorLight: ['rgba(244, 63, 94, 0.11)', 'rgba(251, 146, 60, 0.05)', 'transparent'],
+        colorDark: ['rgba(236, 72, 153, 0.07)', 'rgba(168, 85, 247, 0.04)', 'transparent'],
+        freqX: 0.0007,
+        freqY: 0.0005,
+        ampX: 140,
+        ampY: 100,
+        phase: Math.PI / 3,
+        currentX: width * 0.82,
+        currentY: height * 0.35
+      },
+      {
+        baseX: width * 0.48,
+        baseY: height * 0.72,
+        radius: isMobile ? 220 : 380,
+        colorLight: ['rgba(14, 165, 233, 0.10)', 'rgba(99, 102, 241, 0.05)', 'transparent'],
+        colorDark: ['rgba(127, 0, 255, 0.08)', 'rgba(56, 189, 248, 0.04)', 'transparent'],
+        freqX: 0.0005,
+        freqY: 0.0007,
+        ampX: 100,
+        ampY: 90,
+        phase: Math.PI / 1.5,
+        currentX: width * 0.48,
+        currentY: height * 0.72
+      },
+      {
+        baseX: width * 0.15,
+        baseY: height * 0.82,
+        radius: isMobile ? 160 : 280,
+        colorLight: ['rgba(245, 158, 11, 0.09)', 'rgba(244, 63, 94, 0.04)', 'transparent'],
+        colorDark: ['rgba(245, 158, 11, 0.05)', 'rgba(236, 72, 153, 0.03)', 'transparent'],
+        freqX: 0.0008,
+        freqY: 0.0006,
+        ampX: 80,
+        ampY: 110,
+        phase: Math.PI,
+        currentX: width * 0.15,
+        currentY: height * 0.82
+      },
+      {
+        baseX: width * 0.76,
+        baseY: height * 0.85,
+        radius: isMobile ? 180 : 300,
+        colorLight: ['rgba(16, 185, 129, 0.08)', 'rgba(14, 165, 233, 0.04)', 'transparent'],
+        colorDark: ['rgba(16, 185, 129, 0.06)', 'rgba(0, 242, 254, 0.03)', 'transparent'],
+        freqX: 0.0006,
+        freqY: 0.0008,
+        ampX: 110,
+        ampY: 70,
+        phase: Math.PI * 1.4,
+        currentX: width * 0.76,
+        currentY: height * 0.85
+      }
+    ];
+
+    // Floating Stardust Motes (Gentle luminous drifting motes, NO lines, NO web structures)
+    const moteCount = isMobile ? 16 : 32;
+    motes = [];
+    for (let i = 0; i < moteCount; i++) {
+      motes.push({
         x: Math.random() * width,
         y: Math.random() * height,
-        baseX: 0,
-        baseY: 0,
-        size: Math.random() * 2 + 1,
-        vx: (Math.random() - 0.5) * 0.7,
-        vy: (Math.random() - 0.5) * 0.7,
-        hue: Math.random() > 0.5 ? 184 : 270,
-        pulse: Math.random() * Math.PI * 2
+        baseRadius: Math.random() * 2 + 1.2,
+        speedY: Math.random() * 0.35 + 0.15,
+        wobbleSpeed: Math.random() * 0.015 + 0.008,
+        wobbleAmp: Math.random() * 18 + 8,
+        phase: Math.random() * Math.PI * 2,
+        pulseSpeed: Math.random() * 0.02 + 0.01,
+        pulsePhase: Math.random() * Math.PI * 2,
+        hue: Math.random() > 0.4 ? 245 : (Math.random() > 0.5 ? 345 : 198)
       });
     }
   }
 
-  function drawCyberGrid() {
+  function drawScene(time) {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    const gridColor = isDark ? 'rgba(0, 242, 254, 0.035)' : 'rgba(2, 132, 199, 0.03)';
-    const horizonColor = isDark ? 'rgba(127, 0, 255, 0.06)' : 'rgba(124, 58, 237, 0.04)';
-    const gridSize = 64;
 
-    ctx.save();
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = gridColor;
-
-    // Moving horizontal grid lines with perspective drift
-    const offsetY = gridOffset % gridSize;
-    ctx.beginPath();
-    for (let y = offsetY; y < height; y += gridSize) {
-      ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
+    // Smooth mouse interpolation
+    if (mouse.targetX !== null && mouse.targetY !== null) {
+      mouse.x += (mouse.targetX - mouse.x) * 0.06;
+      mouse.y += (mouse.targetY - mouse.y) * 0.06;
+    } else {
+      mouse.x = null;
+      mouse.y = null;
     }
-    for (let x = 0; x < width; x += gridSize) {
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, height);
-    }
-    ctx.stroke();
 
-    // Mouse grid warp / glow ripple
-    if (mouse.x !== null && mouse.y !== null) {
-      const grad = ctx.createRadialGradient(mouse.x, mouse.y, 10, mouse.x, mouse.y, mouse.radius);
-      grad.addColorStop(0, horizonColor);
-      grad.addColorStop(1, 'transparent');
+    // 1. Draw Floating Chromatic Ambient Orbs
+    for (let i = 0; i < orbs.length; i++) {
+      const orb = orbs[i];
+      let targetX = orb.baseX + Math.sin(time * orb.freqX + orb.phase) * orb.ampX;
+      let targetY = orb.baseY + Math.cos(time * orb.freqY + orb.phase) * orb.ampY;
+
+      // Gentle fluid response to mouse position
+      if (mouse.x !== null && mouse.y !== null) {
+        const dx = mouse.x - targetX;
+        const dy = mouse.y - targetY;
+        const dist = Math.hypot(dx, dy);
+        if (dist < 500) {
+          const force = (1 - dist / 500) * 45;
+          targetX += (dx / dist) * force;
+          targetY += (dy / dist) * force;
+        }
+      }
+
+      orb.currentX += (targetX - orb.currentX) * 0.04;
+      orb.currentY += (targetY - orb.currentY) * 0.04;
+
+      const colors = isDark ? orb.colorDark : orb.colorLight;
+      const grad = ctx.createRadialGradient(
+        orb.currentX, orb.currentY, 0,
+        orb.currentX, orb.currentY, orb.radius
+      );
+      grad.addColorStop(0, colors[0]);
+      grad.addColorStop(0.55, colors[1]);
+      grad.addColorStop(1, colors[2]);
+
+      ctx.save();
       ctx.fillStyle = grad;
       ctx.beginPath();
-      ctx.arc(mouse.x, mouse.y, mouse.radius, 0, Math.PI * 2);
+      ctx.arc(orb.currentX, orb.currentY, orb.radius, 0, Math.PI * 2);
       ctx.fill();
+      ctx.restore();
     }
-    ctx.restore();
-  }
 
-  function drawAndConnectParticles() {
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    const maxDist = 135;
+    // 2. Draw Floating Luminous Stardust Motes (NO connecting lines)
+    for (let i = 0; i < motes.length; i++) {
+      const m = motes[i];
+      m.y -= m.speedY;
+      m.phase += m.wobbleSpeed;
+      m.pulsePhase += m.pulseSpeed;
 
-    // Update & draw particles
-    for (let i = 0; i < particles.length; i++) {
-      const p = particles[i];
-      p.x += p.vx;
-      p.y += p.vy;
-      p.pulse += 0.02;
+      // Wrap around screen top to bottom
+      if (m.y < -10) {
+        m.y = height + 10;
+        m.x = Math.random() * width;
+      }
 
-      if (p.x < 0 || p.x > width) p.vx *= -1;
-      if (p.y < 0 || p.y > height) p.vy *= -1;
+      let drawX = m.x + Math.sin(m.phase) * m.wobbleAmp;
+      let drawY = m.y;
 
-      // Mouse-gravity & repulsion physics
+      // Gentle fluid repulsion from mouse
       if (mouse.x !== null && mouse.y !== null) {
-        const dx = mouse.x - p.x;
-        const dy = mouse.y - p.y;
+        const dx = drawX - mouse.x;
+        const dy = drawY - mouse.y;
         const dist = Math.hypot(dx, dy);
         if (dist < mouse.radius) {
-          const force = (mouse.radius - dist) / mouse.radius;
-          const angle = Math.atan2(dy, dx);
-          p.x -= Math.cos(angle) * force * 3.5;
-          p.y -= Math.sin(angle) * force * 3.5;
+          const push = (mouse.radius - dist) / mouse.radius;
+          drawX += (dx / dist) * push * 25;
+          drawY += (dy / dist) * push * 25;
         }
       }
 
-      // Render node
-      const currentAlpha = 0.5 + Math.sin(p.pulse) * 0.25;
-      const color = p.hue === 184
-        ? `hsla(184, 100%, 50%, ${currentAlpha})`
-        : `hsla(270, 100%, 65%, ${currentAlpha})`;
+      const alpha = 0.25 + Math.sin(m.pulsePhase) * 0.18;
+      const lightness = isDark ? 75 : 62;
+      const color = `hsla(${m.hue}, 85%, ${lightness}%, ${alpha.toFixed(3)})`;
 
+      ctx.save();
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.arc(drawX, drawY, m.baseRadius, 0, Math.PI * 2);
       ctx.fillStyle = color;
-      ctx.shadowBlur = isDark ? 8 : 0;
+      ctx.shadowBlur = isDark ? 8 : 4;
       ctx.shadowColor = color;
       ctx.fill();
-      ctx.shadowBlur = 0;
-    }
-
-    // Connect close particles with neural cyber lines
-    for (let a = 0; a < particles.length; a++) {
-      for (let b = a + 1; b < particles.length; b++) {
-        const dx = particles[a].x - particles[b].x;
-        const dy = particles[a].y - particles[b].y;
-        const dist = Math.hypot(dx, dy);
-        if (dist < maxDist) {
-          const opacity = (1 - dist / maxDist) * (isDark ? 0.32 : 0.22);
-          ctx.beginPath();
-          ctx.strokeStyle = `rgba(0, 242, 254, ${opacity})`;
-          ctx.lineWidth = 0.8;
-          ctx.moveTo(particles[a].x, particles[a].y);
-          ctx.lineTo(particles[b].x, particles[b].y);
-          ctx.stroke();
-        }
-      }
+      ctx.restore();
     }
   }
 
-  function animate() {
+  function animate(timestamp) {
     if (!document.hidden) {
       ctx.clearRect(0, 0, width, height);
-      gridOffset += 0.15;
-      drawCyberGrid();
-      drawAndConnectParticles();
+      drawScene(timestamp || 0);
     }
     animId = requestAnimationFrame(animate);
   }
 
   resize();
-  animate();
+  animate(0);
 }
 
 // ==========================================================================
