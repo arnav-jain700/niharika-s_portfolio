@@ -5,7 +5,7 @@ const DEFAULT_DATA = {
   settings: {
     id: 'main_settings',
     ownerName: 'Niharika',
-    ownerTagline: 'Algorithmic Thinker • Data Science and Full-Stack Explorer',
+    ownerTagline: 'Algorithmic Thinker • Data Science • Software Developer',
     ownerBio: 'Full-Stack Developer & AI Systems Engineer crafting resilient web applications, distributed edge systems, and intelligent agentic workflows.',
     email: 'niharika@example.com',
     location: 'Ludhiana, Punjab, India',
@@ -340,6 +340,7 @@ export function getLocalData() {
           }
         }
       }
+      memoryStore.settings.ownerTagline = DEFAULT_DATA.settings.ownerTagline;
       for (const sk of ['cvUrl', 'cvFilename', 'cvFileSize']) {
         if (!memoryStore.settings[sk] && DEFAULT_DATA.settings[sk]) {
           memoryStore.settings[sk] = DEFAULT_DATA.settings[sk];
